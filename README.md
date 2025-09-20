@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icon.png" width="128" height="128" alt="RoadArchitect icon">
+  <img src="https://cdn.modrinth.com/data/cached_images/5e3cf4526c4f1ff191f1c98debe19db5e23161de_0.webp" width="128" height="128" alt="RoadArchitect icon">
 </p>
 
 <p align="center">

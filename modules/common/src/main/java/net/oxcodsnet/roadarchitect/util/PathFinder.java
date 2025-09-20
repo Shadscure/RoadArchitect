@@ -51,6 +51,16 @@ public class PathFinder {
      */
     public static final double HEURISTIC_SCALE = 95.0;
 
+    /**
+     * Дистанция в блоках для штрафа за приближение к запрещённым биомам.
+     */
+    public static final int FORBIDDEN_BIOME_BUFFER_DIST = 16;
+
+    /**
+     * Штраф за приближение к запрещённым биомам.
+     */
+    public static final double FORBIDDEN_BIOME_PROXIMITY_PENALTY = 500.0;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/" + PathFinder.class.getSimpleName());
     private static final int[][] OFFSETS = generateOffsets();
 
@@ -115,6 +125,29 @@ public class PathFinder {
         for (Map.Entry<TagKey<Biome>, Double> entry : BIOME_COSTS.entrySet()) {
             if (biome.isIn(entry.getKey())) {
                 return entry.getValue();
+            }
+        }
+        return 0.0;
+    }
+
+    /**
+     * Штраф за нахождение рядом с запрещённым биомом.
+     * Проверяет биомы в квадрате вокруг точки и возвращает штраф, если найден запрещённый.
+     */
+    private double proximityPenalty(int x, int z, int y) {
+        int radiusSteps = FORBIDDEN_BIOME_BUFFER_DIST / GRID_STEP;
+        if (radiusSteps <= 0) return 0.0;
+
+        for (int i = -radiusSteps; i <= radiusSteps; i++) {
+            for (int j = -radiusSteps; j <= radiusSteps; j++) {
+                if (i == 0 && j == 0) continue;
+
+                int checkX = x + i * GRID_STEP;
+                int checkZ = z + j * GRID_STEP;
+
+                if (biomeCost(sampleBiome(checkX, checkZ, y)) >= 999.0) {
+                    return FORBIDDEN_BIOME_PROXIMITY_PENALTY;
+                }
             }
         }
         return 0.0;
@@ -321,11 +354,15 @@ public class PathFinder {
                     continue;
                 }
 
+                // Штраф за близость к запрещённым биомам
+                double proxPenalty = proximityPenalty(nx, nz, ny);
+
                 double inc = stepCost(off)
                         + elevationCost(curY, ny)
                         + bCost
                         + yLevelCost(ny)
-                        + stab;
+                        + stab
+                        + proxPenalty;
 
                 double tentativeG = gScore.get(current.key) + inc;
 

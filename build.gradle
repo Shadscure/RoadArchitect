@@ -16,20 +16,107 @@ allprojects {
     version = rootProject.mod_version
 }
 
+// ====================== Maven (.env) ====================
+// ---- helpers for Maven repository configuration ----
+ext.resolveMavenRepoUrl = {
+    def v = System.getenv("MAVEN_REPO_URL") ?: System.getenv("MAVEN_URL")
+    if (!v) {
+        def e = rootProject.extensions.findByName("env")
+        if (e != null) {
+            if (e.isPresent("MAVEN_REPO_URL")) v = e.fetch("MAVEN_REPO_URL")
+            else if (e.isPresent("MAVEN_URL"))  v = e.fetch("MAVEN_URL")
+            else if (e.isPresent("maven_repo_url")) v = e.fetch("maven_repo_url")
+            else if (e.isPresent("maven_url"))      v = e.fetch("maven_url")
+        }
+    }
+    if (!v && rootProject.hasProperty("MAVEN_REPO_URL")) v = rootProject.property("MAVEN_REPO_URL")?.toString()
+    if (!v && rootProject.hasProperty("MAVEN_URL"))      v = rootProject.property("MAVEN_URL")?.toString()
+    return v
+}
+
+ext.resolveMavenRepoUsername = {
+    def v = System.getenv("MAVEN_REPO_USERNAME") ?: System.getenv("MAVEN_REPO_USER") ?: System.getenv("MAVEN_USERNAME") ?: System.getenv("MAVEN_USER")
+    if (!v) {
+        def e = rootProject.extensions.findByName("env")
+        if (e != null) {
+            ["MAVEN_REPO_USERNAME","MAVEN_REPO_USER","MAVEN_USERNAME","MAVEN_USER","maven_repo_username","maven_repo_user","maven_username","maven_user"].find {
+                if (e.isPresent(it)) { v = e.fetch(it); return true }
+                return false
+            }
+        }
+    }
+    if (!v) {
+        ["MAVEN_REPO_USERNAME","MAVEN_REPO_USER","MAVEN_USERNAME","MAVEN_USER"].find {
+            if (rootProject.hasProperty(it)) { v = rootProject.property(it)?.toString(); return true }
+            return false
+        }
+    }
+    return v
+}
+
+ext.resolveMavenRepoPassword = {
+    def v = System.getenv("MAVEN_REPO_PASSWORD") ?: System.getenv("MAVEN_PASSWORD")
+    if (!v) {
+        def e = rootProject.extensions.findByName("env")
+        if (e != null) {
+            ["MAVEN_REPO_PASSWORD","MAVEN_PASSWORD","maven_repo_password","maven_password"].find {
+                if (e.isPresent(it)) { v = e.fetch(it); return true }
+                return false
+            }
+        }
+    }
+    if (!v) {
+        ["MAVEN_REPO_PASSWORD","MAVEN_PASSWORD"].find {
+            if (rootProject.hasProperty(it)) { v = rootProject.property(it)?.toString(); return true }
+            return false
+        }
+    }
+    return v
+}
+
+ext.resolveMavenRepoToken = {
+    def v = System.getenv("MAVEN_REPO_TOKEN") ?: System.getenv("MAVEN_TOKEN")
+    if (!v) {
+        def e = rootProject.extensions.findByName("env")
+        if (e != null) {
+            ["MAVEN_REPO_TOKEN","MAVEN_TOKEN","maven_repo_token","maven_token"].find {
+                if (e.isPresent(it)) { v = e.fetch(it); return true }
+                return false
+            }
+        }
+    }
+    if (!v) {
+        ["MAVEN_REPO_TOKEN","MAVEN_TOKEN"].find {
+            if (rootProject.hasProperty(it)) { v = rootProject.property(it)?.toString(); return true }
+            return false
+        }
+    }
+    return v
+}
+
+ext.resolveMavenRepoName = {
+    def v = System.getenv("MAVEN_REPO_NAME")
+    if (!v) {
+        def e = rootProject.extensions.findByName("env")
+        if (e != null) {
+            if (e.isPresent("MAVEN_REPO_NAME")) v = e.fetch("MAVEN_REPO_NAME")
+            else if (e.isPresent("maven_repo_name")) v = e.fetch("maven_repo_name")
+        }
+    }
+    if (!v && rootProject.hasProperty("MAVEN_REPO_NAME")) v = rootProject.property("MAVEN_REPO_NAME")?.toString()
+    return v ?: "private"
+}
+
 // ====================== CurseForge ====================
-// ---- helpers for CurseForge ----
 ext.resolveCurseforgeToken = {
-    // 1) env
     def t = System.getenv("CURSEFORGE_TOKEN")
-    // 2) из dotenv (.env)
     if (!t) {
         def e = rootProject.extensions.findByName("env")
         if (e != null) {
-            if (e.isPresent("CURSEFORGE_TOKEN"))        t = e.fetch("CURSEFORGE_TOKEN")
-            else if (e.isPresent("curseforge_token"))    t = e.fetch("curseforge_token")
+            if (e.isPresent("CURSEFORGE_TOKEN")) t = e.fetch("CURSEFORGE_TOKEN")
+            else if (e.isPresent("curseforge_token")) t = e.fetch("curseforge_token")
         }
     }
-    // 3) из gradle.properties
     if (!t && rootProject.hasProperty("CURSEFORGE_TOKEN")) {
         t = rootProject.property("CURSEFORGE_TOKEN")?.toString()
     }
@@ -37,63 +124,58 @@ ext.resolveCurseforgeToken = {
 }
 
 tasks.register("publishCurseForgeAll") {
-    dependsOn(
-            ":modules:fabric:curseforge",
-            ":modules:neoforge:curseforge",
-            ":modules:quilt:curseforge",
-    )
+    ["fabric", "neoforge"].each { plat ->
+        if (findProject(":modules:${plat}") != null) {
+            dependsOn(":modules:${plat}:curseforge")
+        }
+    }
 }
 // ====================================================
 
 // ====================== Modrinth ====================
-// ---- helpers for Modrinth ----
 ext.resolveModrinthToken = {
-    // 1) из переменных окружения
     def t = System.getenv("MODRINTH_TOKEN")
-    // 2) из плагина dotenv (.env в корне)
     if (!t) {
         def e = rootProject.extensions.findByName("env")
         if (e != null) {
             if (e.isPresent("MODRINTH_TOKEN"))      t = e.fetch("MODRINTH_TOKEN")
-            else if (e.isPresent("modrinth_token")) t = e.fetch("modrinth_token") // если в .env в нижнем регистре
+            else if (e.isPresent("modrinth_token")) t = e.fetch("modrinth_token")
         }
     }
-    // 3) из gradle.properties (на всякий случай)
     if (!t && rootProject.hasProperty("MODRINTH_TOKEN")) {
         t = rootProject.property("MODRINTH_TOKEN")?.toString()
     }
     return t
 }
 
-// один таск на всё
 tasks.register("publishModrinthAll") {
-    dependsOn(
-            ":modules:fabric:modrinth",
-            ":modules:neoforge:modrinth",
-            ":modules:quilt:modrinth",
-    )
+    ["fabric", "neoforge"].each { plat ->
+        if (findProject(":modules:${plat}") != null) {
+            dependsOn(":modules:${plat}:modrinth")
+        }
+    }
 }
-// ====================================================
-
 
 subprojects {
     apply plugin: 'dev.architectury.loom'
     apply plugin: 'architectury-plugin'
     apply plugin: 'maven-publish'
 
+    // ---- groupId: добавляем сегмент по лоадеру (common/fabric/neoforge/quilt)
+    def baseGroup = rootProject.maven_group
+    def platforms = ["common", "fabric", "neoforge"]
+    if (platforms.contains(project.name)) {
+        group = "${baseGroup}.${project.name}"
+    }
+
     base {
-        // Set up a suffixed format for the mod jar names, e.g. `example-fabric`.
+        // Имена JAR: beltborne_lanterns-<platform>
         archivesName = "$rootProject.archives_name-$project.name"
     }
 
     repositories {
-        // Add repositories to retrieve artifacts from in here.
-        // You should only use this when depending on other mods because
-        // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-        // See https://docs.gradle.org/current/userguide/declaring_repositories.html
-        // for more information about repositories.
-
-        maven { url = uri('https://maven.wispforest.io') }
+        mavenLocal()
+        maven { url = uri('https://maven.wispforest.io')}
         maven { url = uri('https://maven.terraformersmc.com/') }
         maven { url = uri('https://maven.shedaniel.me/') }
     }
@@ -110,11 +192,7 @@ subprojects {
     }
 
     java {
-        // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-        // if it is present.
-        // If you remove this line, sources will not be generated.
         withSourcesJar()
-
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
@@ -123,25 +201,96 @@ subprojects {
         it.options.release = 21
     }
 
-    tasks.withType(Test).configureEach {
-        useJUnitPlatform()
-    }
-
-    // Configure Maven publishing.
+    // ---- Maven publishing: MC в artifactId суффиксом -mcX.Y, sources/dev — classifier’ы
     publishing {
+        def mcTag = "mc" + rootProject.minecraft_version
+
         publications {
             mavenJava(MavenPublication) {
-                artifactId = base.archivesName.get()
-                from components.java
+                def baseId = base.archivesName.get()                 // e.g. beltborne_lanterns-fabric
+                artifactId = "${baseId}-${mcTag}"                    // -> beltborne_lanterns-fabric-mc1.21
+
+                if (tasks.findByName('remapJar')) {
+                    artifact(tasks.named('remapJar')) {               // runtime jar
+                        builtBy(tasks.named('remapJar'))
+                    }
+
+                    if (tasks.findByName('remapSourcesJar')) {
+                        artifact(tasks.named('remapSourcesJar')) {     // sources
+                            classifier = "sources"
+                            builtBy(tasks.named('remapSourcesJar'))
+                        }
+                    } else if (tasks.findByName('sourcesJar')) {
+                        artifact(tasks.named('sourcesJar')) {
+                            classifier = "sources"
+                            builtBy(tasks.named('sourcesJar'))
+                        }
+                    }
+                } else {
+                    if (tasks.findByName('jar')) {
+                        artifact(tasks.named('jar')) {                 // runtime jar
+                            builtBy(tasks.named('jar'))
+                        }
+                    }
+                    if (tasks.findByName('sourcesJar')) {
+                        artifact(tasks.named('sourcesJar')) {          // sources
+                            classifier = "sources"
+                            builtBy(tasks.named('sourcesJar'))
+                        }
+                    }
+                }
+                // dev/fat добавим ниже, когда Shadow будет применён
             }
         }
 
-        // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+        // Репозиторий — из .env / gradle.properties
         repositories {
-            // Add repositories to publish to here.
-            // Notice: This block does NOT have the same function as the block in the top level.
-            // The repositories here will be used for publishing your artifact, not for
-            // retrieving dependencies.
+            def repoUrl = rootProject.ext.resolveMavenRepoUrl()
+            if (repoUrl) {
+                maven {
+                    name = rootProject.ext.resolveMavenRepoName()
+                    url = uri(repoUrl)
+
+                    def user  = rootProject.ext.resolveMavenRepoUsername()
+                    def pass  = rootProject.ext.resolveMavenRepoPassword()
+                    def token = rootProject.ext.resolveMavenRepoToken()
+
+                    if ((user && pass) || token) {
+                        credentials {
+                            if (user && pass) {
+                                username = user; password = pass
+                            } else {
+                                username = user ?: 'token'; password = token
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ---- добавляем dev (shadowJar) как доп. артефакт к mavenJava
+    plugins.withId('com.gradleup.shadow') {
+        publishing {
+            publications {
+                named('mavenJava', MavenPublication) {
+                    if (tasks.findByName('shadowJar')) {
+                        artifact(tasks.named('shadowJar')) {
+                            classifier = "dev"        // без MC (он уже в artifactId)
+                            builtBy(tasks.named('shadowJar'))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Aggregate task to publish all platform modules to Maven
+tasks.register("publishMavenAll") {
+    ["common", "fabric", "neoforge"].each { plat ->
+        if (findProject(":modules:${plat}") != null) {
+            dependsOn(":modules:${plat}:publish")
         }
     }
 }

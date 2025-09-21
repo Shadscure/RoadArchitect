@@ -93,7 +93,7 @@ public final class RAConfigHolder {
         // Terrain Analyzer defaults
         @Override
         public boolean terrainAnalyzerEnabled() {
-            return true;
+            return false;
         }
 
         @Override

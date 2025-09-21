@@ -50,7 +50,7 @@ public final class RoadArchitectConfigData implements ConfigData {
 
     public static final class TerrainAnalyzerSettings {
         @ConfigEntry.Gui.Tooltip
-        public boolean enabled = true;
+        public boolean enabled = false;
 
         @ConfigEntry.BoundedDiscrete(min = 4, max = 64)
         @ConfigEntry.Gui.Tooltip

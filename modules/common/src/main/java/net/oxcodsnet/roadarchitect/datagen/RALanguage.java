@@ -67,7 +67,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Place lamps, buoys and sides using a global marker grid (chunk-agnostic).");
                 // Terrain Analyzer (AutoConfig)
-                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Terrain Analyzer");
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Terrain Analyzer (Beta)");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Enable Terrain Analyzer");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
                         "Steer roads around rough/mountainous terrain by penalizing height variance.");
@@ -151,7 +151,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Размещение по глобальной сетке маркеров (не зависит от чанков).");
                 // Анализ рельефа (AutoConfig)
-                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Анализ рельефа");
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Анализ рельефа (Бета)");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Включить анализ рельефа");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
                         "Отклонять дороги от неровной/гористой местности с помощью штрафа за разброс высот.");
@@ -235,7 +235,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Colocación mediante una cuadrícula global de marcadores (independiente de chunks).");
                 // Analizador de Terreno (AutoConfig)
-                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Analizador de Terreno");
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Analizador de Terreno (Beta)");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Activar analizador de terreno");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
                         "Desvía carreteras del terreno abrupto/montañoso penalizando la variación de altura.");
@@ -319,7 +319,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Placement via une grille de marqueurs globale (indépendante des chunks).");
                 // Analyse du relief (AutoConfig)
-                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Analyse du relief");
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Analyse du relief (Bêta)");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Activer l’analyse du relief");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
                         "Éloigne les routes des zones accidentées/montagneuses via une pénalisation de l’écart d’altitude.");
@@ -403,7 +403,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Platzierung über globales Markerraster (chunk-unabhängig).");
                 // Reliefanalyse (AutoConfig)
-                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Reliefanalyse");
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Reliefanalyse (Beta)");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Reliefanalyse aktivieren");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
                         "Leitet Straßen um unebenes/bergiges Gelände, indem Höhenunterschiede bestraft werden.");
@@ -479,7 +479,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "使用全局标记网格进行放置（与区块无关）。");
                 // 地形分析 (AutoConfig)
-                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "地形分析");
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "地形分析（测试版）");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "启用地形分析");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
                         "通过惩罚高度变化，让道路绕开崎岖/山地地形。");
@@ -555,7 +555,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Розміщує ліхтарі, буйки та паркани, використовуючи глобальну сітку маркерів (незалежно від чанків).");
                 // Аналіз рельєфу (AutoConfig)
-                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Аналіз рельєфу");
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Аналіз рельєфу (Бета)");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Увімкнути аналіз рельєфу");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
                         "Відхиляє дороги від нерівної/гірської місцевості, штрафуючи розкид висот.");

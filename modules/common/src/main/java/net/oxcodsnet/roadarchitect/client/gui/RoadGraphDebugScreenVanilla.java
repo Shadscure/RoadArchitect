@@ -268,15 +268,20 @@ public class RoadGraphDebugScreenVanilla extends Screen {
 
     private void teleportTo(Node node) {
         MinecraftClient mc = MinecraftClient.getInstance();
-        mc.execute(() -> {
-            if (mc.getServer() != null && mc.player != null) {
+        if (mc.player == null) {
+            return;
+        }
+
+        if (mc.getServer() != null) {
+            // Интегрированный сервер: телепорт выполняем на его треде, иначе пакет не уйдёт клиенту.
+            mc.getServer().execute(() -> {
                 ServerPlayerEntity sp = mc.getServer().getPlayerManager().getPlayer(mc.player.getUuid());
                 if (sp != null) {
                     sp.requestTeleport(node.pos().getX() + 0.5, node.pos().getY(), node.pos().getZ() + 0.5);
                 }
-            }
-            // Иначе: на сервере — отправить пакет с позицией (реализуется платформенно)
-        });
+            });
+        }
+        // Иначе: на сервере — отправить пакет с позицией (реализуется платформенно)
     }
 
     private static double dist2(double x1, double y1, double x2, double y2) {

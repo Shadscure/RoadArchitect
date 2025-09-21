@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icon.png" width="128" height="128" alt="RoadArchitect icon">
+  <img src="https://cdn.modrinth.com/data/cached_images/5e3cf4526c4f1ff191f1c98debe19db5e23161de_0.webp" width="128" height="128" alt="RoadArchitect icon">
 </p>
 
 <p align="center">
@@ -11,7 +11,7 @@
   </a>
 </p>
 
-<p align="center" style="display:flex;justify-content:center;gap:8px;margin:6px 0;">
+<p align="center" style="display: flex; justify-content: center; gap: 6px;">
     <a href="https://modrinth.com/mod/roadarchitect/versions?l=fabric">
         <img src="https://cdn.modrinth.com/data/cached_images/d8a8d9852fb6e55292d6f5ecc1842fd7bc8c3c9e.webp" alt="Available on Fabric">
     </a>
@@ -22,15 +22,27 @@
     <img src="https://cdn.modrinth.com/data/cached_images/ecbd0303728027761730760800f9354e14f38d31.webp" alt="Available on NeoForge">
   </a>
 </p>
+<p align="center" style="display:flex;justify-content:center;gap:8px;margin:6px 0;">
+  <a href="https://boosty.to/0xcodsnet" target="_blank" rel="noopener">
+    <img alt="Boosty — Support" src="https://img.shields.io/badge/Boosty-Support-F15F2C?style=for-the-badge&logo=boosty&logoColor=white">
+  </a>
+</p>
 
----
+<p align="center" style="display:flex;justify-content:center;gap:8px;margin:6px 0;">
+  <a href="https://discord.gg/9JRb3JMAD3" target="_blank" rel="noopener">
+    <img alt="discord-plural" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy-minimal/social/discord-plural_vector.svg">
+  </a>
+</p>
+
 
 # RoadArchitect
 
-**RoadArchitect** is a **Fabric / Quilt / NeoForge** mod for **Minecraft 1.21.1–1.21.8** that automatically scans the world for villages and other structures and connects them with roads to form a persistent travel network.  
+**RoadArchitect** is a **Fabric / Quilt / NeoForge** mod for **Minecraft 1.21–1.21.8** that automatically scans the world for villages and other structures and connects them with roads to form a persistent travel network.  
 Roads adapt their style to the biome, and the network is saved between game sessions.
 
-> **Current version:** `v1.2.0`
+> **Current version:** `v1.4.0`
+
+> **Wiki:** <a href="https://github.com/0xCoDSnet/RoadArchitect/wiki">RoadArchitect Wiki</a>
 
 ## ✨ Features
 
@@ -40,55 +52,67 @@ Roads adapt their style to the biome, and the network is saved between game sess
 - 💾 **Persistent network** — roads remain between sessions  
 - 🔄 **Fully automated**, minimal setup  
 - 🧰 **Configurable** via **Cloth Config** *(required on Fabric / Quilt / NeoForge)*  
-- 🌐 **Localization** included: English, Russian, Spanish, French, German, Chinese  
+- 🌐 **Localization** included: English, Russian, Ukrainian, Spanish, French, German, Chinese  
 - 🛰 **Visual road-graph debugger** with pan/zoom, tooltips, and a color legend; in singleplayer, clicking a node teleports to it (default hotkey **H**)
+- 🗺 **Terralith-ready** — works out of the box with the <a href="https://modrinth.com/datapack/terralith">Terralith</a> world-generation datapack
 
 ---
 
 ## 📷 Screenshots
-### Savanna
-<p align="left">
-  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/4b3da6120c5ff2e47f76a8c30fc501b09f19fdff.webp" width="512" height="512">
-</p>
 
-### Desert
+### Plains (with lamp decorations)
 <p align="left">
-  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/295ab7327a26e0178f709c9ea4ea4e884607b5fe.webp" width="512" height="512">
-</p>
-
-### Forest
-<p align="left">
-  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/827177b77f8dfdbdd7d066a0d5f810645b51f172.webp" width="512" height="512">
-</p>
-
-### Cherry grove
-<p align="left">
-  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/45a4421507316e4a5c8a945f7689804dd054821a.webp" width="512" height="512">
-</p>
-
-### Taiga
-<p align="left">
-  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/138dc531317fc291c44471533066d6d997d53af8.webp" width="512" height="512" alt="RoadArchitect icon">
-</p>
-
-### Swamp
-<p align="left">
-  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/d794b96b28bf84884902ca2e05504617ee1f9800.webp" width="512" height="512">
-</p>
-
-### Old growth spruce taiga
-<p align="left">
-  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/a228fa4f9649aea42ae66d9269442686df6521a9.webp" width="512" height="512">
+  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/6396ec0041c37f3a716514a5622a438c7d5aa838.webp" height="512">
 </p>
 
 ### Plains
 <p align="left">
-  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/36c5f56757f8d448dc00cffddbd3ac129cb2bb91.webp" width="512" height="512">
+  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/36c5f56757f8d448dc00cffddbd3ac129cb2bb91.webp" height="512">
+</p>
+
+### Savanna
+<p align="left">
+  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/4b3da6120c5ff2e47f76a8c30fc501b09f19fdff.webp" height="512">
+</p>
+
+### Desert
+<p align="left">
+  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/295ab7327a26e0178f709c9ea4ea4e884607b5fe.webp" height="512">
+</p>
+
+### Forest
+<p align="left">
+  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/827177b77f8dfdbdd7d066a0d5f810645b51f172.webp" height="512">
+</p>
+
+### Cherry grove
+<p align="left">
+  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/45a4421507316e4a5c8a945f7689804dd054821a.webp" height="512">
+</p>
+
+### Cherry grove (with lamp decorations)
+<p align="left">
+  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/ad851b4b32f62f165b6e37b3c26fffaf36129ff8.webp" height="512">
+</p>
+
+### Taiga
+<p align="left">
+  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/138dc531317fc291c44471533066d6d997d53af8.webp" height="512">
+</p>
+
+### Swamp
+<p align="left">
+  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/d794b96b28bf84884902ca2e05504617ee1f9800.webp" height="512">
+</p>
+
+### Old growth spruce taiga
+<p align="left">
+  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/a228fa4f9649aea42ae66d9269442686df6521a9.webp" height="512">
 </p>
 
 ### River
 <p align="left">
-  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/c99e8d83bce571228c71efa6a3f6522551af16d9.webp" width="512" height="512">
+  <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/c99e8d83bce571228c71efa6a3f6522551af16d9.webp" height="512">
 </p>
 
 ---
@@ -132,6 +156,38 @@ Roads adapt their style to the biome, and the network is saved between game sess
 ## 🗒️ Recent changes
 
 <details>
+<summary><strong>v1.4.0</strong> — <em>Add-ons support</em></summary>
+
+### Highlights
+
+- 🧩 Add-ons support: official API so other mods can extend Road Architect (events, read-only core views, and per-world storage);
+- 📴 No changes out of the box: there are no built-in add-ons; gameplay stays the same unless you install one.;
+
+**Compatibility:** No visible gameplay changes by default; add-ons are optional.;
+</details>
+
+
+<details>
+<summary><strong>v1.3.0</strong> — <em>Smarter scans & deterministic decorations</em></summary>
+
+### Highlights
+- 🧠 Smarter scanning: major performance boost for large-area scans and many structure types—smoother gameplay, cleaner road graphs, and more reliable structure detection.
+- 🌲 Deterministic decorations: consistent, per-path placement of decorations (lamps, buoys, side pieces) across chunk loads—less pop-in and cleaner chunk borders. Also fixes common issues like floating fence posts or off-grid buoys.
+- 💡 New Lamp decorations: fresh styles and better fence integration where appropriate.
+- 🧭 Debug map: shows your position and direction (red dot + arrow).
+- ⚙️ New settings (all loaders):
+    - Lamp interval
+    - Side decoration interval
+    - Buoy interval
+    - Mask erosion near land/water transitions
+    - Toggle for deterministic decorations
+- 🛤️ Smoother road profiles: post-processing reduces spikes and clamps extreme slopes for cleaner elevation transitions.
+- 🌐 Localization & UI: updated strings (EN/RU/ES/FR/DE/ZH) and a small progress-stage label fix (“initialisation”).
+
+**Compatibility:** No breaking changes; existing worlds remain compatible.
+</details>
+
+<details>
 <summary><strong>v1.2.0</strong> — <em>Vanilla loading, convenient settings, visual debug</em></summary>
 
 ### Highlights
@@ -166,6 +222,17 @@ Roads adapt their style to the biome, and the network is saved between game sess
   The mod is both server and client sided.
   
   To join a server, the mod must be installed on both the server and the client.
+</details>
+
+<details>
+  <summary>Does it work with the Terralith world-generation datapack?</summary>
+  Yes — RoadArchitect is fully compatible with <a href="https://modrinth.com/datapack/terralith">Terralith</a>. Roads scan and connect structures in Terralith biomes out of the box.
+</details>
+
+<details>
+  <summary>Only villages are being connected?</summary>
+  
+  Not only! RoadArchitect can connect any structure discoverable via `/locate structure`. Add the structure IDs or a `#tag` in the config, then reload/restart the world to rescan.
 </details>
 
 ---

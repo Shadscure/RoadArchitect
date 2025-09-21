@@ -272,15 +272,20 @@ public class RoadGraphDebugScreenVanilla extends Screen {
 
     private void teleportTo(Node node) {
         MinecraftClient mc = MinecraftClient.getInstance();
-        mc.execute(() -> {
-            if (mc.getServer() != null && mc.player != null) {
+        if (mc.player == null) {
+            return;
+        }
+
+        if (mc.getServer() != null) {
+            // Интегрированный сервер: телепорт выполняем на его треде, иначе пакет не уйдёт клиенту.
+            mc.getServer().execute(() -> {
                 ServerPlayerEntity sp = mc.getServer().getPlayerManager().getPlayer(mc.player.getUuid());
                 if (sp != null) {
                     sp.requestTeleport(node.pos().getX() + 0.5, node.pos().getY(), node.pos().getZ() + 0.5);
                 }
-            }
-            // Иначе: на сервере — отправить пакет с позицией (реализуется платформенно)
-        });
+            });
+        }
+        // Иначе: на сервере — отправить пакет с позицией (реализуется платформенно)
     }
 
     private static double dist2(double x1, double y1, double x2, double y2) {
@@ -391,9 +396,9 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         drawCircleOutline(ctx, p.x, p.y, r, outline);
 
         // (опционально) маленькая «носик-стрелка» по направлению взгляда:
-        // В Minecraft yaw = 0 смотрит на +Z, углы по часовой, поэтому разворачиваем чуть-чуть.
+        // В Minecraft yaw = 0 смотрит на +Z, а положительный yaw поворачивает влево (против часовой стрелки).
         float yaw = mc.player.getYaw();
-        double a = Math.toRadians(-yaw) + Math.PI / 2.0;
+        double a = Math.toRadians(yaw) + Math.PI / 2.0;
         int tx = p.x + (int)Math.round(Math.cos(a) * (r + 3));
         int ty = p.y + (int)Math.round(Math.sin(a) * (r + 3));
         drawLine(ctx, p.x, p.y, tx, ty, 0xFFFFFFFF);
@@ -402,4 +407,3 @@ public class RoadGraphDebugScreenVanilla extends Screen {
 
     private record ScreenPos(int x, int y) {}
 }
-

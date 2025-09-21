@@ -40,4 +40,34 @@ public interface RAConfig {
     boolean deterministicDecorations();
 
     List<String> structureSelectors();
+
+    // Terrain Analyzer (mountain/roughness avoidance)
+    boolean terrainAnalyzerEnabled();
+    int terrainRoughRadius();
+    int terrainRoughStride();
+    int terrainRangeThreshold();
+    double terrainPenaltyScale();
+
+    // Pathfinding: land vs water preference
+    boolean preferLandOverWater();
+    double waterStepPenalty();
+    int coastAvoidBufferBlocks();
+    double coastProximityPenalty();
+
+    // Pathfinding: forbidden biomes (block traversal)
+    java.util.List<String> forbiddenBiomeSelectors();
+    int forbiddenBiomeBufferBlocks();
+    double forbiddenBiomeProximityPenalty();
+
+    // Pathfinding: partial acceptance when convergence is high
+    /**
+     * Whether to accept a partial path if A* fails but convergence is high.
+     */
+    boolean acceptPartialPaths();
+
+    /**
+     * Convergence threshold in [0..1] to accept a partial path.
+     * For example, 0.8 means 80% progress towards the L1 goal distance.
+     */
+    double partialProgressThreshold();
 }

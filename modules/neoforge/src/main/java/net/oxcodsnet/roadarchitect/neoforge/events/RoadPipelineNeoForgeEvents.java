@@ -8,7 +8,6 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
-import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.fml.ModList;
 import net.oxcodsnet.roadarchitect.handlers.RoadPipelineController;
@@ -30,16 +29,10 @@ public final class RoadPipelineNeoForgeEvents {
     public static void register() {
         RoadPipelineController.init();
         dhPresent = ModList.get().isLoaded(DhCompat.DH_MOD_ID);
-        RoadPipelineController.setDhIntegrationActive(dhPresent);
-        NeoForge.EVENT_BUS.register(RoadPipelineNeoForgeEvents.class);
-    }
-
-    @SubscribeEvent
-    public static void onLevelLoad(LevelEvent.Load event) {
-        if (!(event.getLevel() instanceof ServerWorld world)) return;
-        if (dhPresent && world.getRegistryKey() == net.minecraft.world.World.OVERWORLD) {
-            DhCompat.onServerWorldLoad(world);
+        if (dhPresent) {
+            LOGGER.debug("Distant Horizons detected: skipping INIT pregen; pipeline will start on player join");
         }
+        NeoForge.EVENT_BUS.register(RoadPipelineNeoForgeEvents.class);
     }
 
     @SubscribeEvent
@@ -47,9 +40,7 @@ public final class RoadPipelineNeoForgeEvents {
         if (!event.isNewChunk()) return;
         if (!(event.getLevel() instanceof ServerWorld world)) return;
         Chunk chunk = event.getChunk();
-        if (dhPresent) {
-            DhCompat.onServerChunkLoad(world, chunk.getPos());
-        } else {
+        if (!dhPresent) {
             RoadPipelineController.onSpawnChunkGenerated(world, chunk);
         }
         RoadPipelineController.onChunkGenerated(world, chunk);

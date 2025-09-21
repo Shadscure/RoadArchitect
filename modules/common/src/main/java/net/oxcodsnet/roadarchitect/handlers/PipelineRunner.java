@@ -43,8 +43,7 @@ public final class PipelineRunner {
                 case INIT -> {
                     setStage(PipelineStage.SCANNING_STRUCTURES);
                     //long start = System.nanoTime();
-                    // На INIT избегаем загрузки чанков, чтобы не блокировать старт мира и сторонние предгены
-                    StructureScanManager.scan(world, mode.reason(), center, RoadArchitect.CONFIG.initScanRadius(), false);
+                    StructureScanManager.scan(world, mode.reason(), center, RoadArchitect.CONFIG.initScanRadius());
                     //double ms = (System.nanoTime() - start) / 1_000_000.0;
                     //LOGGER.info("StructureScanManager finish: {}", ms);
 
@@ -56,8 +55,7 @@ public final class PipelineRunner {
                 }
                 default -> {
                     setStage(PipelineStage.SCANNING_STRUCTURES);
-                    // В остальных режимах разрешаем дозагрузку STRUCTURE_STARTS для точного выявления
-                    StructureScanManager.scan(world, mode.reason(), center, RoadArchitect.CONFIG.chunkGenerateScanRadius(), true);
+                    StructureScanManager.scan(world, mode.reason(), center, RoadArchitect.CONFIG.chunkGenerateScanRadius());
 
                     setStage(PipelineStage.PATH_FINDING);
                     PathFinderManager.computePaths(world, 50, RoadArchitect.CONFIG.maxConnectionDistance() * 5);

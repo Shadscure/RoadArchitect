@@ -44,13 +44,18 @@ public final class RoadPipelineController {
      * продолжительностью не менее quietTicks (для совместимости с предгеном DH).
      */
     private static final class PendingInit {
-        final BlockPos pos;
+        final BlockPos pos; // может быть фикcированным центром; если spawnCentered=true — игнорируется
         int ticksLeft;
         final int quietTicks;
+        final boolean spawnCentered; // true: взять центр как текущий world.getSpawnPos() в момент запуска
         PendingInit(BlockPos pos, int ticksLeft, int quietTicks) {
+            this(pos, ticksLeft, quietTicks, false);
+        }
+        PendingInit(BlockPos pos, int ticksLeft, int quietTicks, boolean spawnCentered) {
             this.pos = pos;
             this.ticksLeft = ticksLeft;
             this.quietTicks = quietTicks;
+            this.spawnCentered = spawnCentered;
         }
     }
     private static final Map<RegistryKey<World>, PendingInit> PENDING_INIT = new ConcurrentHashMap<>();
@@ -109,7 +114,7 @@ public final class RoadPipelineController {
         if (INITIALIZED.contains(world.getRegistryKey())) return;
         if (PENDING_INIT.containsKey(world.getRegistryKey())) return;
 
-        int delay = Math.max(20, RoadArchitect.CONFIG.pipelineIntervalSeconds() * 20); // минимум 1 секунда
+        int delay = 20; // ~1 секунда базовая задержка
         PENDING_INIT.put(world.getRegistryKey(), new PendingInit(world.getSpawnPos(), delay, 0));
         LOGGER.debug("Scheduled deferred INIT for {} at {} ({} ticks)",
                 world.getRegistryKey().getValue(), world.getSpawnPos(), delay);
@@ -127,10 +132,24 @@ public final class RoadPipelineController {
         if (INITIALIZED.contains(world.getRegistryKey())) return;
         if (PENDING_INIT.containsKey(world.getRegistryKey())) return;
 
-        int delay = Math.max(20, RoadArchitect.CONFIG.pipelineIntervalSeconds() * 20);
-        PENDING_INIT.put(world.getRegistryKey(), new PendingInit(world.getSpawnPos(), delay, Math.max(0, quietTicks)));
+        int delay = 1; // почти сразу, дальнейшее ожидание регулирует quietTicks
+        PENDING_INIT.put(world.getRegistryKey(), new PendingInit(world.getSpawnPos(), delay, Math.max(0, quietTicks), true));
         LOGGER.debug("Scheduled DH-aware deferred INIT for {} at {} ({} ticks, quiet={} ticks)",
                 world.getRegistryKey().getValue(), world.getSpawnPos(), delay, quietTicks);
+    }
+
+    /**
+     * Гарантирует, что INIT запланирован (один раз) для мира — вариант для DH.
+     * Не проверяет спавн-чанк; центр берём как текущий спавн при запуске.
+     */
+    public static void ensureInitScheduledDhAware(ServerWorld world, int quietTicks) {
+        if (world.getRegistryKey() != World.OVERWORLD) return;
+        if (INITIALIZED.contains(world.getRegistryKey())) return;
+        if (PENDING_INIT.containsKey(world.getRegistryKey())) return;
+        int delay = 1;
+        PENDING_INIT.put(world.getRegistryKey(), new PendingInit(null, delay, Math.max(0, quietTicks), true));
+        LOGGER.debug("Ensured DH-aware INIT scheduled for {} ({} ticks, quiet={} ticks)",
+                world.getRegistryKey().getValue(), delay, quietTicks);
     }
 
     /**
@@ -201,8 +220,10 @@ public final class RoadPipelineController {
                         continue;
                     }
                 }
-                LOGGER.debug("Running deferred INIT for {} at {} (quiet={} ticks)", key.getValue(), pending.pos, pending.quietTicks);
-                PipelineRunner.runPipeline(world, pending.pos, PipelineRunner.PipelineMode.INIT);
+                BlockPos center = pending.spawnCentered ? world.getSpawnPos() : pending.pos;
+                LOGGER.debug("Running deferred INIT for {} at {} (quiet={} ticks, spawnCentered={})",
+                        key.getValue(), center, pending.quietTicks, pending.spawnCentered);
+                PipelineRunner.runPipeline(world, center, PipelineRunner.PipelineMode.INIT);
                 INITIALIZED.add(key);
                 PENDING_INIT.remove(key);
             }
@@ -232,6 +253,21 @@ public final class RoadPipelineController {
         globalTick = 0;
         LAST_CHUNK_LOAD_TICK.clear();
         LOGGER.debug("Server stopping, state cleared");
+    }
+
+    /**
+     * Немедленный запуск INIT для мира (если ещё не выполнялся).
+     * Использовать для раннего старта при наличии DH, когда известен корректный центр (спавн).
+     */
+    public static void runInitNow(ServerWorld world, BlockPos center) {
+        if (world.getRegistryKey() != World.OVERWORLD) return;
+        RegistryKey<World> key = world.getRegistryKey();
+        if (INITIALIZED.contains(key)) return;
+        // снимаем отложенный, если был
+        PENDING_INIT.remove(key);
+        LOGGER.debug("Running immediate INIT for {} at {} (DH compat)", key.getValue(), center);
+        PipelineRunner.runPipeline(world, center, PipelineRunner.PipelineMode.INIT);
+        INITIALIZED.add(key);
     }
 
     /* ─────────────────────────── Вспомогательное ─────────────────────────── */

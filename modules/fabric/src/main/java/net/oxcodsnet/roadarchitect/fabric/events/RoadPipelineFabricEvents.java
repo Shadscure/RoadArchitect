@@ -4,10 +4,12 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.chunk.WorldChunk;
 import net.oxcodsnet.roadarchitect.handlers.RoadPipelineController;
+import net.oxcodsnet.roadarchitect.handlers.compat.DhCompat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,17 +29,14 @@ public final class RoadPipelineFabricEvents {
 
         final boolean dhPresent = FabricLoader.getInstance().isModLoaded("distanthorizons");
         if (dhPresent) {
-            LOGGER.debug("Distant Horizons detected: deferring INIT until first player join");
+            LOGGER.debug("Distant Horizons detected: INIT will run early with allowChunkLoads=false");
         }
 
         // 1) Первая генерация спавн-чанка (и вообще генерация чанка)
         ServerChunkEvents.CHUNK_LOAD.register((ServerWorld world, WorldChunk chunk) -> {
-            // Фиксация "активности" по загрузкам чанков (для DH-aware тишины)
-            RoadPipelineController.onAnyChunkLoad(world);
-            // При наличии Distant Horizons планируем INIT с требованием дождаться тишины
+            // При наличии Distant Horizons — централизованный вызов совместимости
             if (dhPresent) {
-                // эвристически ждём 80 тиков "тишины" (~4 секунды) перед INIT
-                RoadPipelineController.onSpawnChunkGeneratedDhAware(world, chunk, 80);
+                DhCompat.onServerChunkLoad(world, chunk.getPos());
             } else {
                 RoadPipelineController.onSpawnChunkGenerated(world, chunk);
             }
@@ -52,6 +51,13 @@ public final class RoadPipelineFabricEvents {
         ServerTickEvents.START_SERVER_TICK.register(server -> {
             RoadPipelineController.onServerTick(server);
             net.oxcodsnet.roadarchitect.api.addon.RoadAddons.onServerTick(server);
+        });
+
+        // Ранний хук на загрузку мира: если DH присутствует — централизованный вызов совместимости
+        ServerWorldEvents.LOAD.register((server, world) -> {
+            if (dhPresent && world.getRegistryKey() == net.minecraft.world.World.OVERWORLD) {
+                DhCompat.onServerWorldLoad(world);
+            }
         });
 
         // 5) Остановка сервера

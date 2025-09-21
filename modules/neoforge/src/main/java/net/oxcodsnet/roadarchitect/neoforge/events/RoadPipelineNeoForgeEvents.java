@@ -8,9 +8,11 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.fml.ModList;
 import net.oxcodsnet.roadarchitect.handlers.RoadPipelineController;
+import net.oxcodsnet.roadarchitect.handlers.compat.DhCompat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,16 +32,22 @@ public final class RoadPipelineNeoForgeEvents {
     }
 
     @SubscribeEvent
+    public static void onLevelLoad(LevelEvent.Load event) {
+        if (!(event.getLevel() instanceof ServerWorld world)) return;
+        boolean dhPresent = ModList.get().isLoaded("distanthorizons");
+        if (dhPresent && world.getRegistryKey() == net.minecraft.world.World.OVERWORLD) {
+            DhCompat.onServerWorldLoad(world);
+        }
+    }
+
+    @SubscribeEvent
     public static void onChunkLoad(ChunkEvent.Load event) {
         if (!event.isNewChunk()) return;
         if (!(event.getLevel() instanceof ServerWorld world)) return;
         Chunk chunk = event.getChunk();
         boolean dhPresent = ModList.get().isLoaded("distanthorizons");
-        // фиксируем загрузку чанка для измерения "тишины"
-        RoadPipelineController.onAnyChunkLoad(world);
         if (dhPresent) {
-            // DH-aware: дождёмся "тишины" перед INIT, чтобы не стопать загрузку мира
-            RoadPipelineController.onSpawnChunkGeneratedDhAware(world, chunk, 80);
+            DhCompat.onServerChunkLoad(world, chunk.getPos());
         } else {
             RoadPipelineController.onSpawnChunkGenerated(world, chunk);
         }

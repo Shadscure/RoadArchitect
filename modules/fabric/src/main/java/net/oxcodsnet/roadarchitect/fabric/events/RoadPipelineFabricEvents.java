@@ -28,6 +28,7 @@ public final class RoadPipelineFabricEvents {
         RoadPipelineController.init();
 
         final boolean dhPresent = FabricLoader.getInstance().isModLoaded("distanthorizons");
+        RoadPipelineController.setDhIntegrationActive(dhPresent);
         if (dhPresent) {
             LOGGER.debug("Distant Horizons detected: INIT will run early with allowChunkLoads=false");
         }

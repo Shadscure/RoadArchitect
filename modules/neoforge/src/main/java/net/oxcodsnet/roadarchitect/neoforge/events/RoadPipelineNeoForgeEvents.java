@@ -22,19 +22,21 @@ import org.slf4j.LoggerFactory;
  */
 public final class RoadPipelineNeoForgeEvents {
     private static final Logger LOGGER = LoggerFactory.getLogger("roadarchitect/NeoForgeEvents");
+    private static boolean dhPresent;
 
     private RoadPipelineNeoForgeEvents() {
     }
 
     public static void register() {
         RoadPipelineController.init();
+        dhPresent = ModList.get().isLoaded(DhCompat.DH_MOD_ID);
+        RoadPipelineController.setDhIntegrationActive(dhPresent);
         NeoForge.EVENT_BUS.register(RoadPipelineNeoForgeEvents.class);
     }
 
     @SubscribeEvent
     public static void onLevelLoad(LevelEvent.Load event) {
         if (!(event.getLevel() instanceof ServerWorld world)) return;
-        boolean dhPresent = ModList.get().isLoaded("distanthorizons");
         if (dhPresent && world.getRegistryKey() == net.minecraft.world.World.OVERWORLD) {
             DhCompat.onServerWorldLoad(world);
         }
@@ -45,7 +47,6 @@ public final class RoadPipelineNeoForgeEvents {
         if (!event.isNewChunk()) return;
         if (!(event.getLevel() instanceof ServerWorld world)) return;
         Chunk chunk = event.getChunk();
-        boolean dhPresent = ModList.get().isLoaded("distanthorizons");
         if (dhPresent) {
             DhCompat.onServerChunkLoad(world, chunk.getPos());
         } else {

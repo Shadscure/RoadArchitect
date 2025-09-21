@@ -39,6 +39,11 @@ public final class RoadPipelineController {
     private static final Set<RegistryKey<World>> INITIALIZED = ConcurrentHashMap.newKeySet();
 
     /**
+     * Флаг активной интеграции с Distant Horizons.
+     */
+    private static volatile boolean dhIntegrationActive = false;
+
+    /**
      * Отложенные INIT по мирам: запуск через N тиков после генерации спавн‑чанка.
      * quietTicks > 0 означает: запускать только после "тишины" по загрузкам чанков
      * продолжительностью не менее quietTicks (для совместимости с предгеном DH).
@@ -88,6 +93,20 @@ public final class RoadPipelineController {
         tickCounter = 0;
         globalTick = 0;
         LOGGER.debug("RoadPipelineController initialized (selectors cached)");
+    }
+
+    /**
+     * Активировать/деактивировать поведение, специфичное для Distant Horizons.
+     */
+    public static void setDhIntegrationActive(boolean active) {
+        if (dhIntegrationActive != active) {
+            dhIntegrationActive = active;
+            LOGGER.debug("DH integration active: {}", active);
+        }
+    }
+
+    public static boolean isDhIntegrationActive() {
+        return dhIntegrationActive;
     }
 
     /**
@@ -176,18 +195,28 @@ public final class RoadPipelineController {
      */
     public static void onPlayerJoin(ServerPlayerEntity player) {
         ServerWorld world = (ServerWorld) player.getWorld();
-        if (world.getRegistryKey() != World.OVERWORLD) return;
+        RegistryKey<World> key = world.getRegistryKey();
+        if (key != World.OVERWORLD) return;
 
-        // Если INIT ещё не выполнялся для этого мира (например, отложили из-за модов вроде Distant Horizons),
-        // выполним его сейчас, когда мир стабильно загружен и игрок уже подключился.
-        if (!INITIALIZED.contains(world.getRegistryKey())) {
-            BlockPos spawn = world.getSpawnPos();
-            LOGGER.debug("Player {} joined; INIT not done yet for {}. Running INIT at spawn {}",
-                    player.getName().getString(), world.getRegistryKey().getValue(), spawn);
-            // Снимаем возможный отложенный запуск, если был
-            PENDING_INIT.remove(world.getRegistryKey());
-            PipelineRunner.runPipeline(world, spawn, PipelineRunner.PipelineMode.INIT);
-            INITIALIZED.add(world.getRegistryKey());
+        if (!INITIALIZED.contains(key)) {
+            PendingInit pending = PENDING_INIT.get(key);
+            if (!dhIntegrationActive && pending != null) {
+                LOGGER.debug("Player {} joined; INIT pending for {} (ticksLeft={}, quiet={} ticks) — waiting for scheduled run",
+                        player.getName().getString(), key.getValue(), pending.ticksLeft, pending.quietTicks);
+                return;
+            }
+
+            BlockPos center = world.getSpawnPos();
+            if (pending != null && pending.pos != null && !pending.spawnCentered) {
+                center = pending.pos;
+            }
+
+            LOGGER.debug("Player {} joined; INIT not done yet for {}. Running INIT at {} (dhIntegrationActive={}, pendingPresent={})",
+                    player.getName().getString(), key.getValue(), center, dhIntegrationActive, pending != null);
+
+            PENDING_INIT.remove(key);
+            PipelineRunner.runPipeline(world, center, PipelineRunner.PipelineMode.INIT);
+            INITIALIZED.add(key);
             return;
         }
 

@@ -40,4 +40,11 @@ public interface RAConfig {
     boolean deterministicDecorations();
 
     List<String> structureSelectors();
+
+    // Terrain Analyzer (mountain/roughness avoidance)
+    boolean terrainAnalyzerEnabled();
+    int terrainRoughRadius();
+    int terrainRoughStride();
+    int terrainRangeThreshold();
+    double terrainPenaltyScale();
 }

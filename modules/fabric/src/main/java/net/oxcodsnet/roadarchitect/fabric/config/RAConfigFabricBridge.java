@@ -74,6 +74,32 @@ public final class RAConfigFabricBridge {
             public java.util.List<String> structureSelectors() {
                 return holder.getConfig().structureSelectors;
             }
+
+            // Terrain Analyzer
+            @Override
+            public boolean terrainAnalyzerEnabled() {
+                return holder.getConfig().terrainAnalyzer.enabled;
+            }
+
+            @Override
+            public int terrainRoughRadius() {
+                return holder.getConfig().terrainAnalyzer.roughRadius;
+            }
+
+            @Override
+            public int terrainRoughStride() {
+                return holder.getConfig().terrainAnalyzer.roughStride;
+            }
+
+            @Override
+            public int terrainRangeThreshold() {
+                return holder.getConfig().terrainAnalyzer.roughRangeThreshold;
+            }
+
+            @Override
+            public double terrainPenaltyScale() {
+                return holder.getConfig().terrainAnalyzer.roughPenaltyScale;
+            }
         });
 
         holder.registerSaveListener((h, cfg) -> {

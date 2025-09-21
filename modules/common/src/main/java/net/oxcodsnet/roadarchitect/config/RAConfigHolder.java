@@ -89,5 +89,31 @@ public final class RAConfigHolder {
         public List<String> structureSelectors() {
             return List.of("#minecraft:village");
         }
+
+        // Terrain Analyzer defaults
+        @Override
+        public boolean terrainAnalyzerEnabled() {
+            return true;
+        }
+
+        @Override
+        public int terrainRoughRadius() {
+            return 12;
+        }
+
+        @Override
+        public int terrainRoughStride() {
+            return 3;
+        }
+
+        @Override
+        public int terrainRangeThreshold() {
+            return 12;
+        }
+
+        @Override
+        public double terrainPenaltyScale() {
+            return 15.0;
+        }
     }
 }

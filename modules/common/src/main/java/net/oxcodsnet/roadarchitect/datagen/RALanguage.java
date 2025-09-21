@@ -66,6 +66,23 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Deterministic Decorations");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Place lamps, buoys and sides using a global marker grid (chunk-agnostic).");
+                // Terrain Analyzer (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Terrain Analyzer");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Enable Terrain Analyzer");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "Steer roads around rough/mountainous terrain by penalizing height variance.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Roughness Radius");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "Window radius in blocks to measure height range.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "Roughness Stride");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "Sampling step in blocks within the window.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "Range Threshold");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "Minimum height range before applying penalty.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Penalty Scale");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "Penalty per block of height range above threshold.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Travel around the world without barriers: RoadArchitect automatically scans your world, finds villages, and other structures, and then lays a network of roads between them.");
                 break;
@@ -133,6 +150,23 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Детерминированные украшения");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Размещение по глобальной сетке маркеров (не зависит от чанков).");
+                // Анализ рельефа (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Анализ рельефа");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Включить анализ рельефа");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "Отклонять дороги от неровной/гористой местности с помощью штрафа за разброс высот.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Радиус окна неровности");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "Радиус в блоках окна для измерения диапазона высот.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "Шаг выборки");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "Шаг выборки в блоках внутри окна.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "Порог диапазона");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "Минимальный разброс высот до включения штрафа.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Масштаб штрафа");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "Штраф за каждый блок диапазона выше порога.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Путешествуйте по миру без барьеров: RoadArchitect автоматически сканирует ваш мир, находит деревни и другие структуры, а затем прокладывает между ними сеть дорог.");
                 break;
@@ -200,6 +234,23 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Decoraciones deterministas");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Colocación mediante una cuadrícula global de marcadores (independiente de chunks).");
+                // Analizador de Terreno (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Analizador de Terreno");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Activar analizador de terreno");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "Desvía carreteras del terreno abrupto/montañoso penalizando la variación de altura.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Radio de rugosidad");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "Radio (bloques) de la ventana para medir el rango de alturas.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "Paso de muestreo");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "Paso (bloques) dentro de la ventana.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "Umbral de rango");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "Rango mínimo de altura antes de aplicar penalización.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Escala de penalización");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "Penalización por bloque de rango por encima del umbral.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Viaja por el mundo sin barreras: RoadArchitect escanea automáticamente tu mundo, encuentra aldeas y otras estructuras, y luego tiende una red de carreteras entre ellas.");
                 break;
@@ -267,6 +318,23 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Décorations déterministes");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Placement via une grille de marqueurs globale (indépendante des chunks).");
+                // Analyse du relief (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Analyse du relief");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Activer l’analyse du relief");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "Éloigne les routes des zones accidentées/montagneuses via une pénalisation de l’écart d’altitude.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Rayon de rugosité");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "Rayon (en blocs) de la fenêtre pour mesurer l’étendue d’altitude.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "Pas d’échantillonnage");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "Pas (en blocs) d’échantillonnage dans la fenêtre.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "Seuil d’étendue");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "Étendue minimale d’altitude avant pénalisation.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Échelle de pénalité");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "Pénalité par bloc d’étendue au‑delà du seuil.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Voyagez dans le monde sans barrières : RoadArchitect analyse automatiquement votre monde, trouve les villages et autres structures, puis trace un réseau de routes entre eux.");
                 break;
@@ -334,6 +402,23 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Deterministische Dekorationen");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Platzierung über globales Markerraster (chunk-unabhängig).");
+                // Reliefanalyse (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Reliefanalyse");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Reliefanalyse aktivieren");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "Leitet Straßen um unebenes/bergiges Gelände, indem Höhenunterschiede bestraft werden.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Rauheitsradius");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "Fensterradius (Blöcke) zur Messung der Höhenspanne.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "Abtastschritt");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "Abtastschritt (Blöcke) innerhalb des Fensters.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "Spannenschwelle");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "Minimale Höhenspan­ne, bevor eine Strafe gilt.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Strafskala");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "Strafe pro Block Spannweite über dem Schwellenwert.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Reisen Sie barrierefrei durch die Welt: RoadArchitect scannt automatisch Ihre Welt, findet Dörfer und andere Strukturen und legt anschließend ein Straßennetz zwischen ihnen an.");
                 break;
@@ -393,6 +478,23 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "确定性装饰");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "使用全局标记网格进行放置（与区块无关）。");
+                // 地形分析 (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "地形分析");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "启用地形分析");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "通过惩罚高度变化，让道路绕开崎岖/山地地形。");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "粗糙度半径");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "用于测量高度范围的窗口半径（方块）。");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "采样步长");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "窗口内的采样步长（方块）。");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "范围阈值");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "应用惩罚前的最小高度范围。");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "惩罚系数");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "超过阈值的每格高度范围所施加的惩罚。");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "畅游无障碍的世界：RoadArchitect 会自动扫描你的世界，找到村庄和其他结构，然后在它们之间铺设道路网络。");
                 break;
@@ -452,6 +554,23 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Детерміновані прикраси");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Розміщує ліхтарі, буйки та паркани, використовуючи глобальну сітку маркерів (незалежно від чанків).");
+                // Аналіз рельєфу (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Аналіз рельєфу");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Увімкнути аналіз рельєфу");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "Відхиляє дороги від нерівної/гірської місцевості, штрафуючи розкид висот.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Радіус шорсткості");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "Радіус (у блоках) вікна для вимірювання діапазону висот.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "Крок вибірки");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "Крок (у блоках) вибірки всередині вікна.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "Поріг діапазону");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "Мінімальний діапазон висот перед застосуванням штрафу.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Масштаб штрафу");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "Штраф за кожен блок діапазону понад поріг.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Подорожуйте навколо світу без бар'єрів: RoadArchitect автоматично сканує ваш світ, знаходить села та інші структури, а потім прокладає мережу доріг між ними");
                 break;

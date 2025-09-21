@@ -42,4 +42,29 @@ public final class RoadArchitectConfigData implements ConfigData {
 
     @ConfigEntry.Gui.Tooltip
     public List<String> structureSelectors = List.of("#minecraft:village");
+
+    // Terrain Analyzer category (separate tab)
+    @ConfigEntry.Category("terrainAnalyzer")
+    @ConfigEntry.Gui.TransitiveObject
+    public TerrainAnalyzerSettings terrainAnalyzer = new TerrainAnalyzerSettings();
+
+    public static final class TerrainAnalyzerSettings {
+        @ConfigEntry.Gui.Tooltip
+        public boolean enabled = true;
+
+        @ConfigEntry.BoundedDiscrete(min = 4, max = 64)
+        @ConfigEntry.Gui.Tooltip
+        public int roughRadius = 12;
+
+        @ConfigEntry.BoundedDiscrete(min = 1, max = 16)
+        @ConfigEntry.Gui.Tooltip
+        public int roughStride = 3;
+
+        @ConfigEntry.BoundedDiscrete(min = 0, max = 64)
+        @ConfigEntry.Gui.Tooltip
+        public int roughRangeThreshold = 12;
+
+        @ConfigEntry.Gui.Tooltip
+        public double roughPenaltyScale = 15.0;
+    }
 }

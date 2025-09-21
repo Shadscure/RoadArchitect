@@ -2,6 +2,8 @@ package net.oxcodsnet.roadarchitect.util;
 
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Direction;
+import net.oxcodsnet.roadarchitect.config.RAConfig;
+import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 
 import java.util.function.IntBinaryOperator;
 
@@ -15,16 +17,6 @@ import java.util.function.IntBinaryOperator;
  * rough bases rather than cutting across them.
  */
 public final class TerrainAnalyzer {
-
-    // Radius around the queried point (in blocks) to measure roughness.
-    // Chosen to be modest to keep sampling cost reasonable; cached via CacheManager.
-    private static final int ROUGH_RADIUS = 12;
-    // Sampling stride (in blocks) when scanning the roughness window.
-    private static final int ROUGH_STRIDE = 3;
-    // Minimum height range (in blocks) within the window to start applying penalty.
-    private static final int ROUGH_RANGE_THRESHOLD = 12;
-    // Linear multiplier for converting excess range into a penalty.
-    private static final double ROUGH_PENALTY_SCALE = 15.0;
 
     private TerrainAnalyzer() {
     }
@@ -48,10 +40,21 @@ public final class TerrainAnalyzer {
         // Base cost from local unevenness (kept compatible with previous behavior).
         double baseCost = local * 16.0;
 
+        // Read config and optionally skip roughness penalty entirely.
+        RAConfig cfg = RAConfigHolder.get();
+        if (!cfg.terrainAnalyzerEnabled()) {
+            return baseCost;
+        }
+
+        int radius = Math.max(1, cfg.terrainRoughRadius());
+        int stride = Math.max(1, cfg.terrainRoughStride());
+        int threshold = Math.max(0, cfg.terrainRangeThreshold());
+        double scale = Math.max(0.0, cfg.terrainPenaltyScale());
+
         // Add broader roughness penalty so mountainous regions appear wider.
         IntBinaryOperator H = (ix, iz) -> CacheManager.getHeight(world, ix, iz);
-        int range = heightRange(H, x, z, ROUGH_RADIUS, ROUGH_STRIDE);
-        double roughPenalty = roughnessPenalty(range);
+        int range = heightRange(H, x, z, radius, stride);
+        double roughPenalty = roughnessPenalty(range, threshold, scale);
 
         return baseCost + roughPenalty;
     }
@@ -79,10 +82,15 @@ public final class TerrainAnalyzer {
      * significant but not overpowering compared to other costs.
      */
     public static double roughnessPenalty(int heightRange) {
-        if (heightRange <= ROUGH_RANGE_THRESHOLD) {
+        RAConfig cfg = RAConfigHolder.get();
+        return roughnessPenalty(heightRange, Math.max(0, cfg.terrainRangeThreshold()), Math.max(0.0, cfg.terrainPenaltyScale()));
+    }
+
+    public static double roughnessPenalty(int heightRange, int threshold, double scale) {
+        if (heightRange <= threshold) {
             return 0.0;
         }
-        int excess = heightRange - ROUGH_RANGE_THRESHOLD;
-        return excess * ROUGH_PENALTY_SCALE;
+        int excess = heightRange - threshold;
+        return excess * scale;
     }
 }

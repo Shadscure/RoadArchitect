@@ -7,7 +7,7 @@
   "roadarchitect.stage.pathfinding": "Wegfindung",
   "roadarchitect.stage.postprocess": "Nachbearbeitung",
   "roadarchitect.stage.scanning": "Strukturen scannen",
-  "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Reliefanalyse",
+  "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Reliefanalyse (Beta)",
   "text.autoconfig.roadarchitect.option.buoyInterval": "Bojenintervall",
   "text.autoconfig.roadarchitect.option.buoyInterval.@Tooltip": "Abstand in Blöcken entlang des Wasserpfads zwischen Bojen.",
   "text.autoconfig.roadarchitect.option.chunkGenerateScanRadius": "Scanradius bei Chunk-Generierung",

@@ -7,7 +7,7 @@
   "roadarchitect.stage.pathfinding": "Поиск пути",
   "roadarchitect.stage.postprocess": "Постобработка",
   "roadarchitect.stage.scanning": "Сканирование структур",
-  "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Анализ рельефа",
+  "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Анализ рельефа (Бета)",
   "text.autoconfig.roadarchitect.option.buoyInterval": "Интервал буйков",
   "text.autoconfig.roadarchitect.option.buoyInterval.@Tooltip": "Расстояние в блоках вдоль водного участка между буйками.",
   "text.autoconfig.roadarchitect.option.chunkGenerateScanRadius": "Радиус сканирования при генерации чанков",

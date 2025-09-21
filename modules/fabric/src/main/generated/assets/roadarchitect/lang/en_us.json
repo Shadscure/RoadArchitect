@@ -7,7 +7,7 @@
   "roadarchitect.stage.pathfinding": "Path Finding",
   "roadarchitect.stage.postprocess": "Post Processing",
   "roadarchitect.stage.scanning": "Scanning Structures",
-  "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Terrain Analyzer",
+  "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Terrain Analyzer (Beta)",
   "text.autoconfig.roadarchitect.option.buoyInterval": "Buoy Interval",
   "text.autoconfig.roadarchitect.option.buoyInterval.@Tooltip": "Distance in blocks along water path between buoys.",
   "text.autoconfig.roadarchitect.option.chunkGenerateScanRadius": "Chunk Generation Scan Radius",

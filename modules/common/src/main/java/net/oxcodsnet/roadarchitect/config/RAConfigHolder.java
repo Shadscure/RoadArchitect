@@ -89,5 +89,79 @@ public final class RAConfigHolder {
         public List<String> structureSelectors() {
             return List.of("#minecraft:village");
         }
+
+        // Terrain Analyzer defaults
+        @Override
+        public boolean terrainAnalyzerEnabled() {
+            return false;
+        }
+
+        @Override
+        public int terrainRoughRadius() {
+            return 12;
+        }
+
+        @Override
+        public int terrainRoughStride() {
+            return 3;
+        }
+
+        @Override
+        public int terrainRangeThreshold() {
+            return 12;
+        }
+
+        @Override
+        public double terrainPenaltyScale() {
+            return 15.0;
+        }
+
+        @Override
+        public boolean preferLandOverWater() {
+            return true;
+        }
+
+        @Override
+        public double waterStepPenalty() {
+            return 200.0;
+        }
+
+        @Override
+        public int coastAvoidBufferBlocks() {
+            return 16;
+        }
+
+        @Override
+        public double coastProximityPenalty() {
+            return 180.0;
+        }
+
+        @Override
+        public List<String> forbiddenBiomeSelectors() {
+            return List.of(
+                    "#minecraft:is_ocean",
+                    "#minecraft:is_deep_ocean"
+            );
+        }
+
+        @Override
+        public int forbiddenBiomeBufferBlocks() {
+            return 16;
+        }
+
+        @Override
+        public double forbiddenBiomeProximityPenalty() {
+            return 500.0;
+        }
+
+        @Override
+        public boolean acceptPartialPaths() {
+            return true;
+        }
+
+        @Override
+        public double partialProgressThreshold() {
+            return 0.80; // 80%
+        }
     }
 }

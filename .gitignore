@@ -34,36 +34,6 @@ install-fabric.sh
 !full-stack-asset-transfer-guide/infrastructure/sample-network/config
 
 
-# Ignore everything
-/*
-
-# Folders
-!/gradle
-!/src-fabric
-!/src-fabric/main/java/net/oxcodsnet/roadarchitect/config/
-!/.github
-!/common/src
-!/neoforge
-!/fabric
-
-# Files
-!/.gitattributes
-!/.gitignore
-!/.editorconfig
-!/build.gradle
-!/checkstyle.xml
-!/gradle.properties
-!/gradlew
-!/gradlew.bat
-!/HEADER
-!/LICENSE
-!/README.md
-!/settings.gradle
-!/proguard.conf
-
-!/minecraft
-!/junit
-
 # MacOS junk files
 .DS_Store
 
@@ -97,3 +67,10 @@ modules/neoforge/run/
 modules/fabric/src/main/generated/.cache
 modules/quilt/src/main/generated/.cache
 modules/neoforge/src/main/generated/.cache
+
+/AGENTS.md
+/CHANGELOG_diff.md
+/create_changelog.sh
+/.architectury-transformer/debug.log
+/distant-horizons-main.zip
+/modules/common/logs/latest.log

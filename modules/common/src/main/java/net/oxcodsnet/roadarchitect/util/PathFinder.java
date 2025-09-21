@@ -4,7 +4,10 @@ import it.unimi.dsi.fastutil.longs.Long2DoubleMap;
 import it.unimi.dsi.fastutil.longs.Long2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.registry.tag.BiomeTags;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.world.ServerWorld;
@@ -18,6 +21,8 @@ import net.minecraft.world.biome.source.util.MultiNoiseUtil;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.noise.NoiseConfig;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
+import net.oxcodsnet.roadarchitect.config.RAConfig;
+import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.storage.NodeStorage;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
 import org.slf4j.Logger;
@@ -51,13 +56,15 @@ public class PathFinder {
      */
     public static final double HEURISTIC_SCALE = 95.0;
 
+    // Config is read via RAConfigHolder in runtime per-world
+
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/" + PathFinder.class.getSimpleName());
     private static final int[][] OFFSETS = generateOffsets();
 
     private static final Map<TagKey<Biome>, Double> BIOME_COSTS = Map.of(
-            BiomeTags.IS_RIVER, 400.0,
-            BiomeTags.IS_OCEAN, 999.0,
-            BiomeTags.IS_DEEP_OCEAN, 999.0,
+            BiomeTags.IS_RIVER, 240.0,
+            BiomeTags.IS_OCEAN, 280.0,
+            BiomeTags.IS_DEEP_OCEAN, 320.0,
             BiomeTags.IS_MOUNTAIN, 160.0,
             BiomeTags.IS_BEACH, 160.0
     );
@@ -85,6 +92,9 @@ public class PathFinder {
     private long profHeightCalls = 0L;
     private long profBiomeCalls = 0L;
     private long profStabCalls = 0L;
+    // Compiled forbidden biome selectors (per-registry)
+    private volatile List<RegistryEntryList<Biome>> forbiddenBiomeLists;
+
     public PathFinder(NodeStorage nodes, ServerWorld world, int maxSteps) {
         this(nodes, world, maxSteps, HEURISTIC_WEIGHT);
     }
@@ -115,6 +125,56 @@ public class PathFinder {
         for (Map.Entry<TagKey<Biome>, Double> entry : BIOME_COSTS.entrySet()) {
             if (biome.isIn(entry.getKey())) {
                 return entry.getValue();
+            }
+        }
+        return 0.0;
+    }
+
+    /**
+     * Штраф за нахождение рядом с запрещённым биомом (из конфига).
+     * Проверяет биомы в квадрате вокруг точки и возвращает штраф, если найден запрещённый.
+     */
+    private double forbiddenProximityPenalty(int x, int z, int y) {
+        RAConfig cfg = RAConfigHolder.get();
+        int buf = cfg.forbiddenBiomeBufferBlocks();
+        if (buf <= 0) return 0.0;
+        int radiusSteps = buf / GRID_STEP;
+        if (radiusSteps <= 0) return 0.0;
+
+        for (int i = -radiusSteps; i <= radiusSteps; i++) {
+            for (int j = -radiusSteps; j <= radiusSteps; j++) {
+                if (i == 0 && j == 0) continue;
+
+                int checkX = x + i * GRID_STEP;
+                int checkZ = z + j * GRID_STEP;
+                if (isForbiddenBiome(sampleBiome(checkX, checkZ, y))) {
+                    return cfg.forbiddenBiomeProximityPenalty();
+                }
+            }
+        }
+        return 0.0;
+    }
+
+    /**
+     * Штраф за близость к воде (океан/река), чтобы не прижиматься к побережью.
+     */
+    private double coastProximityPenalty(int x, int z, int y) {
+        RAConfig cfg = RAConfigHolder.get();
+        if (!cfg.preferLandOverWater()) return 0.0;
+        int buf = cfg.coastAvoidBufferBlocks();
+        if (buf <= 0) return 0.0;
+        int radiusSteps = buf / GRID_STEP;
+        if (radiusSteps <= 0) return 0.0;
+
+        for (int i = -radiusSteps; i <= radiusSteps; i++) {
+            for (int j = -radiusSteps; j <= radiusSteps; j++) {
+                if (i == 0 && j == 0) continue;
+                int checkX = x + i * GRID_STEP;
+                int checkZ = z + j * GRID_STEP;
+                RegistryEntry<Biome> b = sampleBiome(checkX, checkZ, y);
+                if (isWater(b)) {
+                    return cfg.coastProximityPenalty();
+                }
             }
         }
         return 0.0;
@@ -252,6 +312,11 @@ public class PathFinder {
             ps.stepCap = localStepCap;
         }
 
+        // ── метрики прогресса для частичного принятия ──
+        final int initialL1 = Math.abs(startPos.getX() - endPos.getX()) + Math.abs(startPos.getZ() - endPos.getZ());
+        int bestMd = Integer.MAX_VALUE;
+        long bestKey = startKey;
+
         PriorityQueue<Rec> open = new PriorityQueue<>(Comparator.comparingDouble(r -> r.f));
         Long2DoubleMap gScore = new Long2DoubleOpenHashMap();
         gScore.defaultReturnValue(Double.MAX_VALUE);
@@ -287,6 +352,10 @@ public class PathFinder {
                     ps.stallIters++;
                 }
             }
+            if (md < bestMd) {
+                bestMd = md;
+                bestKey = current.key;
+            }
 
             if (current.key == endKey) {
                 List<BlockPos> path = reconstructVertices(current.key, startKey, parent);
@@ -316,16 +385,26 @@ public class PathFinder {
                     continue;
                 }
 
-                double bCost = biomeCost(sampleBiome(nx, nz, ny));
-                if (bCost >= 999.0) {
+                RegistryEntry<Biome> bEntry = sampleBiome(nx, nz, ny);
+                if (isForbiddenBiome(bEntry)) {
                     continue;
                 }
+                double bCost = biomeCost(bEntry);
+
+                // Штрафы по настройкам
+                RAConfig cfg = RAConfigHolder.get();
+                double preferWaterPenalty = (cfg.preferLandOverWater() && isWater(bEntry)) ? cfg.waterStepPenalty() : 0.0;
+                double proxPenalty = forbiddenProximityPenalty(nx, nz, ny);
+                double coastPenalty = coastProximityPenalty(nx, nz, ny);
 
                 double inc = stepCost(off)
                         + elevationCost(curY, ny)
                         + bCost
                         + yLevelCost(ny)
-                        + stab;
+                        + stab
+                        + preferWaterPenalty
+                        + proxPenalty
+                        + coastPenalty;
 
                 double tentativeG = gScore.get(current.key) + inc;
 
@@ -345,6 +424,27 @@ public class PathFinder {
         if (ps != null) {
             ps.hitCap = !open.isEmpty();
         }
+
+        // ── Fallback: частичное принятие при высоком прогрессе ──
+        boolean canAcceptPartial = initialL1 > 0 && bestMd != Integer.MAX_VALUE && RAConfigHolder.get().acceptPartialPaths();
+        double progress = canAcceptPartial ? (double) (initialL1 - bestMd) / (double) initialL1 : 0.0;
+        if (canAcceptPartial && progress >= RAConfigHolder.get().partialProgressThreshold()) {
+            List<BlockPos> partial = reconstructVertices(bestKey, startKey, parent);
+            if (!partial.isEmpty()) {
+                if (ps != null) {
+                    ps.avgStepOnPath = computeAvgCostOfPathVertices(partial);
+                    ps.pathFound = true; // считаем частичный как полезный путь для подсказок
+                    ps.bestL1 = Math.min(ps.bestL1, bestMd);
+                }
+                LOGGER.debug("Accept partial path (progress={}%, len={}, threshold={}%) {} -> {}",
+                        String.format(Locale.ROOT, "%.1f", progress * 100.0),
+                        partial.size(),
+                        String.format(Locale.ROOT, "%.1f", RAConfigHolder.get().partialProgressThreshold() * 100.0),
+                        startPos.toShortString(), endPos.toShortString());
+                return partial;
+            }
+        }
+
         LOGGER.debug("Path not found between {} and {} after {} iterations (cap={})",
                 startPos, endPos, Math.min(iterations, localStepCap), localStepCap);
         return List.of();
@@ -363,7 +463,7 @@ public class PathFinder {
     private double sampleStability(int x, int z, int y) {
         profStabCalls++;
         long key = hash(x, z);
-        return CacheManager.getStability(world, key, () -> terrainStabilityCost(x, z, y));
+        return CacheManager.getStability(world, key, () -> TerrainAnalyzer.stabilityCost(world, x, z, y));
     }
 
     private RegistryEntry<Biome> sampleBiome(int x, int z, int y) {
@@ -379,17 +479,19 @@ public class PathFinder {
         );
     }
 
-    private double terrainStabilityCost(int x, int z, int y) {
-        int cost = 0;
-        for (Direction d : Direction.Type.HORIZONTAL) {
-            int ny = sampleHeight(x + d.getOffsetX(), z + d.getOffsetZ());
-            cost += Math.abs(y - ny);
-            if (cost > 3) {
-                return Double.MAX_VALUE;
-            }
+    private boolean isForbiddenBiome(RegistryEntry<Biome> biome) {
+        if (forbiddenBiomeLists == null) {
+            Registry<Biome> reg = world.getRegistryManager().get(RegistryKeys.BIOME);
+            forbiddenBiomeLists = BiomeSelectorUtil.compile(reg, RAConfigHolder.get().forbiddenBiomeSelectors());
         }
-        return cost * 16.0;
+        return BiomeSelectorUtil.matches(biome, forbiddenBiomeLists);
     }
+
+    private static boolean isWater(RegistryEntry<Biome> biome) {
+        return biome.isIn(BiomeTags.IS_OCEAN) || biome.isIn(BiomeTags.IS_DEEP_OCEAN) || biome.isIn(BiomeTags.IS_RIVER);
+    }
+
+    // Stability computation is provided by TerrainAnalyzer and cached via CacheManager.
 
     /* ───────────────────────── Утилиты ───────────────────────── */
 

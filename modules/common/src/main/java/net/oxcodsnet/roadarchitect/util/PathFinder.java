@@ -400,7 +400,7 @@ public class PathFinder {
     private double sampleStability(int x, int z, int y) {
         profStabCalls++;
         long key = hash(x, z);
-        return CacheManager.getStability(world, key, () -> terrainStabilityCost(x, z, y));
+        return CacheManager.getStability(world, key, () -> TerrainAnalyzer.stabilityCost(world, x, z, y));
     }
 
     private RegistryEntry<Biome> sampleBiome(int x, int z, int y) {
@@ -416,17 +416,7 @@ public class PathFinder {
         );
     }
 
-    private double terrainStabilityCost(int x, int z, int y) {
-        int cost = 0;
-        for (Direction d : Direction.Type.HORIZONTAL) {
-            int ny = sampleHeight(x + d.getOffsetX(), z + d.getOffsetZ());
-            cost += Math.abs(y - ny);
-            if (cost > 3) {
-                return Double.MAX_VALUE;
-            }
-        }
-        return cost * 16.0;
-    }
+    // Stability computation is provided by TerrainAnalyzer and cached via CacheManager.
 
     /* ───────────────────────── Утилиты ───────────────────────── */
 

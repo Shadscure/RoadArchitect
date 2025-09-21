@@ -284,6 +284,15 @@ subprojects {
             }
         }
     }
+
+    // Ensure JUnit 5 tests are discovered and executed
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+        testLogging {
+            events "passed", "skipped", "failed"
+            exceptionFormat "short"
+        }
+    }
 }
 
 // Aggregate task to publish all platform modules to Maven

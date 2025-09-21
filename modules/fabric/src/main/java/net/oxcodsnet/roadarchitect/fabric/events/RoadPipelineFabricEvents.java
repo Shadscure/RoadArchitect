@@ -32,8 +32,13 @@ public final class RoadPipelineFabricEvents {
 
         // 1) Первая генерация спавн-чанка (и вообще генерация чанка)
         ServerChunkEvents.CHUNK_LOAD.register((ServerWorld world, WorldChunk chunk) -> {
-            // При наличии Distant Horizons отложим INIT, чтобы избежать стопа загрузки мира при первом старте
-            if (!dhPresent) {
+            // Фиксация "активности" по загрузкам чанков (для DH-aware тишины)
+            RoadPipelineController.onAnyChunkLoad(world);
+            // При наличии Distant Horizons планируем INIT с требованием дождаться тишины
+            if (dhPresent) {
+                // эвристически ждём 80 тиков "тишины" (~4 секунды) перед INIT
+                RoadPipelineController.onSpawnChunkGeneratedDhAware(world, chunk, 80);
+            } else {
                 RoadPipelineController.onSpawnChunkGenerated(world, chunk);
             }
             RoadPipelineController.onChunkGenerated(world, chunk);

@@ -35,9 +35,11 @@ public final class RoadPipelineNeoForgeEvents {
         if (!(event.getLevel() instanceof ServerWorld world)) return;
         Chunk chunk = event.getChunk();
         boolean dhPresent = ModList.get().isLoaded("distanthorizons");
+        // фиксируем загрузку чанка для измерения "тишины"
+        RoadPipelineController.onAnyChunkLoad(world);
         if (dhPresent) {
-            // Отложим INIT до первого входа игрока, иначе возможен стоп загрузки мира
-            LOGGER.debug("Distant Horizons detected (NeoForge): deferring INIT until first player join");
+            // DH-aware: дождёмся "тишины" перед INIT, чтобы не стопать загрузку мира
+            RoadPipelineController.onSpawnChunkGeneratedDhAware(world, chunk, 80);
         } else {
             RoadPipelineController.onSpawnChunkGenerated(world, chunk);
         }

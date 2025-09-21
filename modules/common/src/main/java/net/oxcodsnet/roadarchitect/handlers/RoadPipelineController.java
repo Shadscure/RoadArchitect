@@ -40,13 +40,26 @@ public final class RoadPipelineController {
 
     /**
      * Отложенные INIT по мирам: запуск через N тиков после генерации спавн‑чанка.
+     * quietTicks > 0 означает: запускать только после "тишины" по загрузкам чанков
+     * продолжительностью не менее quietTicks (для совместимости с предгеном DH).
      */
     private static final class PendingInit {
         final BlockPos pos;
         int ticksLeft;
-        PendingInit(BlockPos pos, int ticksLeft) { this.pos = pos; this.ticksLeft = ticksLeft; }
+        final int quietTicks;
+        PendingInit(BlockPos pos, int ticksLeft, int quietTicks) {
+            this.pos = pos;
+            this.ticksLeft = ticksLeft;
+            this.quietTicks = quietTicks;
+        }
     }
     private static final Map<RegistryKey<World>, PendingInit> PENDING_INIT = new ConcurrentHashMap<>();
+
+    /**
+     * Глобальный счётчик тиков и отметка последней загрузки чанка по мирам.
+     */
+    private static int globalTick = 0;
+    private static final Map<RegistryKey<World>, Integer> LAST_CHUNK_LOAD_TICK = new ConcurrentHashMap<>();
 
     /**
      * Кеш селекторов (ID и теги) из конфигурации, для быстрых проверок.
@@ -68,6 +81,7 @@ public final class RoadPipelineController {
     public static void init() {
         cacheStructureSelectors();
         tickCounter = 0;
+        globalTick = 0;
         LOGGER.debug("RoadPipelineController initialized (selectors cached)");
     }
 
@@ -96,9 +110,27 @@ public final class RoadPipelineController {
         if (PENDING_INIT.containsKey(world.getRegistryKey())) return;
 
         int delay = Math.max(20, RoadArchitect.CONFIG.pipelineIntervalSeconds() * 20); // минимум 1 секунда
-        PENDING_INIT.put(world.getRegistryKey(), new PendingInit(world.getSpawnPos(), delay));
+        PENDING_INIT.put(world.getRegistryKey(), new PendingInit(world.getSpawnPos(), delay, 0));
         LOGGER.debug("Scheduled deferred INIT for {} at {} ({} ticks)",
                 world.getRegistryKey().getValue(), world.getSpawnPos(), delay);
+    }
+
+    /**
+     * DH-aware: планируем INIT с требованием дождаться периода "тишины" по загрузкам чанков.
+     */
+    public static void onSpawnChunkGeneratedDhAware(ServerWorld world, Chunk chunk, int quietTicks) {
+        if (world.getRegistryKey() != World.OVERWORLD) return;
+
+        ChunkPos spawnChunk = new ChunkPos(world.getSpawnPos());
+        if (!chunk.getPos().equals(spawnChunk)) return;
+
+        if (INITIALIZED.contains(world.getRegistryKey())) return;
+        if (PENDING_INIT.containsKey(world.getRegistryKey())) return;
+
+        int delay = Math.max(20, RoadArchitect.CONFIG.pipelineIntervalSeconds() * 20);
+        PENDING_INIT.put(world.getRegistryKey(), new PendingInit(world.getSpawnPos(), delay, Math.max(0, quietTicks)));
+        LOGGER.debug("Scheduled DH-aware deferred INIT for {} at {} ({} ticks, quiet={} ticks)",
+                world.getRegistryKey().getValue(), world.getSpawnPos(), delay, quietTicks);
     }
 
     /**
@@ -111,6 +143,13 @@ public final class RoadPipelineController {
         BlockPos center = chunk.getPos().getCenterAtY(0);
         LOGGER.debug("Chunk {} generated with target structure, starting CHUNK pipeline", chunk.getPos());
         PipelineRunner.runPipeline(world, center, PipelineRunner.PipelineMode.CHUNK);
+    }
+
+    /**
+     * Уведомить контроллер о любой загрузке чанка для измерения "тишины" по миру.
+     */
+    public static void onAnyChunkLoad(ServerWorld world) {
+        LAST_CHUNK_LOAD_TICK.put(world.getRegistryKey(), globalTick);
     }
 
     /**
@@ -144,6 +183,7 @@ public final class RoadPipelineController {
      */
     public static void onServerTick(MinecraftServer server) {
         int intervalTicks = Math.max(1, RoadArchitect.CONFIG.pipelineIntervalSeconds() * 20);
+        globalTick++;
         tickCounter++;
 
         // Обработка отложенных INIT по мирам
@@ -153,7 +193,15 @@ public final class RoadPipelineController {
             if (pending == null) continue;
             if (INITIALIZED.contains(key)) { PENDING_INIT.remove(key); continue; }
             if (--pending.ticksLeft <= 0) {
-                LOGGER.debug("Running deferred INIT for {} at {}", key.getValue(), pending.pos);
+                if (pending.quietTicks > 0) {
+                    int last = LAST_CHUNK_LOAD_TICK.getOrDefault(key, -1);
+                    int since = (last < 0) ? Integer.MAX_VALUE : (globalTick - last);
+                    if (since < pending.quietTicks) {
+                        pending.ticksLeft = pending.quietTicks - since; // ждём тишину
+                        continue;
+                    }
+                }
+                LOGGER.debug("Running deferred INIT for {} at {} (quiet={} ticks)", key.getValue(), pending.pos, pending.quietTicks);
                 PipelineRunner.runPipeline(world, pending.pos, PipelineRunner.PipelineMode.INIT);
                 INITIALIZED.add(key);
                 PENDING_INIT.remove(key);
@@ -181,6 +229,8 @@ public final class RoadPipelineController {
         INITIALIZED.clear();
         PENDING_INIT.clear();
         tickCounter = 0;
+        globalTick = 0;
+        LAST_CHUNK_LOAD_TICK.clear();
         LOGGER.debug("Server stopping, state cleared");
     }
 

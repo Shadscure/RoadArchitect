@@ -53,10 +53,34 @@ public final class RoadArchitect {
             return RAConfigHolder.get().deterministicDecorations();
         }
 
-
         @Override
         public java.util.List<String> structureSelectors() {
             return RAConfigHolder.get().structureSelectors();
+        }
+
+        @Override
+        public boolean terrainAnalyzerEnabled() {
+            return RAConfigHolder.get().terrainAnalyzerEnabled();
+        }
+
+        @Override
+        public int terrainRoughRadius() {
+            return RAConfigHolder.get().terrainRoughRadius();
+        }
+
+        @Override
+        public int terrainRoughStride() {
+            return RAConfigHolder.get().terrainRoughStride();
+        }
+
+        @Override
+        public int terrainRangeThreshold() {
+            return RAConfigHolder.get().terrainRangeThreshold();
+        }
+
+        @Override
+        public double terrainPenaltyScale() {
+            return RAConfigHolder.get().terrainPenaltyScale();
         }
     };
 

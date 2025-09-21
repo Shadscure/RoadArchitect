@@ -21,7 +21,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "Complete");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "Initial Scan Radius");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Radius in blocks to scan for structures when the world is first loaded.");
+                        "Radius in chunks to scan for structures when the world is first loaded.");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius", "Chunk Generation Scan Radius");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
                         "Radius in chunks scanned when new chunks generate.");
@@ -37,7 +37,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.title", "Road Architect Config");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Initial Scan Radius");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Radius in blocks to scan for structures when the world is first loaded.");
+                        "Radius in chunks to scan for structures when the world is first loaded.");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius", "Chunk Generation Scan Radius");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
                         "Radius in chunks scanned when new chunks generate.");
@@ -97,7 +97,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "Завершено");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "Начальный радиус сканирования");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Радиус в блоках для поиска структур при первом запуске мира.");
+                        "Радиус в чанках для поиска структур при первом запуске мира.");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius",
                         "Радиус сканирования при генерации чанков");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -117,7 +117,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.title", "Конфиг Road Architect");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Начальный радиус сканирования");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Радиус в блоках для поиска структур при первом запуске мира.");
+                        "Радиус в чанках для поиска структур при первом запуске мира.");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius",
                         "Радиус сканирования при генерации чанков");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -181,7 +181,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "Completado");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "Radio de exploración inicial");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Radio en bloques para buscar estructuras cuando se carga el mundo por primera vez.");
+                        "Radio en chunks para buscar estructuras cuando se carga el mundo por primera vez.");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius",
                         "Radio de exploración al generar chunks");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -201,7 +201,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.title", "Configuración de Road Architect");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Radio de exploración inicial");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Radio en bloques para buscar estructuras cuando se carga el mundo por primera vez.");
+                        "Radio en chunks para buscar estructuras cuando se carga el mundo por primera vez.");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius",
                         "Radio de exploración al generar chunks");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -265,7 +265,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "Terminé");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "Rayon de balayage initial");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Rayon en blocs pour rechercher des structures lors du premier chargement du monde.");
+                        "Rayon en chunks pour rechercher des structures lors du premier chargement du monde.");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius",
                         "Rayon de balayage de génération de chunks");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -285,7 +285,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.title", "Configuration de Road Architect");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Rayon de balayage initial");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Rayon en blocs pour rechercher des structures lors du premier chargement du monde.");
+                        "Rayon en chunks pour rechercher des structures lors du premier chargement du monde.");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius",
                         "Rayon de balayage de génération de chunks");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -349,7 +349,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "Abgeschlossen");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "Anfänglicher Scanradius");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Radius in Blöcken zum Suchen nach Strukturen beim ersten Laden der Welt.");
+                        "Radius in Chunks zum Suchen nach Strukturen beim ersten Laden der Welt.");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius",
                         "Scanradius bei Chunk-Generierung");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -369,7 +369,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.title", "Road Architect Konfiguration");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Anfänglicher Scanradius");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Radius in Blöcken zum Suchen nach Strukturen beim ersten Laden der Welt.");
+                        "Radius in Chunks zum Suchen nach Strukturen beim ersten Laden der Welt.");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius",
                         "Scanradius bei Chunk-Generierung");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -433,7 +433,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "完成");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "初始扫描半径");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "在世界首次加载时扫描结构的方块半径。");
+                        "在世界首次加载时扫描结构的区块半径。");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius", "区块生成扫描半径");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
                         "在新生成区块时扫描的区块半径。");
@@ -449,7 +449,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.title", "Road Architect 配置");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "初始扫描半径");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "在世界首次加载时扫描结构的方块半径。");
+                        "在世界首次加载时扫描结构的区块半径。");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius", "区块生成扫描半径");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
                         "在新生成区块时扫描的区块半径。");
@@ -509,7 +509,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "Завершення…");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "Початковий радіус сканування");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Радіус у блоках для пошуку структур під час першого завантаження світу.");
+                        "Радіус у чанках для пошуку структур під час першого завантаження світу.");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius", "Радіус сканування генерації чанків");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
                         "Радіус у чанках, який сканується під час генерації нових чанків.");
@@ -525,7 +525,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.title", "Налаштування Road Architect");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Початковий радіус сканування");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Радіус у блоках для пошуку структур під час першого завантаження світу.");
+                        "Радіус у чанках для пошуку структур під час першого завантаження світу.");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius", "Радіус сканування генерації чанків");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
                         "Радіус у чанках, який сканується під час генерації нових чанків.");

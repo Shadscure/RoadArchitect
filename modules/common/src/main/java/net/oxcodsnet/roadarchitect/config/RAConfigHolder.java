@@ -138,7 +138,10 @@ public final class RAConfigHolder {
 
         @Override
         public List<String> forbiddenBiomeSelectors() {
-            return List.of();
+            return List.of(
+                    "#minecraft:is_ocean",
+                    "#minecraft:is_deep_ocean"
+            );
         }
 
         @Override

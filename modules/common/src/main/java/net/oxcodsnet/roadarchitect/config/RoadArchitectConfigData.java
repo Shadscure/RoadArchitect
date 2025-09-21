@@ -95,7 +95,10 @@ public final class RoadArchitectConfigData implements ConfigData {
 
     public static final class ForbiddenBiomeSettings {
         @ConfigEntry.Gui.Tooltip
-        public java.util.List<String> selectors = java.util.List.of();
+        public java.util.List<String> selectors = java.util.List.of(
+                "#minecraft:is_ocean",
+                "#minecraft:is_deep_ocean"
+        );
 
         @ConfigEntry.BoundedDiscrete(min = 0, max = 64)
         @ConfigEntry.Gui.Tooltip

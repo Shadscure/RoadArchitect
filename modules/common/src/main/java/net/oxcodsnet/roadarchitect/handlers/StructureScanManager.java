@@ -43,4 +43,22 @@ public class StructureScanManager {
         List<Pair<BlockPos, String>> found = StructureLocator.scanGridAsync(world, center, overallRadius, scanRadius, selectors);
         LOGGER.debug("[{}] Scanning is completed. Found structures: {}", approach, found.size());
     }
+
+    /**
+     * Triggers a structure scan with control over whether chunk loads are allowed for resolution.
+     *
+     * @param world           server world
+     * @param approach        label used in logs
+     * @param center          scan center
+     * @param overallRadius   grid half-size in chunks for planning pass
+     * @param allowChunkLoads if false, skip loading chunks for ambiguous candidates
+     */
+    static void scan(ServerWorld world, String approach, BlockPos center, int overallRadius, boolean allowChunkLoads) {
+        int scanRadius = 1;
+        List<String> selectors = RoadArchitect.CONFIG.structureSelectors();
+        LOGGER.debug("[{}] Scan launch: overallRadius={}, scanRadius={}, allowChunkLoads={}, selectors={}",
+                approach, overallRadius, scanRadius, allowChunkLoads, selectors);
+        List<Pair<BlockPos, String>> found = StructureLocator.scanGridAsync(world, center, overallRadius, scanRadius, selectors, allowChunkLoads);
+        LOGGER.debug("[{}] Scanning is completed. Found structures: {} (allowChunkLoads={})", approach, found.size(), allowChunkLoads);
+    }
 }

@@ -12,9 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Parses and caches biome selector strings (e.g., "#minecraft:is_ocean" or "minecraft:badlands").
@@ -25,11 +25,13 @@ public final class BiomeSelectorUtil {
     private BiomeSelectorUtil() {
     }
 
-    /** Cache: registry -> (selector -> compiled list). */
-    private static final Map<Registry<Biome>, Map<String, RegistryEntryList<Biome>>> CACHE = new HashMap<>();
+    /** Cache: registry -> (selector -> compiled list).
+     *  Accessed from parallel pathfinding jobs — must be thread-safe. */
+    private static final Map<Registry<Biome>, Map<String, RegistryEntryList<Biome>>> CACHE = new ConcurrentHashMap<>();
 
     public static List<RegistryEntryList<Biome>> compile(Registry<Biome> registry, List<String> selectors) {
-        Map<String, RegistryEntryList<Biome>> local = CACHE.computeIfAbsent(registry, r -> new HashMap<>(selectors.size() * 2));
+        // Ensure per-registry cache map is concurrent
+        Map<String, RegistryEntryList<Biome>> local = CACHE.computeIfAbsent(registry, r -> new ConcurrentHashMap<>());
 
         RegistryPredicateArgumentType<Biome> argType = new RegistryPredicateArgumentType<>(RegistryKeys.BIOME);
         List<RegistryEntryList<Biome>> compiled = new ArrayList<>(selectors.size());
@@ -38,12 +40,14 @@ public final class BiomeSelectorUtil {
             RegistryEntryList<Biome> list = local.get(raw);
             if (list == null) {
                 try {
-                    var predicate = argType.parse(new StringReader(raw));
-                    list = predicate.getKey()
+                    RegistryPredicateArgumentType.RegistryPredicate<Biome> predicate = argType.parse(new StringReader(raw));
+                    RegistryEntryList<Biome> parsed = predicate.getKey()
                             .map(key -> registry.getEntry(key).map(RegistryEntryList::of), registry::getEntryList)
                             .orElse(null);
-                    if (list != null) {
-                        local.put(raw, list);
+                    if (parsed != null) {
+                        // Avoid race: if another thread put the same key meanwhile, use that value
+                        RegistryEntryList<Biome> prev = local.putIfAbsent(raw, parsed);
+                        list = (prev != null) ? prev : parsed;
                     } else {
                         LOGGER.warn("Biome selector '{}' resolved to nothing", raw);
                         continue;

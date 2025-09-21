@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,6 +37,16 @@ public final class RoadPipelineController {
      * Миры, для которых уже отработал INIT по событию генерации спавн-чанка.
      */
     private static final Set<RegistryKey<World>> INITIALIZED = ConcurrentHashMap.newKeySet();
+
+    /**
+     * Отложенные INIT по мирам: запуск через N тиков после генерации спавн‑чанка.
+     */
+    private static final class PendingInit {
+        final BlockPos pos;
+        int ticksLeft;
+        PendingInit(BlockPos pos, int ticksLeft) { this.pos = pos; this.ticksLeft = ticksLeft; }
+    }
+    private static final Map<RegistryKey<World>, PendingInit> PENDING_INIT = new ConcurrentHashMap<>();
 
     /**
      * Кеш селекторов (ID и теги) из конфигурации, для быстрых проверок.
@@ -79,11 +90,15 @@ public final class RoadPipelineController {
         ChunkPos spawnChunk = new ChunkPos(world.getSpawnPos());
         if (!chunk.getPos().equals(spawnChunk)) return;
 
-        if (INITIALIZED.add(world.getRegistryKey())) {
-            LOGGER.debug("Spawn chunk {} generated in {}, starting INIT pipeline",
-                    chunk.getPos(), world.getRegistryKey().getValue());
-            PipelineRunner.runPipeline(world, world.getSpawnPos(), PipelineRunner.PipelineMode.INIT);
-        }
+        // Планируем отложенный INIT, чтобы не конкурировать с генерацией на самом старте мира.
+        // Если уже есть план или мир инициализирован — ничего не делаем.
+        if (INITIALIZED.contains(world.getRegistryKey())) return;
+        if (PENDING_INIT.containsKey(world.getRegistryKey())) return;
+
+        int delay = Math.max(20, RoadArchitect.CONFIG.pipelineIntervalSeconds() * 20); // минимум 1 секунда
+        PENDING_INIT.put(world.getRegistryKey(), new PendingInit(world.getSpawnPos(), delay));
+        LOGGER.debug("Scheduled deferred INIT for {} at {} ({} ticks)",
+                world.getRegistryKey().getValue(), world.getSpawnPos(), delay);
     }
 
     /**
@@ -105,6 +120,19 @@ public final class RoadPipelineController {
         ServerWorld world = (ServerWorld) player.getWorld();
         if (world.getRegistryKey() != World.OVERWORLD) return;
 
+        // Если INIT ещё не выполнялся для этого мира (например, отложили из-за модов вроде Distant Horizons),
+        // выполним его сейчас, когда мир стабильно загружен и игрок уже подключился.
+        if (!INITIALIZED.contains(world.getRegistryKey())) {
+            BlockPos spawn = world.getSpawnPos();
+            LOGGER.debug("Player {} joined; INIT not done yet for {}. Running INIT at spawn {}",
+                    player.getName().getString(), world.getRegistryKey().getValue(), spawn);
+            // Снимаем возможный отложенный запуск, если был
+            PENDING_INIT.remove(world.getRegistryKey());
+            PipelineRunner.runPipeline(world, spawn, PipelineRunner.PipelineMode.INIT);
+            INITIALIZED.add(world.getRegistryKey());
+            return;
+        }
+
         BlockPos pos = player.getBlockPos();
         LOGGER.debug("Player {} joined at {}, starting PERIODIC pipeline",
                 player.getName().getString(), pos);
@@ -117,6 +145,21 @@ public final class RoadPipelineController {
     public static void onServerTick(MinecraftServer server) {
         int intervalTicks = Math.max(1, RoadArchitect.CONFIG.pipelineIntervalSeconds() * 20);
         tickCounter++;
+
+        // Обработка отложенных INIT по мирам
+        for (ServerWorld world : server.getWorlds()) {
+            RegistryKey<World> key = world.getRegistryKey();
+            PendingInit pending = PENDING_INIT.get(key);
+            if (pending == null) continue;
+            if (INITIALIZED.contains(key)) { PENDING_INIT.remove(key); continue; }
+            if (--pending.ticksLeft <= 0) {
+                LOGGER.debug("Running deferred INIT for {} at {}", key.getValue(), pending.pos);
+                PipelineRunner.runPipeline(world, pending.pos, PipelineRunner.PipelineMode.INIT);
+                INITIALIZED.add(key);
+                PENDING_INIT.remove(key);
+            }
+        }
+
         if (tickCounter < intervalTicks) return;
         tickCounter = 0;
 
@@ -136,6 +179,7 @@ public final class RoadPipelineController {
      */
     public static void onServerStopping() {
         INITIALIZED.clear();
+        PENDING_INIT.clear();
         tickCounter = 0;
         LOGGER.debug("Server stopping, state cleared");
     }

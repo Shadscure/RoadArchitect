@@ -9,13 +9,18 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.fml.ModList;
 import net.oxcodsnet.roadarchitect.handlers.RoadPipelineController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * NeoForge adapter: subscribes to NeoForge events and delegates into common handlers.
  * Semantics mirror those of {@link RoadPipelineController} register logic.
  */
 public final class RoadPipelineNeoForgeEvents {
+    private static final Logger LOGGER = LoggerFactory.getLogger("roadarchitect/NeoForgeEvents");
+
     private RoadPipelineNeoForgeEvents() {
     }
 
@@ -29,7 +34,13 @@ public final class RoadPipelineNeoForgeEvents {
         if (!event.isNewChunk()) return;
         if (!(event.getLevel() instanceof ServerWorld world)) return;
         Chunk chunk = event.getChunk();
-        RoadPipelineController.onSpawnChunkGenerated(world, chunk);
+        boolean dhPresent = ModList.get().isLoaded("distanthorizons");
+        if (dhPresent) {
+            // Отложим INIT до первого входа игрока, иначе возможен стоп загрузки мира
+            LOGGER.debug("Distant Horizons detected (NeoForge): deferring INIT until first player join");
+        } else {
+            RoadPipelineController.onSpawnChunkGenerated(world, chunk);
+        }
         RoadPipelineController.onChunkGenerated(world, chunk);
         net.oxcodsnet.roadarchitect.api.addon.RoadAddons.onChunkLoad(world, chunk.getPos());
     }

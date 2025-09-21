@@ -7,6 +7,7 @@
   "roadarchitect.stage.pathfinding": "Búsqueda de rutas",
   "roadarchitect.stage.postprocess": "Postprocesamiento",
   "roadarchitect.stage.scanning": "Escaneando estructuras",
+  "text.autoconfig.roadarchitect.category.default": "Configuración general",
   "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Analizador de Terreno (Beta)",
   "text.autoconfig.roadarchitect.option.buoyInterval": "Intervalo de boyas",
   "text.autoconfig.roadarchitect.option.buoyInterval.@Tooltip": "Distancia en bloques a lo largo del tramo acuático entre boyas.",

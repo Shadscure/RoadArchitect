@@ -7,6 +7,7 @@
   "roadarchitect.stage.pathfinding": "路径搜索",
   "roadarchitect.stage.postprocess": "后期处理",
   "roadarchitect.stage.scanning": "扫描结构",
+  "text.autoconfig.roadarchitect.category.default": "常规设置",
   "text.autoconfig.roadarchitect.category.terrainAnalyzer": "地形分析（测试版）",
   "text.autoconfig.roadarchitect.option.buoyInterval": "浮标间距",
   "text.autoconfig.roadarchitect.option.buoyInterval.@Tooltip": "沿水路的浮标之间的方块距离。",

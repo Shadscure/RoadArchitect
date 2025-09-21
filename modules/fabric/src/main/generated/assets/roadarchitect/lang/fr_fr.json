@@ -7,6 +7,7 @@
   "roadarchitect.stage.pathfinding": "Recherche de chemin",
   "roadarchitect.stage.postprocess": "Post-traitement",
   "roadarchitect.stage.scanning": "Analyse des structures",
+  "text.autoconfig.roadarchitect.category.default": "Paramètres généraux",
   "text.autoconfig.roadarchitect.category.forbiddenBiomes": "Biomes interdits",
   "text.autoconfig.roadarchitect.category.pathfinding": "Recherche d'itinéraire",
   "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Analyse du relief (Bêta)",

@@ -7,6 +7,7 @@
   "roadarchitect.stage.pathfinding": "Пошук шляху…",
   "roadarchitect.stage.postprocess": "Постобробка…",
   "roadarchitect.stage.scanning": "Сканування структур…",
+  "text.autoconfig.roadarchitect.category.default": "Загальні налаштування",
   "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Аналіз рельєфу (Бета)",
   "text.autoconfig.roadarchitect.option.buoyInterval": "Інтервал буйків",
   "text.autoconfig.roadarchitect.option.buoyInterval.@Tooltip": "Відстань у блоках між буйками на воді.",

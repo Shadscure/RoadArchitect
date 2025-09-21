@@ -7,6 +7,7 @@
   "roadarchitect.stage.pathfinding": "路径搜索",
   "roadarchitect.stage.postprocess": "后期处理",
   "roadarchitect.stage.scanning": "扫描结构",
+  "text.autoconfig.roadarchitect.category.default": "常规设置",
   "text.autoconfig.roadarchitect.category.forbiddenBiomes": "禁止的生物群系",
   "text.autoconfig.roadarchitect.category.pathfinding": "路径搜索",
   "text.autoconfig.roadarchitect.category.terrainAnalyzer": "地形分析（测试版）",

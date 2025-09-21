@@ -67,3 +67,10 @@ modules/neoforge/run/
 modules/fabric/src/main/generated/.cache
 modules/quilt/src/main/generated/.cache
 modules/neoforge/src/main/generated/.cache
+
+/AGENTS.md
+/CHANGELOG_diff.md
+/create_changelog.sh
+/.architectury-transformer/debug.log
+/distant-horizons-main.zip
+/modules/common/logs/latest.log

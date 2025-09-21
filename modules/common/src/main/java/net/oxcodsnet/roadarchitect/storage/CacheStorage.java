@@ -86,4 +86,3 @@ public class CacheStorage extends PersistentState {
         return biomes;
     }
 }
-

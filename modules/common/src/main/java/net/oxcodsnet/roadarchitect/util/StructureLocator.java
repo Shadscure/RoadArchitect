@@ -98,6 +98,13 @@ public final class StructureLocator {
      * Возвращает список найденных (позиция, id структуры).
      */
     public static List<Pair<BlockPos, String>> scanGridAsync(ServerWorld world, BlockPos origin, int overallRadius, int scanRadius, List<String> structureSelectors) {
+        return scanGridAsync(world, origin, overallRadius, scanRadius, structureSelectors, true);
+    }
+
+    /**
+     * Сканирует область сеткой с опцией запрета загрузки чанков при разрешении кандидатов.
+     */
+    public static List<Pair<BlockPos, String>> scanGridAsync(ServerWorld world, BlockPos origin, int overallRadius, int scanRadius, List<String> structureSelectors, boolean allowChunkLoads) {
         final Registry<Structure> registry = world.getRegistryManager().getOrThrow(RegistryKeys.STRUCTURE);
         final List<RegistryEntryList<Structure>> compiledSelectors = compileSelectors(registry, structureSelectors);
         if (compiledSelectors.isEmpty()) return Collections.emptyList();
@@ -131,7 +138,7 @@ public final class StructureLocator {
         ).join();
 
         // Фаза B: разрешение кандидатов (presence + опциональная загрузка чанка) — строго на главном треде
-        List<Pair<BlockPos, String>> found = resolveCandidatesOnMainThread(world, registry, index, planned);
+        List<Pair<BlockPos, String>> found = resolveCandidatesOnMainThread(world, registry, index, planned, allowChunkLoads);
 
         // Сохранение графа — также на главном треде
         schedulePersistence(world, found);
@@ -237,7 +244,8 @@ public final class StructureLocator {
     private static List<Pair<BlockPos, String>> resolveCandidatesOnMainThread(ServerWorld world,
                                                                               Registry<Structure> registry,
                                                                               PlacementIndex index,
-                                                                              List<Candidate> candidates) {
+                                                                              List<Candidate> candidates,
+                                                                              boolean allowChunkLoads) {
         // Дедуп результатов по XZ
         final LongOpenHashSet seenXZ = new LongOpenHashSet();
         final ArrayList<Pair<BlockPos, String>> found = new ArrayList<>(Math.min(128, candidates.size()));
@@ -274,6 +282,14 @@ public final class StructureLocator {
 
             if (!needChunk) {
                 neg.add(negKey);
+                continue;
+            }
+
+            if (!allowChunkLoads) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Skipping chunk load for candidate {} due to allowChunkLoads=false", c.pos);
+                }
+                // Не трогаем негативный кэш, чтобы кандидат мог быть проверен позже
                 continue;
             }
 

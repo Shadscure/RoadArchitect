@@ -58,4 +58,16 @@ public interface RAConfig {
     java.util.List<String> forbiddenBiomeSelectors();
     int forbiddenBiomeBufferBlocks();
     double forbiddenBiomeProximityPenalty();
+
+    // Pathfinding: partial acceptance when convergence is high
+    /**
+     * Whether to accept a partial path if A* fails but convergence is high.
+     */
+    boolean acceptPartialPaths();
+
+    /**
+     * Convergence threshold in [0..1] to accept a partial path.
+     * For example, 0.8 means 80% progress towards the L1 goal distance.
+     */
+    double partialProgressThreshold();
 }

@@ -98,6 +98,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Coast Proximity Penalty");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
                         "Penalty applied when within the coast buffer to avoid hugging shorelines.");
+                // Partial acceptance
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "Accept High-Progress Partial Paths");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "If A* fails but reaches good convergence (>= threshold), accept the best partial path to increase success rate.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "Partial Acceptance Threshold (%)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "Minimum convergence (in %) to accept a partial path when A* doesn't reach the goal.");
                 // Forbidden biomes
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Forbidden Biomes");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Forbidden Biome Selectors");
@@ -208,6 +215,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Штраф близости к побережью");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
                         "Штраф при нахождении в радиусе буфера, чтобы не прижиматься к береговой линии.");
+                // Частичное принятие
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "Принимать частичный путь при высоком прогрессе");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "Если A* не дошёл до цели, но достиг хорошей сходимости (>= порога), принять лучший частичный путь для повышения успешности.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "Порог прогресса для частичного пути (%)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "Минимальный прогресс (в %) для принятия частичного пути, когда цель не достигнута.");
                 // Запрещённые биомы
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Запрещённые биомы");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селекторы запрещённых биомов");
@@ -265,6 +279,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Penalización por proximidad a la costa");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
                         "Penalización al estar dentro del búfer para evitar bordear la orilla.");
+                // Aceptación parcial
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "Aceptar caminos parciales con alto progreso");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "Si A* falla pero alcanza buena convergencia (>= umbral), aceptar el mejor camino parcial para aumentar la tasa de éxito.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "Umbral de aceptación parcial (%)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "Convergencia mínima (en %) para aceptar un camino parcial cuando A* no llega al objetivo.");
                 // Biomas prohibidos
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Biomas prohibidos");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selectores de biomas prohibidos");
@@ -375,6 +396,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Pénalité de proximité de la côte");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
                         "Pénalité appliquée dans la marge pour éviter de longer le rivage.");
+                // Acceptation partielle
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "Accepter les chemins partiels à fort progrès");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "Si A* échoue mais atteint une bonne convergence (>= seuil), accepter le meilleur chemin partiel pour augmenter le taux de réussite.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "Seuil d’acceptation partielle (%)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "Convergence minimale (en %) pour accepter un chemin partiel lorsque A* n’atteint pas l’objectif.");
                 // Biomes interdits
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Biomes interdits");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Sélecteurs de biomes interdits");
@@ -538,6 +566,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Nähe-Strafe zur Küste");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
                         "Strafe innerhalb des Puffers, um das Entlanglaufen der Küste zu vermeiden.");
+                // Partielle Annahme
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "Teilpfade bei hohem Fortschritt akzeptieren");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "Wenn A* scheitert, aber eine gute Konvergenz erreicht (>= Schwelle), den besten Teilpfad akzeptieren, um die Erfolgsrate zu erhöhen.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "Schwelle für Teilpfad (%)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "Mindestfortschritt (in %), um einen Teilpfad zu akzeptieren, wenn das Ziel nicht erreicht wird.");
                 // Verbotene Biome
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Verbotene Biome");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selektoren verbotener Biome");
@@ -640,6 +675,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "海岸邻近惩罚");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
                         "位于缓冲区内时施加的惩罚，避免沿着海岸线行进。");
+                // 部分接受
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "在高进度时接受部分路径");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "当 A* 未到达目标，但收敛良好（>= 阈值）时，接受最佳的部分路径以提高成功率。");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "部分路径接受阈值（%）");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "当未达目标时，接受部分路径所需的最小收敛百分比。");
                 // 禁止生物群系
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "禁止的生物群系");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "禁止生物群系选择器");
@@ -742,6 +784,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Штраф близькості до узбережжя");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
                         "Штраф, що застосовується в межах буфера, щоб не йти вздовж берега.");
+                // Часткове прийняття
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "Приймати частковий шлях за високого прогресу");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "Якщо A* не дійшов до цілі, але досяг хорошої сходимості (>= порога), приймати найкращий частковий шлях, щоб підвищити успішність.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "Поріг прогресу для часткового шляху (%)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "Мінімальний прогрес (у %), щоб прийняти частковий шлях, коли ціль не досягнута.");
                 // Заборонені біоми
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Заборонені біоми");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селектори заборонених біомів");

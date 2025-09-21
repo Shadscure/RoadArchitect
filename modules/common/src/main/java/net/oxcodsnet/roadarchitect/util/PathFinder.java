@@ -312,6 +312,11 @@ public class PathFinder {
             ps.stepCap = localStepCap;
         }
 
+        // ── метрики прогресса для частичного принятия ──
+        final int initialL1 = Math.abs(startPos.getX() - endPos.getX()) + Math.abs(startPos.getZ() - endPos.getZ());
+        int bestMd = Integer.MAX_VALUE;
+        long bestKey = startKey;
+
         PriorityQueue<Rec> open = new PriorityQueue<>(Comparator.comparingDouble(r -> r.f));
         Long2DoubleMap gScore = new Long2DoubleOpenHashMap();
         gScore.defaultReturnValue(Double.MAX_VALUE);
@@ -346,6 +351,10 @@ public class PathFinder {
                 } else {
                     ps.stallIters++;
                 }
+            }
+            if (md < bestMd) {
+                bestMd = md;
+                bestKey = current.key;
             }
 
             if (current.key == endKey) {
@@ -415,6 +424,27 @@ public class PathFinder {
         if (ps != null) {
             ps.hitCap = !open.isEmpty();
         }
+
+        // ── Fallback: частичное принятие при высоком прогрессе ──
+        boolean canAcceptPartial = initialL1 > 0 && bestMd != Integer.MAX_VALUE && RAConfigHolder.get().acceptPartialPaths();
+        double progress = canAcceptPartial ? (double) (initialL1 - bestMd) / (double) initialL1 : 0.0;
+        if (canAcceptPartial && progress >= RAConfigHolder.get().partialProgressThreshold()) {
+            List<BlockPos> partial = reconstructVertices(bestKey, startKey, parent);
+            if (!partial.isEmpty()) {
+                if (ps != null) {
+                    ps.avgStepOnPath = computeAvgCostOfPathVertices(partial);
+                    ps.pathFound = true; // считаем частичный как полезный путь для подсказок
+                    ps.bestL1 = Math.min(ps.bestL1, bestMd);
+                }
+                LOGGER.debug("Accept partial path (progress={}%, len={}, threshold={}%) {} -> {}",
+                        String.format(Locale.ROOT, "%.1f", progress * 100.0),
+                        partial.size(),
+                        String.format(Locale.ROOT, "%.1f", RAConfigHolder.get().partialProgressThreshold() * 100.0),
+                        startPos.toShortString(), endPos.toShortString());
+                return partial;
+            }
+        }
+
         LOGGER.debug("Path not found between {} and {} after {} iterations (cap={})",
                 startPos, endPos, Math.min(iterations, localStepCap), localStepCap);
         return List.of();

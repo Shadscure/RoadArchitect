@@ -137,6 +137,19 @@ public final class RAConfigFabricBridge {
             public double forbiddenBiomeProximityPenalty() {
                 return holder.getConfig().forbiddenBiomes.proximityPenalty;
             }
+
+            @Override
+            public boolean acceptPartialPaths() {
+                return holder.getConfig().pathfinding.acceptHighProgressPartial;
+            }
+
+            @Override
+            public double partialProgressThreshold() {
+                int pct = holder.getConfig().pathfinding.partialProgressPercent;
+                if (pct <= 0) return 0.0;
+                if (pct >= 100) return 1.0;
+                return pct / 100.0;
+            }
         });
 
         holder.registerSaveListener((h, cfg) -> {

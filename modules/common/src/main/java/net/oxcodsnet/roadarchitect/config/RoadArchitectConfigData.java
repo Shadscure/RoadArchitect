@@ -86,6 +86,13 @@ public final class RoadArchitectConfigData implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public double coastProximityPenalty = 180.0;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean acceptHighProgressPartial = true;
+
+        @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
+        @ConfigEntry.Gui.Tooltip
+        public int partialProgressPercent = 80;
     }
 
     // Forbidden biome rules (separate tab)

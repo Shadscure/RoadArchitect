@@ -153,5 +153,15 @@ public final class RAConfigHolder {
         public double forbiddenBiomeProximityPenalty() {
             return 500.0;
         }
+
+        @Override
+        public boolean acceptPartialPaths() {
+            return true;
+        }
+
+        @Override
+        public double partialProgressThreshold() {
+            return 0.80; // 80%
+        }
     }
 }

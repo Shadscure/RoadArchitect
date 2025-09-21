@@ -119,6 +119,16 @@ public final class RoadArchitect {
         public double forbiddenBiomeProximityPenalty() {
             return RAConfigHolder.get().forbiddenBiomeProximityPenalty();
         }
+
+        @Override
+        public boolean acceptPartialPaths() {
+            return RAConfigHolder.get().acceptPartialPaths();
+        }
+
+        @Override
+        public double partialProgressThreshold() {
+            return RAConfigHolder.get().partialProgressThreshold();
+        }
     };
 
     private RoadArchitect() {

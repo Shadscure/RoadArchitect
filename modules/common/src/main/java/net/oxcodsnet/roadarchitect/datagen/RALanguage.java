@@ -14,6 +14,7 @@ public final class RALanguage {
             case "en_us": {
                 add.accept("key.roadarchitect.debug", "Road Graph Debug");
                 add.accept("category.roadarchitect", "Road Architect");
+                add.accept("text.autoconfig.roadarchitect.category.default", "General Settings");
                 add.accept("roadarchitect.stage.initialisation", "Initialising");
                 add.accept("roadarchitect.stage.scanning", "Scanning Structures");
                 add.accept("roadarchitect.stage.pathfinding", "Path Finding");
@@ -21,7 +22,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "Complete");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "Initial Scan Radius");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Radius in blocks to scan for structures when the world is first loaded.");
+                        "Radius in chunks to scan for structures when the world is first loaded.");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius", "Chunk Generation Scan Radius");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
                         "Radius in chunks scanned when new chunks generate.");
@@ -37,7 +38,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.title", "Road Architect Config");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Initial Scan Radius");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Radius in blocks to scan for structures when the world is first loaded.");
+                        "Radius in chunks to scan for structures when the world is first loaded.");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius", "Chunk Generation Scan Radius");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
                         "Radius in chunks scanned when new chunks generate.");
@@ -66,6 +67,55 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Deterministic Decorations");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Place lamps, buoys and sides using a global marker grid (chunk-agnostic).");
+                // Terrain Analyzer (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Terrain Analyzer (Beta)");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Enable Terrain Analyzer");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "Steer roads around rough/mountainous terrain by penalizing height variance.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Roughness Radius");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "Window radius in blocks to measure height range.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "Roughness Stride");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "Sampling step in blocks within the window.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "Range Threshold");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "Minimum height range before applying penalty.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Penalty Scale");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "Penalty per block of height range above threshold.");
+                // Pathfinding
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Pathfinding");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Prefer Land Over Water");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "Adds extra cost to water steps and near-coast cells so land routes are preferred.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "Water Step Penalty");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "Additional cost added on each step in ocean/river biomes when preference is enabled.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "Coast Avoid Buffer (blocks)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "Radius in blocks around water biomes that incurs a proximity penalty.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Coast Proximity Penalty");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "Penalty applied when within the coast buffer to avoid hugging shorelines.");
+                // Partial acceptance
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "Accept High-Progress Partial Paths");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "If A* fails but reaches good convergence (>= threshold), accept the best partial path to increase success rate.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "Partial Acceptance Threshold (%)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "Minimum convergence (in %) to accept a partial path when A* doesn't reach the goal.");
+                // Forbidden biomes
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Forbidden Biomes");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Forbidden Biome Selectors");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "List of biome selectors (IDs or #tags) that roads cannot traverse.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Forbidden Proximity Buffer (blocks)");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "Radius around forbidden biomes that adds an extra penalty.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Forbidden Proximity Penalty");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "Penalty applied when near a forbidden biome.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Travel around the world without barriers: RoadArchitect automatically scans your world, finds villages, and other structures, and then lays a network of roads between them.");
                 break;
@@ -73,6 +123,7 @@ public final class RALanguage {
             case "ru_ru": {
                 add.accept("key.roadarchitect.debug", "Отладка графа дорог");
                 add.accept("category.roadarchitect", "Архитектор дорог");
+                add.accept("text.autoconfig.roadarchitect.category.default", "Основные настройки");
                 add.accept("roadarchitect.stage.initialisation", "Инициализация");
                 add.accept("roadarchitect.stage.scanning", "Сканирование структур");
                 add.accept("roadarchitect.stage.pathfinding", "Поиск пути");
@@ -80,7 +131,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "Завершено");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "Начальный радиус сканирования");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Радиус в блоках для поиска структур при первом запуске мира.");
+                        "Радиус в чанках для поиска структур при первом запуске мира.");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius",
                         "Радиус сканирования при генерации чанков");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -100,7 +151,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.title", "Конфиг Road Architect");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Начальный радиус сканирования");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Радиус в блоках для поиска структур при первом запуске мира.");
+                        "Радиус в чанках для поиска структур при первом запуске мира.");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius",
                         "Радиус сканирования при генерации чанков");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -133,6 +184,55 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Детерминированные украшения");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Размещение по глобальной сетке маркеров (не зависит от чанков).");
+                // Анализ рельефа (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Анализ рельефа (Бета)");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Включить анализ рельефа");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "Отклонять дороги от неровной/гористой местности с помощью штрафа за разброс высот.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Радиус окна неровности");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "Радиус в блоках окна для измерения диапазона высот.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "Шаг выборки");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "Шаг выборки в блоках внутри окна.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "Порог диапазона");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "Минимальный разброс высот до включения штрафа.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Масштаб штрафа");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "Штраф за каждый блок диапазона выше порога.");
+                // Поиск пути
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Поиск пути");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Предпочитать сушу воде");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "Добавляет доп. стоимость шагам по воде и рядом с побережьем, чтобы отдавать приоритет суше.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "Штраф за шаг по воде");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "Дополнительная стоимость за каждый шаг в биомах океана/реки, когда опция включена.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "Буфер обхода побережья (блоки)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "Радиус в блоках вокруг водных биомов, внутри которого применяется штраф близости.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Штраф близости к побережью");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "Штраф при нахождении в радиусе буфера, чтобы не прижиматься к береговой линии.");
+                // Частичное принятие
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "Принимать частичный путь при высоком прогрессе");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "Если A* не дошёл до цели, но достиг хорошей сходимости (>= порога), принять лучший частичный путь для повышения успешности.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "Порог прогресса для частичного пути (%)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "Минимальный прогресс (в %) для принятия частичного пути, когда цель не достигнута.");
+                // Запрещённые биомы
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Запрещённые биомы");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селекторы запрещённых биомов");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "Список селекторов биомов (ID или #теги), по которым дороги не строятся.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Буфер близости к запрещённым (блоки)");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "Радиус вокруг запрещённых биомов, добавляющий дополнительный штраф.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Штраф близости к запрещённым");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "Штраф при нахождении рядом с запрещённым биомом.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Путешествуйте по миру без барьеров: RoadArchitect автоматически сканирует ваш мир, находит деревни и другие структуры, а затем прокладывает между ними сеть дорог.");
                 break;
@@ -140,6 +240,7 @@ public final class RALanguage {
             case "es_es": {
                 add.accept("key.roadarchitect.debug", "Depuración del grafo de carreteras");
                 add.accept("category.roadarchitect", "Arquitecto de Carreteras");
+                add.accept("text.autoconfig.roadarchitect.category.default", "Configuración general");
                 add.accept("roadarchitect.stage.initialisation", "Inicialización");
                 add.accept("roadarchitect.stage.scanning", "Escaneando estructuras");
                 add.accept("roadarchitect.stage.pathfinding", "Búsqueda de rutas");
@@ -147,7 +248,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "Completado");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "Radio de exploración inicial");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Radio en bloques para buscar estructuras cuando se carga el mundo por primera vez.");
+                        "Radio en chunks para buscar estructuras cuando se carga el mundo por primera vez.");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius",
                         "Radio de exploración al generar chunks");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -164,10 +265,42 @@ public final class RALanguage {
                         "Selectores de estructuras");
                 add.accept("text.config.roadarchitect.option.structureSelectors.@Tooltip",
                         "Lista de selectores de estructuras que se conectarán con carreteras.");
+                // Búsqueda de rutas
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Búsqueda de rutas");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Preferir tierra sobre agua");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "Añade coste extra a pasos por agua y cerca de la costa para preferir rutas terrestres.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "Penalización por paso en agua");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "Coste adicional por cada paso en biomas de océano/río cuando la opción está activada.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "Búfer de costa (bloques)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "Radio en bloques alrededor de biomas acuáticos que aplica una penalización de proximidad.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Penalización por proximidad a la costa");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "Penalización al estar dentro del búfer para evitar bordear la orilla.");
+                // Aceptación parcial
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "Aceptar caminos parciales con alto progreso");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "Si A* falla pero alcanza buena convergencia (>= umbral), aceptar el mejor camino parcial para aumentar la tasa de éxito.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "Umbral de aceptación parcial (%)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "Convergencia mínima (en %) para aceptar un camino parcial cuando A* no llega al objetivo.");
+                // Biomas prohibidos
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Biomas prohibidos");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selectores de biomas prohibidos");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "Lista de selectores de biomas (IDs o #etiquetas) por los que las carreteras no pueden pasar.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Búfer de proximidad prohibida (bloques)");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "Radio alrededor de biomas prohibidos que añade una penalización extra.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Penalización por proximidad prohibida");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "Penalización al estar cerca de un bioma prohibido.");
                 add.accept("text.autoconfig.roadarchitect.title", "Configuración de Road Architect");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Radio de exploración inicial");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Radio en bloques para buscar estructuras cuando se carga el mundo por primera vez.");
+                        "Radio en chunks para buscar estructuras cuando se carga el mundo por primera vez.");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius",
                         "Radio de exploración al generar chunks");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -200,6 +333,23 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Decoraciones deterministas");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Colocación mediante una cuadrícula global de marcadores (independiente de chunks).");
+                // Analizador de Terreno (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Analizador de Terreno (Beta)");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Activar analizador de terreno");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "Desvía carreteras del terreno abrupto/montañoso penalizando la variación de altura.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Radio de rugosidad");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "Radio (bloques) de la ventana para medir el rango de alturas.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "Paso de muestreo");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "Paso (bloques) dentro de la ventana.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "Umbral de rango");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "Rango mínimo de altura antes de aplicar penalización.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Escala de penalización");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "Penalización por bloque de rango por encima del umbral.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Viaja por el mundo sin barreras: RoadArchitect escanea automáticamente tu mundo, encuentra aldeas y otras estructuras, y luego tiende una red de carreteras entre ellas.");
                 break;
@@ -207,6 +357,7 @@ public final class RALanguage {
             case "fr_fr": {
                 add.accept("key.roadarchitect.debug", "Débogage du graphe routier");
                 add.accept("category.roadarchitect", "Architecte routier");
+                add.accept("text.autoconfig.roadarchitect.category.default", "Paramètres généraux");
                 add.accept("roadarchitect.stage.initialisation", "Initialisation");
                 add.accept("roadarchitect.stage.scanning", "Analyse des structures");
                 add.accept("roadarchitect.stage.pathfinding", "Recherche de chemin");
@@ -214,7 +365,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "Terminé");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "Rayon de balayage initial");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Rayon en blocs pour rechercher des structures lors du premier chargement du monde.");
+                        "Rayon en chunks pour rechercher des structures lors du premier chargement du monde.");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius",
                         "Rayon de balayage de génération de chunks");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -231,10 +382,42 @@ public final class RALanguage {
                         "Sélecteurs de structures");
                 add.accept("text.config.roadarchitect.option.structureSelectors.@Tooltip",
                         "Liste des sélecteurs de structures que les routes relieront.");
+                // Recherche d'itinéraire
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Recherche d'itinéraire");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Préférer la terre à l'eau");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "Ajoute un coût supplémentaire aux pas sur l'eau et près des côtes pour privilégier la terre.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "Pénalité par pas sur l'eau");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "Coût supplémentaire pour chaque pas dans les biomes océan/rivière lorsque l'option est activée.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "Marge d'évitement de côte (blocs)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "Rayon en blocs autour des biomes aquatiques appliquant une pénalité de proximité.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Pénalité de proximité de la côte");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "Pénalité appliquée dans la marge pour éviter de longer le rivage.");
+                // Acceptation partielle
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "Accepter les chemins partiels à fort progrès");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "Si A* échoue mais atteint une bonne convergence (>= seuil), accepter le meilleur chemin partiel pour augmenter le taux de réussite.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "Seuil d’acceptation partielle (%)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "Convergence minimale (en %) pour accepter un chemin partiel lorsque A* n’atteint pas l’objectif.");
+                // Biomes interdits
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Biomes interdits");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Sélecteurs de biomes interdits");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "Liste des sélecteurs de biomes (IDs ou #tags) que les routes ne peuvent pas traverser.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Marge de proximité interdite (blocs)");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "Rayon autour des biomes interdits ajoutant une pénalité supplémentaire.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Pénalité de proximité interdite");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "Pénalité appliquée à proximité d'un biome interdit.");
                 add.accept("text.autoconfig.roadarchitect.title", "Configuration de Road Architect");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Rayon de balayage initial");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Rayon en blocs pour rechercher des structures lors du premier chargement du monde.");
+                        "Rayon en chunks pour rechercher des structures lors du premier chargement du monde.");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius",
                         "Rayon de balayage de génération de chunks");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -267,6 +450,23 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Décorations déterministes");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Placement via une grille de marqueurs globale (indépendante des chunks).");
+                // Analyse du relief (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Analyse du relief (Bêta)");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Activer l’analyse du relief");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "Éloigne les routes des zones accidentées/montagneuses via une pénalisation de l’écart d’altitude.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Rayon de rugosité");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "Rayon (en blocs) de la fenêtre pour mesurer l’étendue d’altitude.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "Pas d’échantillonnage");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "Pas (en blocs) d’échantillonnage dans la fenêtre.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "Seuil d’étendue");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "Étendue minimale d’altitude avant pénalisation.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Échelle de pénalité");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "Pénalité par bloc d’étendue au‑delà du seuil.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Voyagez dans le monde sans barrières : RoadArchitect analyse automatiquement votre monde, trouve les villages et autres structures, puis trace un réseau de routes entre eux.");
                 break;
@@ -274,6 +474,7 @@ public final class RALanguage {
             case "de_de": {
                 add.accept("key.roadarchitect.debug", "Straßengraph-Debug");
                 add.accept("category.roadarchitect", "Straßenarchitekt");
+                add.accept("text.autoconfig.roadarchitect.category.default", "Allgemeine Einstellungen");
                 add.accept("roadarchitect.stage.initialisation", "Initialisierung");
                 add.accept("roadarchitect.stage.scanning", "Strukturen scannen");
                 add.accept("roadarchitect.stage.pathfinding", "Wegfindung");
@@ -281,7 +482,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "Abgeschlossen");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "Anfänglicher Scanradius");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Radius in Blöcken zum Suchen nach Strukturen beim ersten Laden der Welt.");
+                        "Radius in Chunks zum Suchen nach Strukturen beim ersten Laden der Welt.");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius",
                         "Scanradius bei Chunk-Generierung");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -301,7 +502,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.title", "Road Architect Konfiguration");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Anfänglicher Scanradius");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Radius in Blöcken zum Suchen nach Strukturen beim ersten Laden der Welt.");
+                        "Radius in Chunks zum Suchen nach Strukturen beim ersten Laden der Welt.");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius",
                         "Scanradius bei Chunk-Generierung");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
@@ -334,6 +535,55 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Deterministische Dekorationen");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Platzierung über globales Markerraster (chunk-unabhängig).");
+                // Reliefanalyse (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Reliefanalyse (Beta)");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Reliefanalyse aktivieren");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "Leitet Straßen um unebenes/bergiges Gelände, indem Höhenunterschiede bestraft werden.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Rauheitsradius");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "Fensterradius (Blöcke) zur Messung der Höhenspanne.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "Abtastschritt");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "Abtastschritt (Blöcke) innerhalb des Fensters.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "Spannenschwelle");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "Minimale Höhenspan­ne, bevor eine Strafe gilt.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Strafskala");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "Strafe pro Block Spannweite über dem Schwellenwert.");
+                // Pfadsuche
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Pfadsuche");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Land gegenüber Wasser bevorzugen");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "Fügt zusätzliche Kosten für Schritte auf Wasser und in Küstennähe hinzu, um Landrouten zu bevorzugen.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "Wasser-Schrittstrafe");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "Zusätzliche Kosten pro Schritt in Ozean-/Flussbiomen, wenn aktiviert.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "Küsten-Puffer (Blöcke)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "Radius in Blöcken um Wasserbiome, der eine Näherungsstrafe anwendet.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Nähe-Strafe zur Küste");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "Strafe innerhalb des Puffers, um das Entlanglaufen der Küste zu vermeiden.");
+                // Partielle Annahme
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "Teilpfade bei hohem Fortschritt akzeptieren");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "Wenn A* scheitert, aber eine gute Konvergenz erreicht (>= Schwelle), den besten Teilpfad akzeptieren, um die Erfolgsrate zu erhöhen.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "Schwelle für Teilpfad (%)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "Mindestfortschritt (in %), um einen Teilpfad zu akzeptieren, wenn das Ziel nicht erreicht wird.");
+                // Verbotene Biome
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Verbotene Biome");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selektoren verbotener Biome");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "Liste von Biom-Selektoren (IDs oder #Tags), durch die keine Straßen verlaufen dürfen.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Puffer für verbotene Nähe (Blöcke)");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "Radius um verbotene Biome, der eine zusätzliche Strafe hinzufügt.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Strafe für verbotene Nähe");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "Strafe in der Nähe eines verbotenen Bioms.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Reisen Sie barrierefrei durch die Welt: RoadArchitect scannt automatisch Ihre Welt, findet Dörfer und andere Strukturen und legt anschließend ein Straßennetz zwischen ihnen an.");
                 break;
@@ -341,6 +591,7 @@ public final class RALanguage {
             case "zh_cn": {
                 add.accept("key.roadarchitect.debug", "道路网络调试");
                 add.accept("category.roadarchitect", "道路架构师");
+                add.accept("text.autoconfig.roadarchitect.category.default", "常规设置");
                 add.accept("roadarchitect.stage.initialisation", "初始化");
                 add.accept("roadarchitect.stage.scanning", "扫描结构");
                 add.accept("roadarchitect.stage.pathfinding", "路径搜索");
@@ -348,7 +599,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "完成");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "初始扫描半径");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "在世界首次加载时扫描结构的方块半径。");
+                        "在世界首次加载时扫描结构的区块半径。");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius", "区块生成扫描半径");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
                         "在新生成区块时扫描的区块半径。");
@@ -364,7 +615,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.title", "Road Architect 配置");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "初始扫描半径");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "在世界首次加载时扫描结构的方块半径。");
+                        "在世界首次加载时扫描结构的区块半径。");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius", "区块生成扫描半径");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
                         "在新生成区块时扫描的区块半径。");
@@ -393,6 +644,55 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "确定性装饰");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "使用全局标记网格进行放置（与区块无关）。");
+                // 地形分析 (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "地形分析（测试版）");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "启用地形分析");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "通过惩罚高度变化，让道路绕开崎岖/山地地形。");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "粗糙度半径");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "用于测量高度范围的窗口半径（方块）。");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "采样步长");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "窗口内的采样步长（方块）。");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "范围阈值");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "应用惩罚前的最小高度范围。");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "惩罚系数");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "超过阈值的每格高度范围所施加的惩罚。");
+                // 路径搜索
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "路径搜索");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "优先选择陆路而非水路");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "为水面步进和近海岸格子增加额外代价，从而偏向陆路。");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "水面步进惩罚");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "启用后，在海洋/河流生物群系每一步增加的额外代价。");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "海岸避让缓冲（方块）");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "围绕水域生物群系的半径（方块），在其中会应用邻近惩罚。");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "海岸邻近惩罚");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "位于缓冲区内时施加的惩罚，避免沿着海岸线行进。");
+                // 部分接受
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "在高进度时接受部分路径");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "当 A* 未到达目标，但收敛良好（>= 阈值）时，接受最佳的部分路径以提高成功率。");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "部分路径接受阈值（%）");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "当未达目标时，接受部分路径所需的最小收敛百分比。");
+                // 禁止生物群系
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "禁止的生物群系");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "禁止生物群系选择器");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "生物群系选择器列表（ID 或 #标签），道路不能穿过这些群系。");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "禁止邻近缓冲（方块）");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "围绕禁止生物群系的半径，添加额外惩罚。");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "禁止邻近惩罚");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "靠近禁止生物群系时施加的惩罚。");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "畅游无障碍的世界：RoadArchitect 会自动扫描你的世界，找到村庄和其他结构，然后在它们之间铺设道路网络。");
                 break;
@@ -400,6 +700,7 @@ public final class RALanguage {
             case "uk_ua": {
                 add.accept("key.roadarchitect.debug", "Налагодження графіка доріг");
                 add.accept("category.roadarchitect", "Road Architect");
+                add.accept("text.autoconfig.roadarchitect.category.default", "Загальні налаштування");
                 add.accept("roadarchitect.stage.initialisation", "Ініціалізація…");
                 add.accept("roadarchitect.stage.scanning", "Сканування структур…");
                 add.accept("roadarchitect.stage.pathfinding", "Пошук шляху…");
@@ -407,7 +708,7 @@ public final class RALanguage {
                 add.accept("roadarchitect.stage.complete", "Завершення…");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "Початковий радіус сканування");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Радіус у блоках для пошуку структур під час першого завантаження світу.");
+                        "Радіус у чанках для пошуку структур під час першого завантаження світу.");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius", "Радіус сканування генерації чанків");
                 add.accept("text.config.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
                         "Радіус у чанках, який сканується під час генерації нових чанків.");
@@ -423,7 +724,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.title", "Налаштування Road Architect");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Початковий радіус сканування");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
-                        "Радіус у блоках для пошуку структур під час першого завантаження світу.");
+                        "Радіус у чанках для пошуку структур під час першого завантаження світу.");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius", "Радіус сканування генерації чанків");
                 add.accept("text.autoconfig.roadarchitect.option.chunkGenerateScanRadius.@Tooltip",
                         "Радіус у чанках, який сканується під час генерації нових чанків.");
@@ -452,6 +753,55 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Детерміновані прикраси");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Розміщує ліхтарі, буйки та паркани, використовуючи глобальну сітку маркерів (незалежно від чанків).");
+                // Аналіз рельєфу (AutoConfig)
+                add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Аналіз рельєфу (Бета)");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Увімкнути аналіз рельєфу");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
+                        "Відхиляє дороги від нерівної/гірської місцевості, штрафуючи розкид висот.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Радіус шорсткості");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
+                        "Радіус (у блоках) вікна для вимірювання діапазону висот.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "Крок вибірки");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride.@Tooltip",
+                        "Крок (у блоках) вибірки всередині вікна.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold", "Поріг діапазону");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRangeThreshold.@Tooltip",
+                        "Мінімальний діапазон висот перед застосуванням штрафу.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Масштаб штрафу");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
+                        "Штраф за кожен блок діапазону понад поріг.");
+                // Пошук шляху
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Пошук шляху");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Надавати перевагу суші над водою");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "Додає додаткову вартість крокам по воді та поруч з узбережжям, щоб надавати перевагу суші.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "Штраф за крок по воді");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "Додаткова вартість за кожен крок в океані/річці, коли опцію увімкнено.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "Буфер обходу узбережжя (блоки)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "Радіус у блоках навколо водних біомів, де застосовується штраф близькості.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Штраф близькості до узбережжя");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "Штраф, що застосовується в межах буфера, щоб не йти вздовж берега.");
+                // Часткове прийняття
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "Приймати частковий шлях за високого прогресу");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
+                        "Якщо A* не дійшов до цілі, але досяг хорошої сходимості (>= порога), приймати найкращий частковий шлях, щоб підвищити успішність.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "Поріг прогресу для часткового шляху (%)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
+                        "Мінімальний прогрес (у %), щоб прийняти частковий шлях, коли ціль не досягнута.");
+                // Заборонені біоми
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Заборонені біоми");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селектори заборонених біомів");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "Список селекторів біомів (ID або #теги), через які дороги не прокладаються.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Буфер близькості до заборонених (блоки)");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "Радіус навколо заборонених біомів, що додає додатковий штраф.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Штраф близькості до заборонених");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "Штраф при знаходженні поруч із забороненим біомом.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Подорожуйте навколо світу без бар'єрів: RoadArchitect автоматично сканує ваш світ, знаходить села та інші структури, а потім прокладає мережу доріг між ними");
                 break;

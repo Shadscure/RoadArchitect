@@ -1,11 +1,8 @@
 # Road Architect · AGENTS Manifest
 
 ## 1. Mission
-
-
-Generate and maintain clean, reliable code that builds and manages road networks connecting natural structures in **Minecraft 1.21.8** using the Fabric, NeoForge and Quilt modding toolchains through Architectury.
+Generate and maintain clean, reliable code that builds and manages road networks connecting natural structures in **Minecraft 1.21.1** using the Fabric, NeoForge and Quilt modding toolchains through Architectury.
 ## 2. Coding Guidelines
-
 * **Java 21** as the language level.
 * Use **SLF4J** (`LOGGER`) for all logging — never resort to `System.out` or `printStackTrace`.
 * Follow **Google Java Style** (4‑space indents, 120‑character line limit).
@@ -13,24 +10,41 @@ Generate and maintain clean, reliable code that builds and manages road networks
 * Provide **JUnit 5** tests with **Minecraft‑Test** whenever feasible.
 
 ## 3. Repository Structure
-
 * `modules/common` — общая логика.
-* `modules/fabric`, `modules/neoforge`, `modules/quilt` — код специфичный для соответствующих загрузчиков.
+* `modules/fabric`, `modules/neoforge` — The code is specific for appropriate boots.
 
 ## 4. Do & Don’t
-
 ### 4.1 Do
-
 * Leverage Fabric, NeoForge and Quilt events and hooks for all world interaction.
 * Re‑use helper utilities in `util/*` to prevent code duplication.
-
 ### 4.2 Don’t
-
 * Perform blocking I/O on the main server thread.
 * Hard‑code block or item IDs — always use `Identifier` look‑ups.
-
 ## 5. Build & Testing
-
 * `./gradlew build` builds all modules.
 * `./gradlew test` runs the test suites (JUnit 5 + Minecraft-Test).
 
+
+
+### Brief message on the results of the work — block format
+```markdown
+<------>
+Section/module name
+---
+[+] In brief: what has been added
+[~] In brief: what has been revised/corrected
+[-] In brief: what has been removed
+<------>
+```
+### Formatting rules
+Separator lines `<------>` — must be at the beginning and end of each section.
+After the section title — a line with three hyphens `---`.
+
+Markers:
+- [+] — added/created;
+- [~] — changed/revised/corrected;
+- [-] — deleted/disabled.
+
+Each item should be one short line, without a period, starting with a verb (“Added...”, “Revised...”, “Deleted...”).
+No duplicate items. Only add a section if there have been changes to it.
+Multiple consecutive blocks `<------> ... <------>` are allowed.

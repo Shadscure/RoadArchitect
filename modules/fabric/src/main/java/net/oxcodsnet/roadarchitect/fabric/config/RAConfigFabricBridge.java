@@ -74,6 +74,82 @@ public final class RAConfigFabricBridge {
             public java.util.List<String> structureSelectors() {
                 return holder.getConfig().structureSelectors;
             }
+
+            // Terrain Analyzer
+            @Override
+            public boolean terrainAnalyzerEnabled() {
+                return holder.getConfig().terrainAnalyzer.enabled;
+            }
+
+            @Override
+            public int terrainRoughRadius() {
+                return holder.getConfig().terrainAnalyzer.roughRadius;
+            }
+
+            @Override
+            public int terrainRoughStride() {
+                return holder.getConfig().terrainAnalyzer.roughStride;
+            }
+
+            @Override
+            public int terrainRangeThreshold() {
+                return holder.getConfig().terrainAnalyzer.roughRangeThreshold;
+            }
+
+            @Override
+            public double terrainPenaltyScale() {
+                return holder.getConfig().terrainAnalyzer.roughPenaltyScale;
+            }
+
+            // Pathfinding preferences
+            @Override
+            public boolean preferLandOverWater() {
+                return holder.getConfig().pathfinding.preferLandOverWater;
+            }
+
+            @Override
+            public double waterStepPenalty() {
+                return holder.getConfig().pathfinding.waterStepPenalty;
+            }
+
+            @Override
+            public int coastAvoidBufferBlocks() {
+                return holder.getConfig().pathfinding.coastAvoidBufferBlocks;
+            }
+
+            @Override
+            public double coastProximityPenalty() {
+                return holder.getConfig().pathfinding.coastProximityPenalty;
+            }
+
+            // Forbidden biomes
+            @Override
+            public java.util.List<String> forbiddenBiomeSelectors() {
+                return holder.getConfig().forbiddenBiomes.selectors;
+            }
+
+            @Override
+            public int forbiddenBiomeBufferBlocks() {
+                return holder.getConfig().forbiddenBiomes.bufferBlocks;
+            }
+
+            @Override
+            public double forbiddenBiomeProximityPenalty() {
+                return holder.getConfig().forbiddenBiomes.proximityPenalty;
+            }
+
+            @Override
+            public boolean acceptPartialPaths() {
+                return holder.getConfig().pathfinding.acceptHighProgressPartial;
+            }
+
+            @Override
+            public double partialProgressThreshold() {
+                int pct = holder.getConfig().pathfinding.partialProgressPercent;
+                if (pct <= 0) return 0.0;
+                if (pct >= 100) return 1.0;
+                return pct / 100.0;
+            }
         });
 
         holder.registerSaveListener((h, cfg) -> {

@@ -24,3 +24,27 @@ Generate and maintain clean, reliable code that builds and manages road networks
 * `./gradlew build` builds all modules.
 * `./gradlew test` runs the test suites (JUnit 5 + Minecraft-Test).
 
+
+
+### Brief message on the results of the work — block format
+```markdown
+<------>
+Section/module name
+---
+[+] In brief: what has been added
+[~] In brief: what has been revised/corrected
+[-] In brief: what has been removed
+<------>
+```
+### Formatting rules
+Separator lines `<------>` — must be at the beginning and end of each section.
+After the section title — a line with three hyphens `---`.
+
+Markers:
+- [+] — added/created;
+- [~] — changed/revised/corrected;
+- [-] — deleted/disabled.
+
+Each item should be one short line, without a period, starting with a verb (“Added...”, “Revised...”, “Deleted...”).
+No duplicate items. Only add a section if there have been changes to it.
+Multiple consecutive blocks `<------> ... <------>` are allowed.

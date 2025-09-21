@@ -67,4 +67,41 @@ public final class RoadArchitectConfigData implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         public double roughPenaltyScale = 15.0;
     }
+
+    // Pathfinding preferences (separate tab)
+    @ConfigEntry.Category("pathfinding")
+    @ConfigEntry.Gui.TransitiveObject
+    public PathfindingSettings pathfinding = new PathfindingSettings();
+
+    public static final class PathfindingSettings {
+        @ConfigEntry.Gui.Tooltip
+        public boolean preferLandOverWater = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public double waterStepPenalty = 200.0;
+
+        @ConfigEntry.BoundedDiscrete(min = 0, max = 64)
+        @ConfigEntry.Gui.Tooltip
+        public int coastAvoidBufferBlocks = 16;
+
+        @ConfigEntry.Gui.Tooltip
+        public double coastProximityPenalty = 180.0;
+    }
+
+    // Forbidden biome rules (separate tab)
+    @ConfigEntry.Category("forbiddenBiomes")
+    @ConfigEntry.Gui.TransitiveObject
+    public ForbiddenBiomeSettings forbiddenBiomes = new ForbiddenBiomeSettings();
+
+    public static final class ForbiddenBiomeSettings {
+        @ConfigEntry.Gui.Tooltip
+        public java.util.List<String> selectors = java.util.List.of();
+
+        @ConfigEntry.BoundedDiscrete(min = 0, max = 64)
+        @ConfigEntry.Gui.Tooltip
+        public int bufferBlocks = 16;
+
+        @ConfigEntry.Gui.Tooltip
+        public double proximityPenalty = 500.0;
+    }
 }

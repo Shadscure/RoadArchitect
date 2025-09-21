@@ -3,6 +3,8 @@ package net.oxcodsnet.roadarchitect;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 
+import java.util.List;
+
 public final class RoadArchitect {
     public static final String MOD_ID = "roadarchitect";
 
@@ -81,6 +83,41 @@ public final class RoadArchitect {
         @Override
         public double terrainPenaltyScale() {
             return RAConfigHolder.get().terrainPenaltyScale();
+        }
+
+        @Override
+        public boolean preferLandOverWater() {
+            return RAConfigHolder.get().preferLandOverWater();
+        }
+
+        @Override
+        public double waterStepPenalty() {
+            return RAConfigHolder.get().waterStepPenalty();
+        }
+
+        @Override
+        public int coastAvoidBufferBlocks() {
+            return RAConfigHolder.get().coastAvoidBufferBlocks();
+        }
+
+        @Override
+        public double coastProximityPenalty() {
+            return RAConfigHolder.get().coastProximityPenalty();
+        }
+
+        @Override
+        public List<String> forbiddenBiomeSelectors() {
+            return RAConfigHolder.get().forbiddenBiomeSelectors();
+        }
+
+        @Override
+        public int forbiddenBiomeBufferBlocks() {
+            return RAConfigHolder.get().forbiddenBiomeBufferBlocks();
+        }
+
+        @Override
+        public double forbiddenBiomeProximityPenalty() {
+            return RAConfigHolder.get().forbiddenBiomeProximityPenalty();
         }
     };
 

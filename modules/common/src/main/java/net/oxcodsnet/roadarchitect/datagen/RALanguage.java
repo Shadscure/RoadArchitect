@@ -14,6 +14,7 @@ public final class RALanguage {
             case "en_us": {
                 add.accept("key.roadarchitect.debug", "Road Graph Debug");
                 add.accept("category.roadarchitect", "Road Architect");
+                add.accept("text.autoconfig.roadarchitect.category.default", "Road Architect global.....");
                 add.accept("roadarchitect.stage.initialisation", "Initialising");
                 add.accept("roadarchitect.stage.scanning", "Scanning Structures");
                 add.accept("roadarchitect.stage.pathfinding", "Path Finding");
@@ -83,6 +84,31 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Penalty Scale");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
                         "Penalty per block of height range above threshold.");
+                // Pathfinding
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Pathfinding");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Prefer Land Over Water");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "Adds extra cost to water steps and near-coast cells so land routes are preferred.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "Water Step Penalty");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "Additional cost added on each step in ocean/river biomes when preference is enabled.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "Coast Avoid Buffer (blocks)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "Radius in blocks around water biomes that incurs a proximity penalty.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Coast Proximity Penalty");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "Penalty applied when within the coast buffer to avoid hugging shorelines.");
+                // Forbidden biomes
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Forbidden Biomes");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Forbidden Biome Selectors");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "List of biome selectors (IDs or #tags) that roads cannot traverse.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Forbidden Proximity Buffer (blocks)");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "Radius around forbidden biomes that adds an extra penalty.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Forbidden Proximity Penalty");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "Penalty applied when near a forbidden biome.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Travel around the world without barriers: RoadArchitect automatically scans your world, finds villages, and other structures, and then lays a network of roads between them.");
                 break;
@@ -167,6 +193,31 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Масштаб штрафа");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
                         "Штраф за каждый блок диапазона выше порога.");
+                // Поиск пути
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Поиск пути");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Предпочитать сушу воде");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "Добавляет доп. стоимость шагам по воде и рядом с побережьем, чтобы отдавать приоритет суше.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "Штраф за шаг по воде");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "Дополнительная стоимость за каждый шаг в биомах океана/реки, когда опция включена.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "Буфер обхода побережья (блоки)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "Радиус в блоках вокруг водных биомов, внутри которого применяется штраф близости.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Штраф близости к побережью");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "Штраф при нахождении в радиусе буфера, чтобы не прижиматься к береговой линии.");
+                // Запрещённые биомы
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Запрещённые биомы");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селекторы запрещённых биомов");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "Список селекторов биомов (ID или #теги), по которым дороги не строятся.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Буфер близости к запрещённым (блоки)");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "Радиус вокруг запрещённых биомов, добавляющий дополнительный штраф.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Штраф близости к запрещённым");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "Штраф при нахождении рядом с запрещённым биомом.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Путешествуйте по миру без барьеров: RoadArchitect автоматически сканирует ваш мир, находит деревни и другие структуры, а затем прокладывает между ними сеть дорог.");
                 break;
@@ -198,6 +249,31 @@ public final class RALanguage {
                         "Selectores de estructuras");
                 add.accept("text.config.roadarchitect.option.structureSelectors.@Tooltip",
                         "Lista de selectores de estructuras que se conectarán con carreteras.");
+                // Búsqueda de rutas
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Búsqueda de rutas");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Preferir tierra sobre agua");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "Añade coste extra a pasos por agua y cerca de la costa para preferir rutas terrestres.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "Penalización por paso en agua");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "Coste adicional por cada paso en biomas de océano/río cuando la opción está activada.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "Búfer de costa (bloques)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "Radio en bloques alrededor de biomas acuáticos que aplica una penalización de proximidad.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Penalización por proximidad a la costa");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "Penalización al estar dentro del búfer para evitar bordear la orilla.");
+                // Biomas prohibidos
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Biomas prohibidos");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selectores de biomas prohibidos");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "Lista de selectores de biomas (IDs o #etiquetas) por los que las carreteras no pueden pasar.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Búfer de proximidad prohibida (bloques)");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "Radio alrededor de biomas prohibidos que añade una penalización extra.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Penalización por proximidad prohibida");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "Penalización al estar cerca de un bioma prohibido.");
                 add.accept("text.autoconfig.roadarchitect.title", "Configuración de Road Architect");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Radio de exploración inicial");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
@@ -282,6 +358,31 @@ public final class RALanguage {
                         "Sélecteurs de structures");
                 add.accept("text.config.roadarchitect.option.structureSelectors.@Tooltip",
                         "Liste des sélecteurs de structures que les routes relieront.");
+                // Recherche d'itinéraire
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Recherche d'itinéraire");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Préférer la terre à l'eau");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "Ajoute un coût supplémentaire aux pas sur l'eau et près des côtes pour privilégier la terre.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "Pénalité par pas sur l'eau");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "Coût supplémentaire pour chaque pas dans les biomes océan/rivière lorsque l'option est activée.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "Marge d'évitement de côte (blocs)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "Rayon en blocs autour des biomes aquatiques appliquant une pénalité de proximité.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Pénalité de proximité de la côte");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "Pénalité appliquée dans la marge pour éviter de longer le rivage.");
+                // Biomes interdits
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Biomes interdits");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Sélecteurs de biomes interdits");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "Liste des sélecteurs de biomes (IDs ou #tags) que les routes ne peuvent pas traverser.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Marge de proximité interdite (blocs)");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "Rayon autour des biomes interdits ajoutant une pénalité supplémentaire.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Pénalité de proximité interdite");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "Pénalité appliquée à proximité d'un biome interdit.");
                 add.accept("text.autoconfig.roadarchitect.title", "Configuration de Road Architect");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Rayon de balayage initial");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
@@ -419,6 +520,31 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Strafskala");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
                         "Strafe pro Block Spannweite über dem Schwellenwert.");
+                // Pfadsuche
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Pfadsuche");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Land gegenüber Wasser bevorzugen");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "Fügt zusätzliche Kosten für Schritte auf Wasser und in Küstennähe hinzu, um Landrouten zu bevorzugen.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "Wasser-Schrittstrafe");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "Zusätzliche Kosten pro Schritt in Ozean-/Flussbiomen, wenn aktiviert.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "Küsten-Puffer (Blöcke)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "Radius in Blöcken um Wasserbiome, der eine Näherungsstrafe anwendet.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Nähe-Strafe zur Küste");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "Strafe innerhalb des Puffers, um das Entlanglaufen der Küste zu vermeiden.");
+                // Verbotene Biome
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Verbotene Biome");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selektoren verbotener Biome");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "Liste von Biom-Selektoren (IDs oder #Tags), durch die keine Straßen verlaufen dürfen.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Puffer für verbotene Nähe (Blöcke)");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "Radius um verbotene Biome, der eine zusätzliche Strafe hinzufügt.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Strafe für verbotene Nähe");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "Strafe in der Nähe eines verbotenen Bioms.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Reisen Sie barrierefrei durch die Welt: RoadArchitect scannt automatisch Ihre Welt, findet Dörfer und andere Strukturen und legt anschließend ein Straßennetz zwischen ihnen an.");
                 break;
@@ -495,6 +621,31 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "惩罚系数");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
                         "超过阈值的每格高度范围所施加的惩罚。");
+                // 路径搜索
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "路径搜索");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "优先选择陆路而非水路");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "为水面步进和近海岸格子增加额外代价，从而偏向陆路。");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "水面步进惩罚");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "启用后，在海洋/河流生物群系每一步增加的额外代价。");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "海岸避让缓冲（方块）");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "围绕水域生物群系的半径（方块），在其中会应用邻近惩罚。");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "海岸邻近惩罚");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "位于缓冲区内时施加的惩罚，避免沿着海岸线行进。");
+                // 禁止生物群系
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "禁止的生物群系");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "禁止生物群系选择器");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "生物群系选择器列表（ID 或 #标签），道路不能穿过这些群系。");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "禁止邻近缓冲（方块）");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "围绕禁止生物群系的半径，添加额外惩罚。");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "禁止邻近惩罚");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "靠近禁止生物群系时施加的惩罚。");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "畅游无障碍的世界：RoadArchitect 会自动扫描你的世界，找到村庄和其他结构，然后在它们之间铺设道路网络。");
                 break;
@@ -571,6 +722,31 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale", "Масштаб штрафу");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
                         "Штраф за кожен блок діапазону понад поріг.");
+                // Пошук шляху
+                add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Пошук шляху");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Надавати перевагу суші над водою");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater.@Tooltip",
+                        "Додає додаткову вартість крокам по воді та поруч з узбережжям, щоб надавати перевагу суші.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty", "Штраф за крок по воді");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.waterStepPenalty.@Tooltip",
+                        "Додаткова вартість за кожен крок в океані/річці, коли опцію увімкнено.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "Буфер обходу узбережжя (блоки)");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
+                        "Радіус у блоках навколо водних біомів, де застосовується штраф близькості.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Штраф близькості до узбережжя");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
+                        "Штраф, що застосовується в межах буфера, щоб не йти вздовж берега.");
+                // Заборонені біоми
+                add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Заборонені біоми");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селектори заборонених біомів");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
+                        "Список селекторів біомів (ID або #теги), через які дороги не прокладаються.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Буфер близькості до заборонених (блоки)");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
+                        "Радіус навколо заборонених біомів, що додає додатковий штраф.");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Штраф близькості до заборонених");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
+                        "Штраф при знаходженні поруч із забороненим біомом.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Подорожуйте навколо світу без бар'єрів: RoadArchitect автоматично сканує ваш світ, знаходить села та інші структури, а потім прокладає мережу доріг між ними");
                 break;

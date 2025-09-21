@@ -47,4 +47,15 @@ public interface RAConfig {
     int terrainRoughStride();
     int terrainRangeThreshold();
     double terrainPenaltyScale();
+
+    // Pathfinding: land vs water preference
+    boolean preferLandOverWater();
+    double waterStepPenalty();
+    int coastAvoidBufferBlocks();
+    double coastProximityPenalty();
+
+    // Pathfinding: forbidden biomes (block traversal)
+    java.util.List<String> forbiddenBiomeSelectors();
+    int forbiddenBiomeBufferBlocks();
+    double forbiddenBiomeProximityPenalty();
 }

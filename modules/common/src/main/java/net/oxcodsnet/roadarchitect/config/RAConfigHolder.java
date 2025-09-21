@@ -115,5 +115,40 @@ public final class RAConfigHolder {
         public double terrainPenaltyScale() {
             return 15.0;
         }
+
+        @Override
+        public boolean preferLandOverWater() {
+            return true;
+        }
+
+        @Override
+        public double waterStepPenalty() {
+            return 200.0;
+        }
+
+        @Override
+        public int coastAvoidBufferBlocks() {
+            return 16;
+        }
+
+        @Override
+        public double coastProximityPenalty() {
+            return 180.0;
+        }
+
+        @Override
+        public List<String> forbiddenBiomeSelectors() {
+            return List.of();
+        }
+
+        @Override
+        public int forbiddenBiomeBufferBlocks() {
+            return 16;
+        }
+
+        @Override
+        public double forbiddenBiomeProximityPenalty() {
+            return 500.0;
+        }
     }
 }

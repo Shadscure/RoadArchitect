@@ -98,6 +98,43 @@ public final class RAConfigNeoForgeBridge {
             public double terrainPenaltyScale() {
                 return holder.getConfig().terrainAnalyzer.roughPenaltyScale;
             }
+
+            // Pathfinding preferences
+            @Override
+            public boolean preferLandOverWater() {
+                return holder.getConfig().pathfinding.preferLandOverWater;
+            }
+
+            @Override
+            public double waterStepPenalty() {
+                return holder.getConfig().pathfinding.waterStepPenalty;
+            }
+
+            @Override
+            public int coastAvoidBufferBlocks() {
+                return holder.getConfig().pathfinding.coastAvoidBufferBlocks;
+            }
+
+            @Override
+            public double coastProximityPenalty() {
+                return holder.getConfig().pathfinding.coastProximityPenalty;
+            }
+
+            // Forbidden biomes
+            @Override
+            public java.util.List<String> forbiddenBiomeSelectors() {
+                return holder.getConfig().forbiddenBiomes.selectors;
+            }
+
+            @Override
+            public int forbiddenBiomeBufferBlocks() {
+                return holder.getConfig().forbiddenBiomes.bufferBlocks;
+            }
+
+            @Override
+            public double forbiddenBiomeProximityPenalty() {
+                return holder.getConfig().forbiddenBiomes.proximityPenalty;
+            }
         });
         RoadPipelineController.refreshStructureSelectorCache();
         LOG.info("[RoadArchitect] cloth-config bridge initialized");

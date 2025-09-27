@@ -56,6 +56,9 @@ Roads adapt their style to the biome, and the network is saved between game sess
 - 🛰 **Visual road-graph debugger** with pan/zoom, tooltips, and a color legend; in singleplayer, clicking a node teleports to it (default hotkey **H**)
 - 🗺 **Terralith-ready** — works out of the box with the <a href="https://modrinth.com/datapack/terralith">Terralith</a> world-generation datapack
 
+## 🧩 Add-ons
+ - RoadArchitect Encounters:  [Modrinth](https://modrinth.com/mod/roadarchitect-encounters) / [Curseforge](https://www.curseforge.com/minecraft/mc-mods/roadarchitect-encounters) / [Github](https://github.com/Shadscure/RoadArchitect-Encounters)
+ 
 ---
 
 ## 📷 Screenshots
@@ -143,14 +146,6 @@ Roads adapt their style to the biome, and the network is saved between game sess
      > Settings are also available from the mods list
      
 > **Note:** Starting with `v1.2.0`, **owo-lib is not required**.
----
-
-## 🕹 Usage
-
-- The mod automatically scans the world and builds roads between detected structures.  
-- Open the **road-graph debug** window with **H** (rebindable in Controls).  
-- In **singleplayer**, clicking a node in the debug view teleports you to it.
-
 ---
 
 ## 🗒️ Recent changes

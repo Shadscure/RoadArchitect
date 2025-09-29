@@ -121,7 +121,7 @@ public final class CacheManager {
                                 BiomeCoords.fromBlock(finalX), 316,
                                 BiomeCoords.fromBlock(finalZ), sampler);
                         storage.heights().put(key, h);
-                        storage.biomes().put(key, biome);
+                        storage.putBiome(key, biome);
                     });
                 }
             }
@@ -162,7 +162,7 @@ public final class CacheManager {
      * Gets or computes biome entry for the key.
      */
     public static RegistryEntry<Biome> getBiome(ServerWorld world, long key, Supplier<RegistryEntry<Biome>> loader) {
-        return state(world).biomes().computeIfAbsent(key, k -> loader.get());
+        return state(world).getBiome(world, key, loader);
     }
 
     /**

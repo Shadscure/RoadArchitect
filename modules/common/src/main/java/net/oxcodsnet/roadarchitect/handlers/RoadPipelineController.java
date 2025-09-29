@@ -148,9 +148,19 @@ public final class RoadPipelineController {
         List<String> selectors = RoadArchitect.CONFIG.structureSelectors();
         for (String sel : selectors) {
             if (sel.startsWith("#")) {
-                TARGET_TAGS.add(TagKey.of(RegistryKeys.STRUCTURE, Identifier.of(sel.substring(1))));
+                Identifier id = Identifier.tryParse(sel.substring(1));
+                if (id != null) {
+                    TARGET_TAGS.add(TagKey.of(RegistryKeys.STRUCTURE, id));
+                } else {
+                    LOGGER.warn("Ignoring invalid structure tag selector '{}'", sel);
+                }
             } else {
-                TARGET_IDS.add(Identifier.of(sel));
+                Identifier id = Identifier.tryParse(sel);
+                if (id != null) {
+                    TARGET_IDS.add(id);
+                } else {
+                    LOGGER.warn("Ignoring invalid structure id selector '{}'", sel);
+                }
             }
         }
     }

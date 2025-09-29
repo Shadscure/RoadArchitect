@@ -115,13 +115,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
 
     @Override public boolean shouldCloseOnEsc() { return true; }
 
-    // ---------- ввод ----------
-
-    @Override
-    protected void applyBlur(float delta) {
-        // Отключаем блюр для этого экрана
-    }
-
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button != 0) return super.mouseClicked(mouseX, mouseY, button);
@@ -153,9 +146,12 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         double old = zoom;
-        zoom = vertical > 0 ? zoom * 1.1 : zoom / 1.1;
+        if (amount == 0) {
+            return false;
+        }
+        zoom = amount > 0 ? zoom * 1.1 : zoom / 1.1;
         offsetX = (offsetX - mouseX + PADDING) * (zoom / old) + mouseX - PADDING;
         offsetY = (offsetY - mouseY + PADDING) * (zoom / old) + mouseY - PADDING;
         return true;

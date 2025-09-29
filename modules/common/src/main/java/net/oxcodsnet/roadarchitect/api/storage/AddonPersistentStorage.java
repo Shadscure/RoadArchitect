@@ -1,6 +1,5 @@
 package net.oxcodsnet.roadarchitect.api.storage;
 
-import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -20,8 +19,6 @@ public final class AddonPersistentStorage extends PersistentState {
     private static final String KEY = "key";
     private static final String VAL = "val";
 
-    public static final Type<AddonPersistentStorage> TYPE_DEF = new Type<>(AddonPersistentStorage::new, AddonPersistentStorage::fromNbt, DataFixTypes.SAVED_DATA_MAP_DATA);
-
     private final Map<Identifier, NbtCompound> data = new ConcurrentHashMap<>();
 
     private final Identifier addonId;
@@ -36,7 +33,10 @@ public final class AddonPersistentStorage extends PersistentState {
 
     public static AddonPersistentStorage get(ServerWorld world, Identifier addonId) {
         String storageKey = storageKey(addonId);
-        return PersistentStateUtil.get(world, new Type<>(() -> new AddonPersistentStorage(addonId), (tag, lookup) -> fromNbt(tag, lookup, addonId), DataFixTypes.SAVED_DATA_MAP_DATA), storageKey);
+        return PersistentStateUtil.get(world,
+                () -> new AddonPersistentStorage(addonId),
+                tag -> fromNbt(tag, addonId),
+                storageKey);
     }
 
     private static String storageKey(Identifier addonId) {
@@ -45,11 +45,11 @@ public final class AddonPersistentStorage extends PersistentState {
         return "ra_addon_" + addonId.getNamespace() + "_" + safePath;
     }
 
-    public static AddonPersistentStorage fromNbt(NbtCompound tag, net.minecraft.registry.RegistryWrapper.WrapperLookup lookup) {
-        return fromNbt(tag, lookup, Identifier.of("roadarchitect", "unknown"));
+    public static AddonPersistentStorage fromNbt(NbtCompound tag) {
+        return fromNbt(tag, Identifier.of("roadarchitect", "unknown"));
     }
 
-    private static AddonPersistentStorage fromNbt(NbtCompound tag, net.minecraft.registry.RegistryWrapper.WrapperLookup lookup, Identifier addonId) {
+    private static AddonPersistentStorage fromNbt(NbtCompound tag, Identifier addonId) {
         AddonPersistentStorage s = new AddonPersistentStorage(addonId);
         NbtList list = tag.getList(ROOT, NbtElement.COMPOUND_TYPE);
         for (int i = 0; i < list.size(); i++) {
@@ -63,7 +63,7 @@ public final class AddonPersistentStorage extends PersistentState {
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound tag, net.minecraft.registry.RegistryWrapper.WrapperLookup lookup) {
+    public NbtCompound writeNbt(NbtCompound tag) {
         NbtList list = new NbtList();
         for (Map.Entry<Identifier, NbtCompound> en : data.entrySet()) {
             NbtCompound e = new NbtCompound();

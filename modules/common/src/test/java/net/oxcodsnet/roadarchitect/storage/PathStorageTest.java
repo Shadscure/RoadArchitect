@@ -31,12 +31,11 @@ class PathStorageTest {
         s.putPath("b", "c", List.of(), PathStorage.Status.PENDING);
 
         NbtCompound tag = new NbtCompound();
-        NbtCompound out = s.writeNbt(tag, null);
+        NbtCompound out = s.writeNbt(tag);
         assertTrue(out.contains("paths", NbtElement.LIST_TYPE));
 
-        PathStorage restored = PathStorage.fromNbt(out, null);
+        PathStorage restored = PathStorage.fromNbt(out);
         assertEquals(s.getPath("a", "b"), restored.getPath("a", "b"));
         assertEquals(s.allStatuses(), restored.allStatuses());
     }
 }
-

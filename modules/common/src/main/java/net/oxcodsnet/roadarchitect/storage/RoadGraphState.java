@@ -1,6 +1,5 @@
 package net.oxcodsnet.roadarchitect.storage;
 
-import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.world.ServerWorld;
@@ -21,12 +20,6 @@ public class RoadGraphState extends PersistentState {
     private static final String NODES_KEY = "nodes";
     private static final String EDGES_KEY = "edges";
     private static final String RADIUS_KEY = "radius";
-
-    public static final Type<RoadGraphState> TYPE = new Type<>(
-            () -> new RoadGraphState(RoadArchitect.CONFIG.maxConnectionDistance()),
-            RoadGraphState::fromNbt,
-            DataFixTypes.SAVED_DATA_SCOREBOARD
-    );
 
     private final NodeStorage nodeStorage;
     private final EdgeStorage edgeStorage;
@@ -54,7 +47,10 @@ public class RoadGraphState extends PersistentState {
      * <p>Gets or creates the road graph state for the given world.</p>
      */
     public static RoadGraphState get(ServerWorld world) {
-        return PersistentStateUtil.get(world, TYPE, KEY);
+        return PersistentStateUtil.get(world,
+                () -> new RoadGraphState(RoadArchitect.CONFIG.maxConnectionDistance()),
+                RoadGraphState::fromNbt,
+                KEY);
     }
 
     /*========== helpers ==========*/
@@ -63,7 +59,7 @@ public class RoadGraphState extends PersistentState {
      * Восстанавливает состояние графа из NBT.
      * <p>Restores the road graph state from NBT.</p>
      */
-    public static RoadGraphState fromNbt(NbtCompound tag, net.minecraft.registry.RegistryWrapper.WrapperLookup lookup) {
+    public static RoadGraphState fromNbt(NbtCompound tag) {
         double radius = tag.getDouble(RADIUS_KEY);
         NodeStorage nodes = NodeStorage.fromNbt(tag.getList(NODES_KEY, NbtElement.COMPOUND_TYPE));
         EdgeStorage edges = EdgeStorage.fromNbt(tag.getCompound(EDGES_KEY), radius);
@@ -151,7 +147,7 @@ public class RoadGraphState extends PersistentState {
      * <p>Writes this state into an NBT compound.</p>
      */
     @Override
-    public NbtCompound writeNbt(NbtCompound tag, net.minecraft.registry.RegistryWrapper.WrapperLookup lookup) {
+    public NbtCompound writeNbt(NbtCompound tag) {
         tag.putDouble(RADIUS_KEY, edgeStorage.radius());
         tag.put(NODES_KEY, nodeStorage.toNbt());
         tag.put(EDGES_KEY, edgeStorage.toNbt());

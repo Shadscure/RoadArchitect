@@ -30,7 +30,10 @@ public final class BlockPalette {
             }
             r -= e.weight;
         }
-        return this.entries.getFirst().state;
+        if (this.entries.isEmpty()) {
+            throw new IllegalStateException("Block palette is empty");
+        }
+        return this.entries.get(0).state;
     }
 
     public static final class Builder {
@@ -51,4 +54,3 @@ public final class BlockPalette {
     private record Entry(BlockState state, int weight) {
     }
 }
-

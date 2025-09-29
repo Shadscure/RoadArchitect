@@ -7,7 +7,6 @@ import net.minecraft.nbt.NbtString;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.PersistentState;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
-import net.oxcodsnet.roadarchitect.util.KeyUtil;
 import net.oxcodsnet.roadarchitect.util.PersistentStateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

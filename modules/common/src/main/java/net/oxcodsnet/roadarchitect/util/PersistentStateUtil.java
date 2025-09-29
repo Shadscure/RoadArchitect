@@ -19,7 +19,6 @@ public final class PersistentStateUtil {
      * Retrieves or creates a {@link PersistentState} for the given world.
      *
      * @param world the server world
-     * @param type  the state type
      * @param key   the storage key
      * @return existing or newly created persistent state
      */

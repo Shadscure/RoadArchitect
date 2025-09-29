@@ -1,3 +1,5 @@
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
+
 plugins {
     id 'com.gradleup.shadow'
 }
@@ -123,7 +125,7 @@ def curse_project_id =
                 ?: System.getenv("CURSEFORGE_PROJECT_ID")
                 ?: "1326434")
 
-tasks.register("curseforge", net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+tasks.register("curseforge", TaskPublishCurseForge) {
     apiToken = curse_token
 
     disableVersionDetection()

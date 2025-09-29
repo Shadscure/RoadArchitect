@@ -11,7 +11,7 @@ authors = "${mod_authors}"
 description = '''
 ${mod_description}
 '''
-logoFile = "assets/roadarchitect/icon.png"
+logoFile = "../assets/roadarchitect/icon.png"
 displayURL="https://github.com/0xCoDSnet/RoadArchitect"
 
 

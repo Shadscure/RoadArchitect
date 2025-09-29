@@ -11,5 +11,4 @@ rootProject.name = 'roadarchitect'
 include(
         ":modules:common",
         ":modules:fabric",
-        ":modules:neoforge"
 )

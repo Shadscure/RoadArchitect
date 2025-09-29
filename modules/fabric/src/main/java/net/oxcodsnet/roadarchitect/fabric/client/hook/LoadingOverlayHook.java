@@ -2,7 +2,7 @@ package net.oxcodsnet.roadarchitect.fabric.client.hook;
 
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.world.LevelLoadingScreen;
+import net.minecraft.client.gui.screen.LevelLoadingScreen;
 import net.oxcodsnet.roadarchitect.client.gui.LoadingOverlayRenderer;
 
 public final class LoadingOverlayHook {

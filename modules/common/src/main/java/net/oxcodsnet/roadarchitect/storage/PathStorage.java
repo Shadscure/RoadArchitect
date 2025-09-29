@@ -1,6 +1,5 @@
 package net.oxcodsnet.roadarchitect.storage;
 
-import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -33,7 +32,6 @@ public class PathStorage extends PersistentState {
     private static final String POS_KEY = "pos";
     private static final String STATUS_KEY = "status";
 
-    public static final Type<PathStorage> TYPE = new Type<>(PathStorage::new, PathStorage::fromNbt, DataFixTypes.SAVED_DATA_SCOREBOARD);
     private final Map<String, List<BlockPos>> paths = new ConcurrentHashMap<>();
     private final Map<String, Status> statuses = new ConcurrentHashMap<>();
 
@@ -45,14 +43,14 @@ public class PathStorage extends PersistentState {
      * @return хранилище путей / path storage instance
      */
     public static PathStorage get(ServerWorld world) {
-        return PersistentStateUtil.get(world, TYPE, KEY);
+        return PersistentStateUtil.get(world, PathStorage::new, PathStorage::fromNbt, KEY);
     }
 
     /**
      * Восстанавливает хранилище из NBT.
      * <p>Recreates the storage from an NBT compound.</p>
      */
-    public static PathStorage fromNbt(NbtCompound tag, net.minecraft.registry.RegistryWrapper.WrapperLookup lookup) {
+    public static PathStorage fromNbt(NbtCompound tag) {
         PathStorage storage = new PathStorage();
         NbtList list = tag.getList(PATHS_KEY, NbtElement.COMPOUND_TYPE);
         for (int i = 0; i < list.size(); i++) {
@@ -77,7 +75,7 @@ public class PathStorage extends PersistentState {
      * <p>Serializes all paths into an NBT compound.</p>
      */
     @Override
-    public NbtCompound writeNbt(NbtCompound tag, net.minecraft.registry.RegistryWrapper.WrapperLookup lookup) {
+    public NbtCompound writeNbt(NbtCompound tag) {
         NbtList list = new NbtList();
         for (Map.Entry<String, List<BlockPos>> entry : paths.entrySet()) {
             String[] ids = KeyUtil.parsePathKey(entry.getKey());

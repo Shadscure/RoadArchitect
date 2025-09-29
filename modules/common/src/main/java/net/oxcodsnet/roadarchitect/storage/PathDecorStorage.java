@@ -1,6 +1,5 @@
 package net.oxcodsnet.roadarchitect.storage;
 
-import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -37,18 +36,16 @@ public final class PathDecorStorage extends PersistentState {
     private static final String GROUND_KEY = "G";
     private static final String WATER_INNER_KEY = "W";
 
-    public static final Type<PathDecorStorage> TYPE = new Type<>(PathDecorStorage::new, PathDecorStorage::fromNbt, DataFixTypes.SAVED_DATA_SCOREBOARD);
-
     private final ConcurrentMap<String, double[]> prefix = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, byte[]> groundMask = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, byte[]> waterInteriorMask = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Long> checksums = new ConcurrentHashMap<>();
 
     public static PathDecorStorage get(ServerWorld world) {
-        return PersistentStateUtil.get(world, TYPE, KEY);
+        return PersistentStateUtil.get(world, PathDecorStorage::new, PathDecorStorage::fromNbt, KEY);
     }
 
-    public static PathDecorStorage fromNbt(NbtCompound tag, net.minecraft.registry.RegistryWrapper.WrapperLookup lookup) {
+    public static PathDecorStorage fromNbt(NbtCompound tag) {
         PathDecorStorage storage = new PathDecorStorage();
         NbtList list = tag.getList(ENTRIES_KEY, NbtElement.COMPOUND_TYPE);
         for (int i = 0; i < list.size(); i++) {
@@ -74,7 +71,7 @@ public final class PathDecorStorage extends PersistentState {
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound tag, net.minecraft.registry.RegistryWrapper.WrapperLookup lookup) {
+    public NbtCompound writeNbt(NbtCompound tag) {
         NbtList out = new NbtList();
         for (Map.Entry<String, double[]> e : prefix.entrySet()) {
             String key = e.getKey();

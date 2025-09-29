@@ -261,7 +261,7 @@ public final class StructureLocator {
             boolean needChunk = false;
             // Быстрый проход по presence
             for (RegistryEntry<Structure> s : c.structs) {
-                StructurePresence presence = accessor.getStructurePresence(c.pos, s.value(), c.placement, true);
+                StructurePresence presence = accessor.getStructurePresence(c.pos, s.value(), true);
                 if (presence == StructurePresence.START_PRESENT) {
                     BlockPos hit = c.placement.getLocatePos(c.pos);
                     long keyXZ = BlockPos.asLong(hit.getX(), 0, hit.getZ());

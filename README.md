@@ -249,6 +249,15 @@ Roads adapt their style to the biome, and the network is saved between game sess
 
 ---
 
+## 🌉 Related mods & inspiration
+
+- [**Countered’s Settlement Roads**](https://modrinth.com/mod/countereds-settlement-roads) — generates roads between villages with curving paths and smart A* pathfinding.
+- [**All Roads**](https://modrinth.com/mod/all-roads) — automatically generates roads between villages and other structures; includes waypoints over water.
+
+*Thanks to the authors and the community for pushing this idea forward.*
+
+---
+
 ## 📜 License
 
 This project is licensed under the **Apache License 2.0** — see the [LICENSE](LICENSE) file for details.  

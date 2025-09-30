@@ -44,6 +44,8 @@ Roads adapt their style to the biome, and the network is saved between game sess
 
 > **Wiki:** <a href="https://github.com/0xCoDSnet/RoadArchitect/wiki">RoadArchitect Wiki</a>
 
+> _For **Forge 1.20.1**, it works correctly through_ [**Sinytra Connector**](https://modrinth.com/mod/connector)
+
 ## ✨ Features
 
 - 🏘 **Automatic detection** of villages and other structures  

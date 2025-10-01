@@ -4,9 +4,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -14,6 +18,11 @@ import java.util.concurrent.atomic.DoubleAccumulator;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.concurrent.atomic.LongAccumulator;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import net.minecraft.util.math.BlockPos;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
@@ -29,6 +38,18 @@ public final class PipelineProfiler implements AutoCloseable {
             RoadArchitect.MOD_ID + "/" + PipelineProfiler.class.getSimpleName()
     );
 
+    private static final ThreadFactory SAMPLER_THREAD_FACTORY = runnable -> {
+        Thread thread = new Thread(runnable, "roadarchitect-pipeline-profiler");
+        thread.setDaemon(true);
+        thread.setPriority(Math.max(Thread.MIN_PRIORITY + 1, Thread.NORM_PRIORITY - 1));
+        return thread;
+    };
+
+    private static final ScheduledExecutorService SAMPLER =
+            Executors.newSingleThreadScheduledExecutor(SAMPLER_THREAD_FACTORY);
+
+    private static final long SAMPLE_PERIOD_MILLIS = 1_000L;
+
     private static final AtomicReference<PipelineProfiler> ACTIVE = new AtomicReference<>();
 
     private final String trigger;
@@ -39,6 +60,12 @@ public final class PipelineProfiler implements AutoCloseable {
     private final ConcurrentMap<String, TimingStat> timings = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, LongAdder> counters = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, ValueStat> values = new ConcurrentHashMap<>();
+    private final Object sampleLock = new Object();
+    private final Map<String, Long> lastCounterSnapshot = new HashMap<>();
+    private final Map<String, Long> lastTimingSnapshot = new HashMap<>();
+    private final Map<String, Long> lastValueSnapshot = new HashMap<>();
+    private volatile long lastSampleNanos;
+    private volatile ScheduledFuture<?> samplerFuture;
 
     private PipelineProfiler(String trigger, String worldId, BlockPos origin) {
         this.trigger = trigger;
@@ -46,6 +73,8 @@ public final class PipelineProfiler implements AutoCloseable {
         this.origin = origin == null ? null : origin.toImmutable();
         this.startedNanos = System.nanoTime();
         this.startedWallClock = Instant.now();
+        this.lastSampleNanos = 0L;
+        this.samplerFuture = scheduleSampler();
     }
 
     /**
@@ -56,6 +85,7 @@ public final class PipelineProfiler implements AutoCloseable {
         PipelineProfiler previous = ACTIVE.getAndSet(profiler);
         if (previous != null) {
             LOGGER.warn("Previous profiler session {} -> {} leaked, overriding", previous.trigger, trigger);
+            previous.cancelSampler();
         }
         return profiler;
     }
@@ -170,9 +200,147 @@ public final class PipelineProfiler implements AutoCloseable {
     @Override
     public void close() {
         long totalNanos = System.nanoTime() - startedNanos;
+        cancelSampler();
         ACTIVE.compareAndSet(this, null);
         ProfilerReport report = snapshot(totalNanos);
+        logPeriodicSample(report, totalNanos, true);
         logReport(report);
+    }
+
+    private ScheduledFuture<?> scheduleSampler() {
+        if (SAMPLE_PERIOD_MILLIS <= 0L) {
+            return null;
+        }
+        return SAMPLER.scheduleAtFixedRate(() -> {
+            try {
+                logPeriodicSample(false);
+            } catch (Exception e) {
+                LOGGER.error("Failed to record pipeline profiler sample", e);
+            }
+        }, SAMPLE_PERIOD_MILLIS, SAMPLE_PERIOD_MILLIS, TimeUnit.MILLISECONDS);
+    }
+
+    private void cancelSampler() {
+        ScheduledFuture<?> future = samplerFuture;
+        if (future != null) {
+            future.cancel(false);
+            samplerFuture = null;
+        }
+    }
+
+    private void logPeriodicSample(boolean finalSample) {
+        long totalNanos = System.nanoTime() - startedNanos;
+        ProfilerReport report = snapshot(totalNanos);
+        logPeriodicSample(report, totalNanos, finalSample);
+    }
+
+    private void logPeriodicSample(ProfilerReport report, long totalNanos, boolean finalSample) {
+        String message = null;
+        synchronized (sampleLock) {
+            if (totalNanos <= lastSampleNanos) {
+                lastSampleNanos = Math.max(lastSampleNanos, totalNanos);
+                return;
+            }
+
+            long windowNanos = totalNanos - lastSampleNanos;
+            Map<String, Long> counterDelta = computeCounterDelta(report.counters());
+            Map<String, Long> timingDelta = computeTimingDelta(report.timings());
+            Map<String, Long> valueDelta = computeValueDelta(report.values());
+            lastSampleNanos = totalNanos;
+
+            if (!LOGGER.isInfoEnabled()) {
+                return;
+            }
+
+            if (counterDelta.isEmpty() && timingDelta.isEmpty() && valueDelta.isEmpty()) {
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("Pipeline profiler window [trigger=").append(report.trigger())
+                    .append(", world=").append(report.worldId());
+            if (report.origin() != null) {
+                sb.append(", origin=").append(report.origin());
+            }
+            sb.append(", window=").append(formatMillis(windowNanos)).append(" ms")
+                    .append(", total=").append(formatMillis(totalNanos)).append(" ms");
+            if (finalSample) {
+                sb.append(", final=true");
+            }
+            sb.append(']');
+
+            if (!counterDelta.isEmpty()) {
+                sb.append(" counters{").append(formatDelta(counterDelta)).append('}');
+            }
+            if (!timingDelta.isEmpty()) {
+                sb.append(" timings{").append(formatDelta(timingDelta)).append('}');
+            }
+            if (!valueDelta.isEmpty()) {
+                sb.append(" values{").append(formatDelta(valueDelta)).append('}');
+            }
+
+            message = sb.toString();
+        }
+        if (message != null) {
+            LOGGER.info(message);
+        }
+    }
+
+    private Map<String, Long> computeCounterDelta(List<CounterEntry> countersSnapshot) {
+        Map<String, Long> delta = new LinkedHashMap<>();
+        Map<String, Long> current = new HashMap<>();
+        for (CounterEntry entry : countersSnapshot) {
+            long currentValue = entry.value();
+            long previousValue = lastCounterSnapshot.getOrDefault(entry.name(), 0L);
+            long diff = currentValue - previousValue;
+            if (diff != 0L) {
+                delta.put(entry.name(), diff);
+            }
+            current.put(entry.name(), currentValue);
+        }
+        lastCounterSnapshot.clear();
+        lastCounterSnapshot.putAll(current);
+        return delta;
+    }
+
+    private Map<String, Long> computeTimingDelta(List<TimingEntry> timingSnapshot) {
+        Map<String, Long> delta = new LinkedHashMap<>();
+        Map<String, Long> current = new HashMap<>();
+        for (TimingEntry entry : timingSnapshot) {
+            long currentValue = entry.count();
+            long previousValue = lastTimingSnapshot.getOrDefault(entry.name(), 0L);
+            long diff = currentValue - previousValue;
+            if (diff != 0L) {
+                delta.put(entry.name(), diff);
+            }
+            current.put(entry.name(), currentValue);
+        }
+        lastTimingSnapshot.clear();
+        lastTimingSnapshot.putAll(current);
+        return delta;
+    }
+
+    private Map<String, Long> computeValueDelta(List<ValueEntry> valueSnapshot) {
+        Map<String, Long> delta = new LinkedHashMap<>();
+        Map<String, Long> current = new HashMap<>();
+        for (ValueEntry entry : valueSnapshot) {
+            long currentValue = entry.count();
+            long previousValue = lastValueSnapshot.getOrDefault(entry.name(), 0L);
+            long diff = currentValue - previousValue;
+            if (diff != 0L) {
+                delta.put(entry.name(), diff);
+            }
+            current.put(entry.name(), currentValue);
+        }
+        lastValueSnapshot.clear();
+        lastValueSnapshot.putAll(current);
+        return delta;
+    }
+
+    private static String formatDelta(Map<String, Long> delta) {
+        StringJoiner joiner = new StringJoiner(", ");
+        delta.forEach((name, value) -> joiner.add(name + "=" + value));
+        return joiner.toString();
     }
 
     private void logReport(ProfilerReport report) {

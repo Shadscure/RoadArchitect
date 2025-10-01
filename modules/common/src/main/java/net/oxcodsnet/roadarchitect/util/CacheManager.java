@@ -18,6 +18,7 @@ import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.noise.NoiseConfig;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.CacheStorage;
+import net.oxcodsnet.roadarchitect.util.profiler.PipelineProfiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,7 +139,21 @@ public final class CacheManager {
      * @param loader fallback loader if value missing
      */
     public static int getHeight(ServerWorld world, long key, IntSupplier loader) {
-        return state(world).heights().computeIfAbsent(key, k -> loader.getAsInt());
+        PipelineProfiler.increment("cache.height.requests");
+        CacheStorage storage = state(world);
+        Integer cached = storage.heights().get(key);
+        if (cached != null) {
+            PipelineProfiler.increment("cache.height.hits");
+            return cached;
+        }
+        return storage.heights().computeIfAbsent(key, k -> {
+            PipelineProfiler.increment("cache.height.loads");
+            try (PipelineProfiler.Section section = PipelineProfiler.openSection("cache.height.load_time")) {
+                int value = loader.getAsInt();
+                PipelineProfiler.recordValue("cache.height.loaded_value", value);
+                return value;
+            }
+        });
     }
 
     /**
@@ -155,14 +170,41 @@ public final class CacheManager {
      * Gets or computes terrain stability metric for the key.
      */
     public static double getStability(ServerWorld world, long key, DoubleSupplier loader) {
-        return state(world).stabilities().computeIfAbsent(key, k -> loader.getAsDouble());
+        PipelineProfiler.increment("cache.stability.requests");
+        CacheStorage storage = state(world);
+        Double cached = storage.stabilities().get(key);
+        if (cached != null) {
+            PipelineProfiler.increment("cache.stability.hits");
+            return cached;
+        }
+        return storage.stabilities().computeIfAbsent(key, k -> {
+            PipelineProfiler.increment("cache.stability.loads");
+            try (PipelineProfiler.Section section = PipelineProfiler.openSection("cache.stability.load_time")) {
+                double value = loader.getAsDouble();
+                PipelineProfiler.recordValue("cache.stability.loaded_value", value);
+                return value;
+            }
+        });
     }
 
     /**
      * Gets or computes biome entry for the key.
      */
     public static RegistryEntry<Biome> getBiome(ServerWorld world, long key, Supplier<RegistryEntry<Biome>> loader) {
-        return state(world).biomes().computeIfAbsent(key, k -> loader.get());
+        PipelineProfiler.increment("cache.biome.requests");
+        CacheStorage storage = state(world);
+        RegistryEntry<Biome> cached = storage.biomes().get(key);
+        if (cached != null) {
+            PipelineProfiler.increment("cache.biome.hits");
+            return cached;
+        }
+        return storage.biomes().computeIfAbsent(key, k -> {
+            PipelineProfiler.increment("cache.biome.loads");
+            try (PipelineProfiler.Section section = PipelineProfiler.openSection("cache.biome.load_time")) {
+                RegistryEntry<Biome> value = loader.get();
+                return value;
+            }
+        });
     }
 
     /**

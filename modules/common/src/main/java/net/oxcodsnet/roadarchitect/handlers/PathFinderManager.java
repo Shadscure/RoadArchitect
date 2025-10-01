@@ -9,6 +9,7 @@ import net.oxcodsnet.roadarchitect.storage.RoadGraphState;
 import net.oxcodsnet.roadarchitect.util.AsyncExecutor;
 import net.oxcodsnet.roadarchitect.util.KeyUtil;
 import net.oxcodsnet.roadarchitect.util.PathFinder;
+import net.oxcodsnet.roadarchitect.util.profiler.PipelineProfiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,9 @@ public class PathFinderManager {
      * @param maxSteps         A* global step limit for this run
      */
     public static void computePaths(ServerWorld world, int preFillCacheZone, int maxSteps) {
+        PipelineProfiler.increment("pathfinding.invocations");
+        PipelineProfiler.recordValue("pathfinding.prefill_zone", preFillCacheZone);
+        PipelineProfiler.recordValue("pathfinding.max_steps", maxSteps);
         RoadGraphState graph = RoadGraphState.get(world);
         PathStorage storage = PathStorage.get(world);
 
@@ -43,6 +47,8 @@ public class PathFinderManager {
         PathFinder finder = new PathFinder(graph.nodes(), world, maxSteps);
 
         List<CompletableFuture<PathJob>> futures = new ArrayList<>();
+        int scheduledJobs = 0;
+        try (PipelineProfiler.Section preparation = PipelineProfiler.openSection("pathfinding.prepare_jobs")) {
         for (Map.Entry<String, EdgeStorage.Status> entry : graph.edges().allWithStatus().entrySet()) {
             if (entry.getValue() != EdgeStorage.Status.NEW) continue;
             String edgeId = entry.getKey();
@@ -60,23 +66,32 @@ public class PathFinderManager {
                 return new PathJob(edgeId, from, to, path, ms);
             });
             futures.add(job);
+            scheduledJobs++;
         }
+        }
+        PipelineProfiler.recordValue("pathfinding.jobs_scheduled", scheduledJobs);
 
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        try (PipelineProfiler.Section await = PipelineProfiler.openSection("pathfinding.await_completion")) {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        }
 
         for (CompletableFuture<PathJob> future : futures) {
             try {
                 PathJob job = future.get();
                 PathStorage.Status st = job.path().isEmpty() ? PathStorage.Status.FAILED : PathStorage.Status.PENDING;
                 storage.putPath(job.from(), job.to(), job.path(), st);
+                PipelineProfiler.recordValue("pathfinding.job_duration_ms", job.durationMs());
+                PipelineProfiler.recordValue("pathfinding.path_length", job.path().size());
                 if (!job.path().isEmpty()) {
                     graph.edges().setStatus(job.edgeId(), EdgeStorage.Status.SUCCESS);
+                    PipelineProfiler.increment("pathfinding.paths.success");
                     LOGGER.debug(
                             ">>> Computed path {} ({} ms)",
                             job.edgeId(), job.durationMs()
                     );
                 } else {
                     graph.edges().setStatus(job.edgeId(), EdgeStorage.Status.FAILURE);
+                    PipelineProfiler.increment("pathfinding.paths.failure");
                     LOGGER.debug(
                             "! No path for {} ({} ms)",
                             job.edgeId(), job.durationMs()
@@ -85,6 +100,7 @@ public class PathFinderManager {
             } catch (InterruptedException | ExecutionException e) {
                 LOGGER.error("Path computation failed", e);
                 Thread.currentThread().interrupt();
+                PipelineProfiler.increment("pathfinding.paths.exception");
             }
         }
 

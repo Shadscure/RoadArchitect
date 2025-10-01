@@ -9,6 +9,7 @@ import net.oxcodsnet.roadarchitect.storage.PathStorage;
 import net.oxcodsnet.roadarchitect.util.AsyncExecutor;
 import net.oxcodsnet.roadarchitect.util.CacheManager;
 import net.oxcodsnet.roadarchitect.util.PathFinder;
+import net.oxcodsnet.roadarchitect.util.profiler.PipelineProfiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,11 +201,16 @@ public final class RoadPostProcessor {
     // ====== Планирование как у тебя: по одному ключу ======
     public static void processPending(ServerWorld world) {
         PathStorage storage = PathStorage.get(world);
+        PipelineProfiler.increment("postprocess.invocations");
+        int examined = 0;
         for (Entry<String, PathStorage.Status> e : storage.allStatuses().entrySet()) {
+            examined++;
             if (e.getValue() != PathStorage.Status.PENDING) continue;
             schedule(world, storage, e.getKey());
+            PipelineProfiler.increment("postprocess.entries_scheduled");
             break;
         }
+        PipelineProfiler.recordValue("postprocess.entries_examined", examined);
     }
 
     private static void processChunk(ServerWorld world, ChunkPos chunk) {
@@ -223,9 +229,12 @@ public final class RoadPostProcessor {
      */
     private static void schedule(ServerWorld world, PathStorage storage, String baseKey) {
         if (!storage.tryMarkProcessing(baseKey)) return; // уже не PENDING
+        PipelineProfiler.increment("postprocess.jobs_scheduled");
         final List<BlockPos> baseRawInitial = storage.getPath(baseKey);
 
         AsyncExecutor.execute(() -> {
+            PipelineProfiler.increment("postprocess.jobs_started");
+            try (PipelineProfiler.Section section = PipelineProfiler.openSection("postprocess.job")) {
             String activeKey = baseKey;
             List<BlockPos> activeRaw = new ArrayList<>(baseRawInitial);
             // Применяем обрезку по Манхэттену к активному пути до любой обработки
@@ -334,6 +343,7 @@ public final class RoadPostProcessor {
 
                 // Разом ставим задачи строителю
                 RoadBuilderManager.queueSegments(world, toBuild);
+                PipelineProfiler.recordValue("postprocess.paths_completed", becameReady.size());
 
             } catch (Exception ex) {
                 LOGGER.error("Post-processing failed for {}", baseKey, ex);
@@ -343,6 +353,7 @@ public final class RoadPostProcessor {
                         storage.setStatus(p, PathStorage.Status.PENDING);
                     }
                 }
+                PipelineProfiler.increment("postprocess.jobs_failed");
                 return;
             }
 
@@ -351,6 +362,7 @@ public final class RoadPostProcessor {
                 if (!becameReady.contains(p) && storage.getStatus(p) == PathStorage.Status.PROCESSING) {
                     storage.setStatus(p, PathStorage.Status.PENDING);
                 }
+            }
             }
         });
     }

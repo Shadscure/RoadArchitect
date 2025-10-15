@@ -26,6 +26,11 @@ configurations {
     }
 }
 
+fabricApi {
+    configureDataGeneration() {
+        client = true
+    }
+}
 
 sourceSets {
     main {
@@ -106,6 +111,8 @@ modrinth {
 // ====================== CurseForge ====================
 apply plugin: "net.darkhax.curseforgegradle"
 
+def curse_token = rootProject.ext.resolveCurseforgeToken()
+if (!curse_token) throw new GradleException("Set CURSEFORGE_TOKEN env or in .env/gradle.properties")
 
 
 def curse_project_id =
@@ -116,6 +123,7 @@ def curse_project_id =
                 ?: "1326434")
 
 tasks.register("curseforge", TaskPublishCurseForge) {
+    apiToken = curse_token
 
     disableVersionDetection()
 

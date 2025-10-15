@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 public final class RoadGraphStateFabricEvents {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/RoadGraphStateEvents");
 
+    private RoadGraphStateFabricEvents() {}
+
     public static void register() {
         // LOAD мира → ensure state инициализирован
         ServerWorldEvents.LOAD.register((server, world) -> {

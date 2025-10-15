@@ -6,7 +6,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.forge.config.RAConfigForgeBridge;
 import net.oxcodsnet.roadarchitect.forge.events.RoadFeatureRegistryForge;
-import net.oxcodsnet.roadarchitect.forge.events.RoadPipelineForgeEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -20,15 +20,11 @@ import org.slf4j.LoggerFactory;
 public class RoadPipelineForgeEvents {
     private static final Logger LOGGER = LoggerFactory.getLogger("roadarchitect/ForgeEvents");
 
-    private RoadPipelineForgeEvents() {
-    }
-
-    public static void register() {
-        RoadPipelineController.init();
-    }
 
     @SubscribeEvent
     public static void onServerStarting(ServerStartingEvent event) {
+        RoadPipelineController.init();
+        LOGGER.debug("RoadPipelineController initialized");
         final boolean dhPresent = ModList.get().isLoaded(DhCompat.DH_MOD_ID);
         if (dhPresent) {
             LOGGER.debug("Distant Horizons detected: skipping INIT pregen; pipeline will start on player join");
@@ -49,8 +45,6 @@ public class RoadPipelineForgeEvents {
             RoadPipelineController.onChunkGenerated(world, event.getChunk());
             net.oxcodsnet.roadarchitect.api.addon.RoadAddons.onChunkLoad(world, event.getChunk().getPos());
         }
-
-
     }
 
     @SubscribeEvent

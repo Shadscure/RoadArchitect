@@ -3,13 +3,12 @@ package net.oxcodsnet.roadarchitect.forge.events;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.RoadGraphState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Mod.EventBusSubscriber(bus = Bus.FORGE)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = RoadArchitect.MOD_ID)
 public class RoadGraphStateForgeEvents {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/RoadGraphStateEvents");
 
@@ -19,7 +18,8 @@ public class RoadGraphStateForgeEvents {
             return;
         }
         if (event.getLevel() instanceof ServerWorld world) {
-            RoadGraphState.get(world);
+            RoadGraphState state = RoadGraphState.get(world);
+            state.markDirty();
         }
 
         LOGGER.debug("RoadGraphState loaded for world {}", event.getLevel().getDimension().toString());

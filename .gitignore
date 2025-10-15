@@ -26,7 +26,6 @@ target
 # installed Fabric binaries etc.
 /bin/
 builders/
-config/
 external-chaincode/
 install-fabric.sh
 
@@ -57,6 +56,9 @@ modules/fabric/.gradle/
 modules/neoforge/build/
 modules/neoforge/.gradle/
 
+modules/forge/build/
+modules/forge/.gradle/
+
 modules/quilt/build/
 modules/quilt/.gradle/
 
@@ -74,3 +76,5 @@ modules/neoforge/src/main/generated/.cache
 /.architectury-transformer/debug.log
 /distant-horizons-main.zip
 /modules/common/logs/latest.log
+*.class
+modules/*/bin

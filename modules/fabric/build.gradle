@@ -26,11 +26,6 @@ configurations {
     }
 }
 
-fabricApi {
-    configureDataGeneration() {
-        client = true
-    }
-}
 
 sourceSets {
     main {
@@ -94,11 +89,8 @@ remapJar {
 
 // ====================== Modrinth ====================
 apply plugin: "com.modrinth.minotaur"
-def modrinth_token = rootProject.ext.resolveModrinthToken()
-if (!modrinth_token) throw new GradleException("Set MODRINTH_TOKEN env or in .env")
 
 modrinth {
-    token = modrinth_token
     projectId = "dLRvLyY3"
     versionNumber = "${project.version}-fabric"
     versionName   = "RoadArchitect v${project.version}+${rootProject.minecraft_version} [Fabric/Quilt]"
@@ -114,8 +106,6 @@ modrinth {
 // ====================== CurseForge ====================
 apply plugin: "net.darkhax.curseforgegradle"
 
-def curse_token = rootProject.ext.resolveCurseforgeToken()
-if (!curse_token) throw new GradleException("Set CURSEFORGE_TOKEN env or in .env/gradle.properties")
 
 
 def curse_project_id =
@@ -126,7 +116,6 @@ def curse_project_id =
                 ?: "1326434")
 
 tasks.register("curseforge", TaskPublishCurseForge) {
-    apiToken = curse_token
 
     disableVersionDetection()
 

@@ -43,6 +43,10 @@ public final class RoadArchitectConfigData implements ConfigData {
     @ConfigEntry.Gui.Tooltip
     public List<String> structureSelectors = List.of("#minecraft:village");
 
+    @ConfigEntry.BoundedDiscrete(min = 5000, max = 500000)
+    @ConfigEntry.Gui.Tooltip(isTranslatable = true)
+    public int cacheMaxSize = 50000;
+
     // Terrain Analyzer category (separate tab)
     @ConfigEntry.Category("terrainAnalyzer")
     @ConfigEntry.Gui.TransitiveObject

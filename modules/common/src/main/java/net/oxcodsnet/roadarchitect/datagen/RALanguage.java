@@ -51,6 +51,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors", "Structure Selectors");
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip",
                         "List of structure selectors that roads will connect.");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize", "Cache Max Size");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize.@Tooltip",
+                        "Max entries in the world data cache (heights, biomes). Higher values use more RAM but can improve performance.");
                 // Deterministic decorations (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Lamp Interval");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
@@ -168,6 +171,9 @@ public final class RALanguage {
                         "Селекторы структур");
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip",
                         "Список селекторов структур, которые будут соединяться дорогами.");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize", "Максимальный размер кэша");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize.@Tooltip",
+                        "Макс. записей в кэше данных мира (высоты, биомы). Большие значения используют больше ОЗУ, но могут повысить производительность.");
                 // Детерминированные украшения (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Интервал фонарей");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
@@ -265,6 +271,9 @@ public final class RALanguage {
                         "Selectores de estructuras");
                 add.accept("text.config.roadarchitect.option.structureSelectors.@Tooltip",
                         "Lista de selectores de estructuras que se conectarán con carreteras.");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize", "Tamaño máximo de la caché");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize.@Tooltip",
+                        "Máx. de entradas en la caché de datos del mundo (alturas, biomas). Valores más altos usan más RAM pero pueden mejorar el rendimiento.");
                 // Búsqueda de rutas
                 add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Búsqueda de rutas");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Preferir tierra sobre agua");
@@ -382,6 +391,9 @@ public final class RALanguage {
                         "Sélecteurs de structures");
                 add.accept("text.config.roadarchitect.option.structureSelectors.@Tooltip",
                         "Liste des sélecteurs de structures que les routes relieront.");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize", "Taille maximale du cache");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize.@Tooltip",
+                        "Max. d'entrées dans le cache de données du monde (altitudes, biomes). Des valeurs plus élevées utilisent plus de RAM mais peuvent améliorer les performances.");
                 // Recherche d'itinéraire
                 add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Recherche d'itinéraire");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Préférer la terre à l'eau");
@@ -519,6 +531,9 @@ public final class RALanguage {
                         "Strukturauswahlen");
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip",
                         "Liste von Strukturauswahlen, die Straßen verbinden.");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize", "Maximale Cache-Größe");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize.@Tooltip",
+                        "Max. Einträge im Weltdaten-Cache (Höhen, Biome). Höhere Werte verbrauchen mehr RAM, können aber die Leistung verbessern.");
                 // Deterministische Dekorationen (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Laternenintervall");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
@@ -628,6 +643,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors", "结构选择器");
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip",
                         "将被道路连接的结构选择器列表。");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize", "缓存最大数量");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize.@Tooltip",
+                        "世界数据缓存（高度、生物群系）中的最大条目数。更高的值会使用更多的内存，但可以提高性能。");
                 // 确定性装饰 (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "灯间距");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
@@ -737,6 +755,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors", "Селектори структур");
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip",
                         "Список селекторів структур, які з'єднуватимуть дороги.");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize", "Максимальний розмір кешу");
+                add.accept("text.autoconfig.roadarchitect.option.cacheMaxSize.@Tooltip",
+                        "Макс. записів у кеші даних світу (висоти, біоми). Більші значення використовують більше ОЗП, але можуть покращити продуктивність.");
                 // Детерміновані прикраси (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Інтервал ліхтарів");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",

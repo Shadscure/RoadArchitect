@@ -249,6 +249,7 @@ public final class RoadPostProcessor {
             List<BlockPos> activeRaw = new ArrayList<>(baseRawInitial);
             // Применяем обрезку по Манхэттену к активному пути до любой обработки
             activeRaw = trimByManhattan(activeRaw);
+            activeRaw = simplifyPath(activeRaw);
 
             final Set<String> partnersMarked = new HashSet<>();
             final Set<String> becameReady = new HashSet<>();
@@ -493,6 +494,34 @@ public final class RoadPostProcessor {
         legs.put(keyB, legB);
 
         return new BuildResult(legs, new Trunk(trunkKey, trunk));
+    }
+
+    private static List<BlockPos> simplifyPath(List<BlockPos> path) {
+        if (path.size() < 3) {
+            return path;
+        }
+        List<BlockPos> simplified = new ArrayList<>();
+        simplified.add(path.get(0));
+
+        for (int i = 1; i < path.size() - 1; i++) {
+            BlockPos p0 = path.get(i - 1);
+            BlockPos p1 = path.get(i);
+            BlockPos p2 = path.get(i + 1);
+
+
+            long dx1 = (long)p1.getX() - p0.getX();
+            long dz1 = (long)p1.getZ() - p0.getZ();
+            long dx2 = (long)p2.getX() - p1.getX();
+            long dz2 = (long)p2.getZ() - p1.getZ();
+
+
+            if (dx1 * dz2 - dz1 * dx2 != 0) {
+                simplified.add(p1);
+            }
+        }
+
+        simplified.add(path.get(path.size() - 1));
+        return simplified;
     }
 
     private static double angleDeg(int[] v1, int[] v2) {

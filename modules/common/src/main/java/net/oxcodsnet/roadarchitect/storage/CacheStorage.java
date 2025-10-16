@@ -18,6 +18,8 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.Biome;
+import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
+import net.oxcodsnet.roadarchitect.util.LRUCache;
 import net.oxcodsnet.roadarchitect.util.NbtUtils;
 
 public class CacheStorage extends PersistentState {
@@ -28,10 +30,18 @@ public class CacheStorage extends PersistentState {
     private static final String ENTRY_KEY = "k";
     private static final String ENTRY_VALUE = "v";
 
-    private final ConcurrentMap<Long, Integer> heights = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Long, Double> stabilities = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Long, RegistryEntry<Biome>> cachedBiomes = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Long, Identifier> biomeIds = new ConcurrentHashMap<>();
+    private final Map<Long, Integer> heights;
+    private final Map<Long, Double> stabilities;
+    private final Map<Long, RegistryEntry<Biome>> cachedBiomes;
+    private final Map<Long, Identifier> biomeIds;
+
+    public CacheStorage() {
+        int maxSize = RAConfigHolder.get().cacheMaxSize();
+        this.heights = LRUCache.synchronizedOf(maxSize);
+        this.stabilities = LRUCache.synchronizedOf(maxSize);
+        this.cachedBiomes = LRUCache.synchronizedOf(maxSize);
+        this.biomeIds = LRUCache.synchronizedOf(maxSize);
+    }
 
     public static CacheStorage get(ServerWorld world) {
         CacheStorage storage = PersistentStateUtil.get(world, CacheStorage::new, CacheStorage::fromNbt, KEY);
@@ -79,11 +89,11 @@ public class CacheStorage extends PersistentState {
         return tag;
     }
 
-    public ConcurrentMap<Long, Integer> heights() {
+    public Map<Long, Integer> heights() {
         return heights;
     }
 
-    public ConcurrentMap<Long, Double> stabilities() {
+    public Map<Long, Double> stabilities() {
         return stabilities;
     }
 

@@ -163,5 +163,10 @@ public final class RAConfigHolder {
         public double partialProgressThreshold() {
             return 0.80; // 80%
         }
+
+        @Override
+        public int cacheMaxSize() {
+            return 50000;
+        }
     }
 }

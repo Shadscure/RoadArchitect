@@ -61,23 +61,47 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                     0.0D,
                     pts.get(nextIdx).getZ() - pts.get(prevIdx).getZ()
             ).normalize();
-            double nx = dir.x;
-            double nz = dir.z;
-            boolean diagonal = Math.abs(nx) > 0.001 && Math.abs(nz) > 0.001;
 
-            for (int dx = -halfWidth; dx <= halfWidth; dx++) {
-                for (int dz = -halfWidth; dz <= halfWidth; dz++) {
-                    double dist = Math.abs(dx * nz - dz * nx);
-                    boolean inside = dist <= halfWidth + 0.01 || (diagonal && Math.max(Math.abs(dx), Math.abs(dz)) <= halfWidth);
-                    if (!inside) continue;
+            double perpX = -dir.z;
+            double perpZ = dir.x;
 
-                    BlockPos roadPos = p.add(dx, 0, dz);
+            BlockPos p1 = p.add((int)Math.round(-halfWidth * perpX), 0, (int)Math.round(-halfWidth * perpZ));
+            BlockPos p2 = p.add((int)Math.round(halfWidth * perpX), 0, (int)Math.round(halfWidth * perpZ));
 
-                    if (!isNotWaterBlock(world, p)) {continue;}
+            int x0 = p1.getX();
+            int z0 = p1.getZ();
+            int x1 = p2.getX();
+            int z1 = p2.getZ();
+
+            int dx = Math.abs(x1 - x0);
+            int sx = x0 < x1 ? 1 : -1;
+            int dz = -Math.abs(z1 - z0);
+            int sz = z0 < z1 ? 1 : -1;
+            int err = dx + dz;
+
+            int currentX = x0;
+            int currentZ = z0;
+
+            while (true) {
+                BlockPos roadPos = new BlockPos(currentX, p.getY(), currentZ);
+
+                if (isNotWaterBlock(world, roadPos)) {
                     RegistryEntry<Biome> biome = world.getBiome(roadPos);
                     RoadStyle style = RoadStyles.forBiome(biome);
                     BlockState roadState = style.palette().pick(random);
                     placeRoad(world, roadPos, roadState);
+                }
+
+                if (currentX == x1 && currentZ == z1) break;
+
+                int e2 = 2 * err;
+                if (e2 >= dz) {
+                    err += dz;
+                    currentX += sx;
+                }
+                if (e2 <= dx) {
+                    err += dx;
+                    currentZ += sz;
                 }
             }
 
@@ -87,7 +111,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                     // handled via deterministic markers below
                 } else if (!RoadArchitect.CONFIG.deterministicDecorations() && random.nextInt(18) == 0) {
                     if (!isNotWaterBlock(world, p)) {continue;}
-                    decorateSide(world, p, nx, nz, halfWidth, deco, random);
+                    decorateSide(world, p, dir.x, dir.z, halfWidth, deco, random);
                 }
             }
         }

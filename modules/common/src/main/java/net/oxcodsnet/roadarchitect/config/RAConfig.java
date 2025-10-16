@@ -70,4 +70,10 @@ public interface RAConfig {
      * For example, 0.8 means 80% progress towards the L1 goal distance.
      */
     double partialProgressThreshold();
+
+    /**
+     * The maximum number of entries to hold in the world data cache (heights, biomes, etc.).
+     * A larger value improves performance at the cost of higher memory usage.
+     */
+    int cacheMaxSize();
 }

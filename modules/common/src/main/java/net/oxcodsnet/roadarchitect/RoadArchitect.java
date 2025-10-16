@@ -129,6 +129,11 @@ public final class RoadArchitect {
         public double partialProgressThreshold() {
             return RAConfigHolder.get().partialProgressThreshold();
         }
+
+        @Override
+        public int cacheMaxSize() {
+            return RAConfigHolder.get().cacheMaxSize();
+        }
     };
 
     private RoadArchitect() {

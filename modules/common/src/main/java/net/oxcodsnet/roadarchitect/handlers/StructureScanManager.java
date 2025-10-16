@@ -37,11 +37,9 @@ public class StructureScanManager {
      * @param overallRadius  grid half-size in chunks for planning pass
      */
     static void scan(ServerWorld world, String approach, BlockPos center, int overallRadius) {
-        int scanRadius = 1;
-        List<String> selectors = RoadArchitect.CONFIG.structureSelectors();
-        LOGGER.debug("[{}] Scan launch: overallRadius={}, scanRadius={}, selectors={}", approach, overallRadius, scanRadius, selectors);
-        List<Pair<BlockPos, String>> found = StructureLocator.scanGridAsync(world, center, overallRadius, scanRadius, selectors);
-        LOGGER.debug("[{}] Scanning is completed. Found structures: {}", approach, found.size());
+
+        boolean allowChunkLoads = (overallRadius <= 5000);
+        scan(world, approach, center, overallRadius, allowChunkLoads);
     }
 
     /**

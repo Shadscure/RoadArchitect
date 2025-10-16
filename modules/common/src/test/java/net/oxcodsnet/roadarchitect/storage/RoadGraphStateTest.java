@@ -39,10 +39,12 @@ class RoadGraphStateTest {
     void addNodeWithEdges_connectsToExistingWithinRadius() {
         RoadGraphState state = new RoadGraphState(32.0);
         Node a = state.nodes().add(new BlockPos(0, 64, 0), "village");
+        state.nodeIndex().add(a);
         Node b = state.nodes().add(new BlockPos(20, 64, 0), "village");
+        state.nodeIndex().add(b);
 
         // Add new node near both A and B → edges should appear if not crossing
-        Node c = state.addNodeWithEdges(new BlockPos(10, 64, 0), "village");
+        Node c = state.addNode(new BlockPos(10, 64, 0), "village");
         // Expect edges A-C and C-B
         assertEquals(2, state.edges().all().size());
         assertTrue(state.edges().neighbors(c.id()).contains(a.id()));

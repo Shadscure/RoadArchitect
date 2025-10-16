@@ -78,3 +78,4 @@ modules/neoforge/src/main/generated/.cache
 /modules/common/logs/latest.log
 *.class
 modules/*/bin
+debug.log

@@ -27,7 +27,7 @@ configurations {
 shadowJar {
     configurations = [project.configurations.shadowBundle]
     // Ensure we don't relocate Minecraft or other mod classes
-    relocate 'net.oxcodsnet.roadarchitect', 'net.oxcodsnet.roadarchitect.common'
+    archiveClassifier = 'dev-shadow'
 }
 
 sourceSets {

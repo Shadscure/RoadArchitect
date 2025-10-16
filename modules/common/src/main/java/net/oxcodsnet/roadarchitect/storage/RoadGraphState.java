@@ -79,6 +79,10 @@ public class RoadGraphState extends PersistentState {
         return nodeStorage;
     }
 
+    public NodeSpatialIndex nodeIndex() {
+        return nodeIndex;
+    }
+
     /**
      * Returns the edge storage.
      */

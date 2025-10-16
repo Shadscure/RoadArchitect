@@ -150,6 +150,11 @@ public final class RAConfigFabricBridge {
                 if (pct >= 100) return 1.0;
                 return pct / 100.0;
             }
+
+            @Override
+            public int cacheMaxSize() {
+                return holder.getConfig().cacheMaxSize;
+            }
         });
 
         holder.registerSaveListener((h, cfg) -> {

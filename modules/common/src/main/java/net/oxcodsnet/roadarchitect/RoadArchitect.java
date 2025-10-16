@@ -1,3 +1,5 @@
+package net.oxcodsnet.roadarchitect;
+
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 

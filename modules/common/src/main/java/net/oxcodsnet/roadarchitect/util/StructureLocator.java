@@ -351,9 +351,11 @@ public final class StructureLocator {
         server.execute(() -> {
             RoadGraphState graph = RoadGraphState.get(world);
             for (Pair<BlockPos, String> pair : found) {
-                Node node = graph.addNodeWithEdges(pair.getFirst(), pair.getSecond());
+                Node node = graph.addNode(pair.getFirst(), pair.getSecond());
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Added node {} at {} ({})", node.id(), node.pos(), pair.getSecond());
+                    if (node != null) {
+                        LOGGER.debug("Added node {} at {} ({})", node.id(), node.pos(), pair.getSecond());
+                    }
                 }
             }
             graph.markDirty();

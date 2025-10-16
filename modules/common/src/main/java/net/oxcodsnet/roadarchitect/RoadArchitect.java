@@ -1,5 +1,3 @@
-package net.oxcodsnet.roadarchitect;
-
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 
@@ -128,6 +126,11 @@ public final class RoadArchitect {
         @Override
         public double partialProgressThreshold() {
             return RAConfigHolder.get().partialProgressThreshold();
+        }
+
+        @Override
+        public int cacheMaxSize() {
+            return RAConfigHolder.get().cacheMaxSize();
         }
     };
 

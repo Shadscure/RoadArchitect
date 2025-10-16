@@ -2,18 +2,21 @@ package net.oxcodsnet.roadarchitect.handlers;
 
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.PathStorage;
 import net.oxcodsnet.roadarchitect.util.AsyncExecutor;
 import net.oxcodsnet.roadarchitect.util.CacheManager;
 import net.oxcodsnet.roadarchitect.util.PathFinder;
+import net.oxcodsnet.roadarchitect.util.PathSpatialIndex;
+import net.oxcodsnet.roadarchitect.util.model.AABB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Post-processes raw A* paths into detailed block sequences
@@ -37,6 +40,9 @@ public final class RoadPostProcessor {
     private static final int SMOOTH_PASSES = 2;              // число прогонов
     private static final int DESPIKE_DELTA = 2;              // чувствительность «иголки»
     private static final boolean LOG_GRAD_CLAMP = true;     // включить подробный лог клампа
+
+    private static final Set<String> a = ConcurrentHashMap.newKeySet();
+
     private RoadPostProcessor() {
     }
 
@@ -197,33 +203,46 @@ public final class RoadPostProcessor {
         return new NormalizeResult(out, spikes, clamps);
     }
 
-    // ====== Планирование как у тебя: по одному ключу ======
     public static void processPending(ServerWorld world) {
         PathStorage storage = PathStorage.get(world);
-        for (Entry<String, PathStorage.Status> e : storage.allStatuses().entrySet()) {
-            if (e.getValue() != PathStorage.Status.PENDING) continue;
-            schedule(world, storage, e.getKey());
-            break;
+        Map<String, PathStorage.Status> statuses = storage.allStatuses();
+        List<String> pendingKeys = statuses.entrySet().stream()
+                .filter(e -> e.getValue() == PathStorage.Status.PENDING)
+                .map(Entry::getKey)
+                .collect(Collectors.toList());
+
+        if (pendingKeys.isEmpty()) {
+            return;
+        }
+
+        // Build spatial index for all pending paths
+        PathSpatialIndex index = new PathSpatialIndex();
+        Map<String, List<BlockPos>> pendingPaths = new HashMap<>();
+        for (String key : pendingKeys) {
+            List<BlockPos> path = storage.getPath(key);
+            if (!path.isEmpty()) {
+                pendingPaths.put(key, path);
+                index.add(key, AABB.of(path));
+            }
+        }
+
+        // Process each pending path using the index
+        for (String key : pendingKeys) {
+            if (storage.getStatus(key) == PathStorage.Status.PENDING) {
+                schedule(world, storage, key, index, pendingPaths);
+            }
         }
     }
 
-    private static void processChunk(ServerWorld world, ChunkPos chunk) {
-        PathStorage storage = PathStorage.get(world);
-        for (String key : storage.getPendingForChunk(chunk)) {
-            schedule(world, storage, key);
+    private static void schedule(ServerWorld world, PathStorage storage, String baseKey, PathSpatialIndex index, Map<String, List<BlockPos>> pendingPaths) {
+        if (!storage.tryMarkProcessing(baseKey)) return; // already handled by another thread
+        final List<BlockPos> baseRawInitial = pendingPaths.get(baseKey);
+        if (baseRawInitial == null) {
+            storage.setStatus(baseKey, PathStorage.Status.FAILED);
+            LOGGER.warn("Path key {} was pending but has no data, failing.", baseKey);
+            return;
         }
-    }
 
-    /**
-     * ВАЖНО про статусы:
-     * - baseKey: tryMarkProcessing(baseKey) -> PROCESSING; дальше либо updatePath(..., READY), либо FAILED.
-     * - partnerKey: tryMarkProcessing(partner) -> PROCESSING; если отказались от слияния -> setStatus(partner, PENDING);
-     * если слили -> updatePath(..., READY).
-     * Никаких «скрытых» переводов статусов в finally.
-     */
-    private static void schedule(ServerWorld world, PathStorage storage, String baseKey) {
-        if (!storage.tryMarkProcessing(baseKey)) return; // уже не PENDING
-        final List<BlockPos> baseRawInitial = storage.getPath(baseKey);
 
         AsyncExecutor.execute(() -> {
             String activeKey = baseKey;
@@ -241,12 +260,10 @@ public final class RoadPostProcessor {
 
                 do {
                     changed = false;
-                    // Повторно применяем обрезку в начале итерации (после возможных обновлений activeRaw)
-                    //activeRaw = trimByManhattan(activeRaw, TRIM_RADIUS_L1);
                     iter++;
 
                     // 1) Ищем лучшего параллельного соседа среди PENDING
-                    MergeCandidate cand = findBestParallelPartner(storage, activeKey, activeRaw);
+                    MergeCandidate cand = findBestParallelPartner(storage, activeKey, activeRaw, index, pendingPaths);
                     if (cand == null) break;
 
                     // 2) Пытаемся пометить соседа как PROCESSING
@@ -256,7 +273,7 @@ public final class RoadPostProcessor {
                     partnersMarked.add(cand.otherKey);
 
                     // 3) Проверяем схождение
-                    List<BlockPos> otherRaw = storage.getPath(cand.otherKey);
+                    List<BlockPos> otherRaw = pendingPaths.get(cand.otherKey);
 
                     // Обрезаем путь партнёра до всех манипуляций
                     otherRaw = trimByManhattan(otherRaw);
@@ -358,25 +375,24 @@ public final class RoadPostProcessor {
         });
     }
 
-    // ====== Детект «почти параллельных» пар (по одному активному ключу) ======
-    private static MergeCandidate findBestParallelPartner(PathStorage storage, String baseKey, List<BlockPos> baseRaw) {
-        AABB bbBase = AABB.of(baseRaw).inflate(TOLERANCE_BLOCKS * 2);
+    private static MergeCandidate findBestParallelPartner(PathStorage storage, String baseKey, List<BlockPos> baseRaw, PathSpatialIndex index, Map<String, List<BlockPos>> pendingPaths) {
+        AABB bbBase = AABB.of(baseRaw);
+        Set<String> candidates = index.query(bbBase.inflate(TOLERANCE_BLOCKS * 2));
 
         double bestScore = Double.POSITIVE_INFINITY;
         String bestKey = null;
 
-        for (Entry<String, PathStorage.Status> e : storage.allStatuses().entrySet()) {
-            if (e.getValue() != PathStorage.Status.PENDING) continue; // только PENDING!
-            String otherKey = e.getKey();
-            if (otherKey.equals(baseKey)) continue;
+        for (String otherKey : candidates) {
+            if (otherKey.equals(baseKey) || storage.getStatus(otherKey) != PathStorage.Status.PENDING) {
+                continue;
+            }
 
-            List<BlockPos> otherRaw = storage.getPath(otherKey);
-            //otherRaw = trimByManhattan(otherRaw, TRIM_RADIUS_L1);
-            if (otherRaw.size() < 2) continue;
+            List<BlockPos> otherRaw = pendingPaths.get(otherKey);
+            if (otherRaw == null || otherRaw.size() < 2) continue;
 
-            // bbox отсев
+            // Bbox check is implicitly handled by the spatial query, but a precise one is still good.
             AABB bbOther = AABB.of(otherRaw);
-            if (!bbBase.intersectsInflated(bbOther)) continue;
+            if (!bbBase.inflate(TOLERANCE_BLOCKS * 2).intersects(bbOther)) continue;
 
             // почти параллельны?
             double angle = angleDeg(dir(baseRaw), dir(otherRaw));
@@ -531,27 +547,6 @@ public final class RoadPostProcessor {
         BuildResult(Map<String, List<BlockPos>> legsRaw, Trunk trunkRaw) {
             this.legsRaw = legsRaw;
             this.trunkRaw = trunkRaw;
-        }
-    }
-
-    private record AABB(int x1, int z1, int x2, int z2) {
-        static AABB of(List<BlockPos> pts) {
-            int minX = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
-            for (BlockPos p : pts) {
-                if (p.getX() < minX) minX = p.getX();
-                if (p.getZ() < minZ) minZ = p.getZ();
-                if (p.getX() > maxX) maxX = p.getX();
-                if (p.getZ() > maxZ) maxZ = p.getZ();
-            }
-            return new AABB(minX, minZ, maxX, maxZ);
-        }
-
-        AABB inflate(int r) {
-            return new AABB(x1 - r, z1 - r, x2 + r, z2 + r);
-        }
-
-        boolean intersectsInflated(AABB other) {
-            return this.x1 <= other.x2 && this.x2 >= other.x1 && this.z1 <= other.z2 && this.z2 >= other.z1;
         }
     }
 }

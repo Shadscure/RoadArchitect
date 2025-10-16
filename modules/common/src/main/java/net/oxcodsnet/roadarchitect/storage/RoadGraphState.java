@@ -94,11 +94,6 @@ public class RoadGraphState extends PersistentState {
      * @return the created node
      */
     public Node addNode(BlockPos pos, String type) {
-        // Avoid adding nodes too close to existing ones
-        if (nodeIndex.query(pos, 32).stream().anyMatch(n -> n.pos().getManhattanDistance(pos) < 32)) {
-            return null;
-        }
-
         Node newNode = this.nodeStorage.add(pos, type);
         this.nodeIndex.add(newNode);
 

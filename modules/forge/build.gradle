@@ -1,11 +1,13 @@
 import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
+plugins {
+    id 'com.gradleup.shadow'
+}
+
 architectury {
     platformSetupLoomIde()
     forge()
 }
-
-apply plugin: "com.gradleup.shadow"
 
 configurations {
     common {
@@ -39,7 +41,7 @@ sourceSets {
 }
 
 dependencies {
-    forge "net.minecraftforge:forge:$rootProject.minecraft_version-$rootProject.forge_version" //21
+    forge "net.minecraftforge:forge:$rootProject.minecraft_version-$rootProject.forge_version"
 
     implementation "me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}"
 
@@ -75,33 +77,4 @@ tasks.named('remapJar') {
     dependsOn(tasks.named('shadowJar'))
     // Use the shadowJar output as input
     inputFile.set(tasks.named('shadowJar').get().archiveFile)
-}
-
-
-
-// ====================== CurseForge ====================
-apply plugin: "net.darkhax.curseforgegradle"
-
-def curse_project_id = 
-        (findProperty("curseforge_project_forge")
-                ?: System.getenv("CURSEFORGE_PROJECT_FORGE")
-                ?: findProperty("curseforge_project")
-                ?: System.getenv("CURSEFORGE_PROJECT_ID")
-                ?: "1326434")
-
-tasks.register("curseforge", TaskPublishCurseForge) {
-
-    disableVersionDetection()
-
-    dependsOn remapJar
-    def mainFile = upload(curse_project_id as String, remapJar)
-
-    mainFile.displayName = "RoadArchitect v${project.version}+${rootProject.minecraft_version} [Forge]"
-    mainFile.releaseType = "release"
-    mainFile.addModLoader("Forge")
-    mainFile.addGameVersion("${rootProject.minecraft_version}")
-    mainFile.addJavaVersion("Java 17")
-    mainFile.addEnvironment("Client", "Server")
-    mainFile.changelog = rootProject.file("CHANGELOG.md"); mainFile.changelogType = "markdown"
-    mainFile.addRequirement("cloth-config")
 }

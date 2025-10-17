@@ -49,6 +49,8 @@
   "text.autoconfig.roadarchitect.option.sideDecorationInterval.@Tooltip": "Distancia en bloques entre decoraciones laterales a lo largo del camino.",
   "text.autoconfig.roadarchitect.option.structureSelectors": "Selectores de estructuras",
   "text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip": "Lista de selectores de estructuras que se conectarán con carreteras.",
+  "text.autoconfig.roadarchitect.option.dimensionSelectors": "Selectores de dimensiones",
+  "text.autoconfig.roadarchitect.option.dimensionSelectors.@Tooltip": "Lista de identificadores de dimensiones donde deben operar las carreteras.",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled": "Activar analizador de terreno",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip": "Desvía carreteras del terreno abrupto/montañoso penalizando la variación de altura.",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale": "Escala de penalización",
@@ -69,5 +71,7 @@
   "text.config.roadarchitect.option.pipelineIntervalSeconds": "Intervalo del pipeline (segundos)",
   "text.config.roadarchitect.option.pipelineIntervalSeconds.@Tooltip": "Retraso en segundos entre ejecuciones del pipeline.",
   "text.config.roadarchitect.option.structureSelectors": "Selectores de estructuras",
-  "text.config.roadarchitect.option.structureSelectors.@Tooltip": "Lista de selectores de estructuras que se conectarán con carreteras."
+  "text.config.roadarchitect.option.structureSelectors.@Tooltip": "Lista de selectores de estructuras que se conectarán con carreteras.",
+  "text.config.roadarchitect.option.dimensionSelectors": "Selectores de dimensiones",
+  "text.config.roadarchitect.option.dimensionSelectors.@Tooltip": "Lista de identificadores de dimensiones donde deben operar las carreteras."
 }

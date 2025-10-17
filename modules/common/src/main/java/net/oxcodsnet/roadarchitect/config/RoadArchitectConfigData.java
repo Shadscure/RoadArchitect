@@ -43,6 +43,9 @@ public final class RoadArchitectConfigData implements ConfigData {
     @ConfigEntry.Gui.Tooltip
     public List<String> structureSelectors = List.of("#minecraft:village");
 
+    @ConfigEntry.Gui.Tooltip
+    public List<String> dimensionSelectors = List.of("minecraft:overworld");
+
     // Terrain Analyzer category (separate tab)
     @ConfigEntry.Category("terrainAnalyzer")
     @ConfigEntry.Gui.TransitiveObject

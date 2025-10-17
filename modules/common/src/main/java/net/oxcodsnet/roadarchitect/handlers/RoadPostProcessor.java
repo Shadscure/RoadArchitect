@@ -44,7 +44,7 @@ public final class RoadPostProcessor {
     // ====== Регистрация хуков ======
     public static void onStartWorldTick(ServerWorld world) {
         if (world.isClient()) return;
-        if (world.getRegistryKey() != World.OVERWORLD) return;
+        if (!RoadPipelineController.isDimensionEnabled(world.getRegistryKey())) return;
         processPending(world);
     }
 

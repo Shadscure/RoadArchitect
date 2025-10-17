@@ -49,6 +49,8 @@
   "text.autoconfig.roadarchitect.option.sideDecorationInterval.@Tooltip": "Расстояние в блоках между боковыми украшениями вдоль пути.",
   "text.autoconfig.roadarchitect.option.structureSelectors": "Селекторы структур",
   "text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip": "Список селекторов структур, которые будут соединяться дорогами.",
+  "text.autoconfig.roadarchitect.option.dimensionSelectors": "Селекторы измерений",
+  "text.autoconfig.roadarchitect.option.dimensionSelectors.@Tooltip": "Список идентификаторов измерений, где должны работать дороги.",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled": "Включить анализ рельефа",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip": "Отклонять дороги от неровной/гористой местности с помощью штрафа за разброс высот.",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale": "Масштаб штрафа",
@@ -69,5 +71,7 @@
   "text.config.roadarchitect.option.pipelineIntervalSeconds": "Интервал конвейера (сек)",
   "text.config.roadarchitect.option.pipelineIntervalSeconds.@Tooltip": "Задержка в секундах между запусками конвейера.",
   "text.config.roadarchitect.option.structureSelectors": "Селекторы структур",
-  "text.config.roadarchitect.option.structureSelectors.@Tooltip": "Список селекторов структур, которые будут соединяться дорогами."
+  "text.config.roadarchitect.option.structureSelectors.@Tooltip": "Список селекторов структур, которые будут соединяться дорогами.",
+  "text.config.roadarchitect.option.dimensionSelectors": "Селекторы измерений",
+  "text.config.roadarchitect.option.dimensionSelectors.@Tooltip": "Список идентификаторов измерений, где должны работать дороги."
 }

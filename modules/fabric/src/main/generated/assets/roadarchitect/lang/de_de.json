@@ -49,6 +49,8 @@
   "text.autoconfig.roadarchitect.option.sideDecorationInterval.@Tooltip": "Abstand in Blöcken zwischen seitlichen Dekorationen entlang des Pfads.",
   "text.autoconfig.roadarchitect.option.structureSelectors": "Strukturauswahlen",
   "text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip": "Liste von Strukturauswahlen, die Straßen verbinden.",
+  "text.autoconfig.roadarchitect.option.dimensionSelectors": "Dimensionsauswahlen",
+  "text.autoconfig.roadarchitect.option.dimensionSelectors.@Tooltip": "Liste von Dimensions-IDs, in denen Straßen arbeiten sollen.",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled": "Reliefanalyse aktivieren",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip": "Leitet Straßen um unebenes/bergiges Gelände, indem Höhenunterschiede bestraft werden.",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale": "Strafskala",
@@ -69,5 +71,7 @@
   "text.config.roadarchitect.option.pipelineIntervalSeconds": "Pipeline-Intervall (Sekunden)",
   "text.config.roadarchitect.option.pipelineIntervalSeconds.@Tooltip": "Verzögerung in Sekunden zwischen Pipeline-Durchläufen.",
   "text.config.roadarchitect.option.structureSelectors": "Strukturauswahlen",
-  "text.config.roadarchitect.option.structureSelectors.@Tooltip": "Liste von Strukturauswahlen, die Straßen verbinden."
+  "text.config.roadarchitect.option.structureSelectors.@Tooltip": "Liste von Strukturauswahlen, die Straßen verbinden.",
+  "text.config.roadarchitect.option.dimensionSelectors": "Dimensionsauswahlen",
+  "text.config.roadarchitect.option.dimensionSelectors.@Tooltip": "Liste von Dimensions-IDs, in denen Straßen arbeiten sollen."
 }

@@ -42,6 +42,7 @@ public final class RoadPipelineController {
      */
     private static final Set<Identifier> TARGET_IDS = new HashSet<>();
     private static final Set<TagKey<Structure>> TARGET_TAGS = new HashSet<>();
+    private static final Set<Identifier> TARGET_DIMENSION_IDS = new HashSet<>();
 
     /**
      * Счётчик тиков для периодического триггера.
@@ -74,7 +75,7 @@ public final class RoadPipelineController {
      * 1) Генерация спавн-чанка ВПЕРВЫЕ → INIT.
      */
     public static void onSpawnChunkGenerated(ServerWorld world, Chunk chunk) {
-        if (world.getRegistryKey() != World.OVERWORLD) return;
+        if (!isDimensionEnabled(world.getRegistryKey())) return;
 
         ChunkPos spawnChunk = new ChunkPos(world.getSpawnPos());
         if (!chunk.getPos().equals(spawnChunk)) return;
@@ -90,7 +91,7 @@ public final class RoadPipelineController {
      * 2) Генерация ЛЮБОГО чанка; если внутри есть целевая структура → CHUNK.
      */
     public static void onChunkGenerated(ServerWorld world, Chunk chunk) {
-        if (world.getRegistryKey() != World.OVERWORLD) return;
+        if (!isDimensionEnabled(world.getRegistryKey())) return;
         if (!containsTargetStructure(world, chunk)) return;
 
         BlockPos center = chunk.getPos().getCenterAtY(0);
@@ -103,7 +104,7 @@ public final class RoadPipelineController {
      */
     public static void onPlayerJoin(ServerPlayerEntity player) {
         ServerWorld world = (ServerWorld) player.getWorld();
-        if (world.getRegistryKey() != World.OVERWORLD) return;
+        if (!isDimensionEnabled(world.getRegistryKey())) return;
 
         BlockPos pos = player.getBlockPos();
         LOGGER.debug("Player {} joined at {}, starting PERIODIC pipeline",
@@ -122,7 +123,7 @@ public final class RoadPipelineController {
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             World w = player.getWorld();
-            if (w.getRegistryKey() != World.OVERWORLD) continue;
+            if (!isDimensionEnabled(w.getRegistryKey())) continue;
 
             BlockPos pos = player.getBlockPos();
             LOGGER.debug("Periodic trigger at player {} pos {}, starting PERIODIC pipeline",
@@ -153,6 +154,34 @@ public final class RoadPipelineController {
                 TARGET_IDS.add(Identifier.of(sel));
             }
         }
+
+        TARGET_DIMENSION_IDS.clear();
+        List<String> dimensionSelectors = RoadArchitect.CONFIG.dimensionSelectors();
+        if (dimensionSelectors == null || dimensionSelectors.isEmpty()) {
+            TARGET_DIMENSION_IDS.add(World.OVERWORLD.getValue());
+        } else {
+            for (String selector : dimensionSelectors) {
+                if (selector.startsWith("#")) {
+                    LOGGER.warn("Dimension selector tags are not supported (skipping '{}')", selector);
+                    continue;
+                }
+                try {
+                    TARGET_DIMENSION_IDS.add(Identifier.of(selector));
+                } catch (IllegalArgumentException ex) {
+                    LOGGER.warn("Skipping invalid dimension selector '{}': {}", selector, ex.getMessage());
+                }
+            }
+            if (TARGET_DIMENSION_IDS.isEmpty()) {
+                TARGET_DIMENSION_IDS.add(World.OVERWORLD.getValue());
+            }
+        }
+    }
+
+    static boolean isDimensionEnabled(RegistryKey<World> key) {
+        if (TARGET_DIMENSION_IDS.isEmpty()) {
+            return key == World.OVERWORLD;
+        }
+        return TARGET_DIMENSION_IDS.contains(key.getValue());
     }
 
     private static boolean containsTargetStructure(ServerWorld world, Chunk chunk) {

@@ -35,6 +35,9 @@ public final class RALanguage {
                 add.accept("text.config.roadarchitect.option.structureSelectors", "Structure Selectors");
                 add.accept("text.config.roadarchitect.option.structureSelectors.@Tooltip",
                         "List of structure selectors that roads will connect.");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors", "Dimension Selectors");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "List of dimension identifiers where roads should operate.");
                 add.accept("text.autoconfig.roadarchitect.title", "Road Architect Config");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Initial Scan Radius");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
@@ -51,6 +54,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors", "Structure Selectors");
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip",
                         "List of structure selectors that roads will connect.");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors", "Dimension Selectors");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "List of dimension identifiers where roads should operate.");
                 // Deterministic decorations (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Lamp Interval");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
@@ -148,6 +154,10 @@ public final class RALanguage {
                         "Селекторы структур");
                 add.accept("text.config.roadarchitect.option.structureSelectors.@Tooltip",
                         "Список селекторов структур, которые будут соединяться дорогами.");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors",
+                        "Селекторы измерений");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "Список идентификаторов измерений, где должны работать дороги.");
                 add.accept("text.autoconfig.roadarchitect.title", "Конфиг Road Architect");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Начальный радиус сканирования");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
@@ -168,6 +178,10 @@ public final class RALanguage {
                         "Селекторы структур");
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip",
                         "Список селекторов структур, которые будут соединяться дорогами.");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors",
+                        "Селекторы измерений");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "Список идентификаторов измерений, где должны работать дороги.");
                 // Детерминированные украшения (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Интервал фонарей");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
@@ -265,6 +279,10 @@ public final class RALanguage {
                         "Selectores de estructuras");
                 add.accept("text.config.roadarchitect.option.structureSelectors.@Tooltip",
                         "Lista de selectores de estructuras que se conectarán con carreteras.");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors",
+                        "Selectores de dimensiones");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "Lista de identificadores de dimensiones donde deben operar las carreteras.");
                 // Búsqueda de rutas
                 add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Búsqueda de rutas");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Preferir tierra sobre agua");
@@ -317,6 +335,10 @@ public final class RALanguage {
                         "Selectores de estructuras");
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip",
                         "Lista de selectores de estructuras que se conectarán con carreteras.");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors",
+                        "Selectores de dimensiones");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "Lista de identificadores de dimensiones donde deben operar las carreteras.");
                 // Decoraciones deterministas (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Intervalo de farolas");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
@@ -382,6 +404,10 @@ public final class RALanguage {
                         "Sélecteurs de structures");
                 add.accept("text.config.roadarchitect.option.structureSelectors.@Tooltip",
                         "Liste des sélecteurs de structures que les routes relieront.");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors",
+                        "Sélecteurs de dimensions");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "Liste des identifiants de dimensions où les routes doivent fonctionner.");
                 // Recherche d'itinéraire
                 add.accept("text.autoconfig.roadarchitect.category.pathfinding", "Recherche d'itinéraire");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.preferLandOverWater", "Préférer la terre à l'eau");
@@ -434,6 +460,10 @@ public final class RALanguage {
                         "Sélecteurs de structures");
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip",
                         "Liste des sélecteurs de structures que les routes relieront.");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors",
+                        "Sélecteurs de dimensions");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "Liste des identifiants de dimensions où les routes doivent fonctionner.");
                 // Décorations déterministes (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Intervalle des lampadaires");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
@@ -499,6 +529,10 @@ public final class RALanguage {
                         "Strukturauswahlen");
                 add.accept("text.config.roadarchitect.option.structureSelectors.@Tooltip",
                         "Liste von Strukturauswahlen, die Straßen verbinden.");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors",
+                        "Dimensionsauswahlen");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "Liste von Dimensions-IDs, in denen Straßen arbeiten sollen.");
                 add.accept("text.autoconfig.roadarchitect.title", "Road Architect Konfiguration");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Anfänglicher Scanradius");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
@@ -519,6 +553,10 @@ public final class RALanguage {
                         "Strukturauswahlen");
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip",
                         "Liste von Strukturauswahlen, die Straßen verbinden.");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors",
+                        "Dimensionsauswahlen");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "Liste von Dimensions-IDs, in denen Straßen arbeiten sollen.");
                 // Deterministische Dekorationen (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Laternenintervall");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
@@ -612,6 +650,9 @@ public final class RALanguage {
                 add.accept("text.config.roadarchitect.option.structureSelectors", "结构选择器");
                 add.accept("text.config.roadarchitect.option.structureSelectors.@Tooltip",
                         "将被道路连接的结构选择器列表。");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors", "维度选择器");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "道路应当运行的维度标识符列表。");
                 add.accept("text.autoconfig.roadarchitect.title", "Road Architect 配置");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "初始扫描半径");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
@@ -628,6 +669,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors", "结构选择器");
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip",
                         "将被道路连接的结构选择器列表。");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors", "维度选择器");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "道路应当运行的维度标识符列表。");
                 // 确定性装饰 (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "灯间距");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
@@ -721,6 +765,9 @@ public final class RALanguage {
                 add.accept("text.config.roadarchitect.option.structureSelectors", "Селектори структур");
                 add.accept("text.config.roadarchitect.option.structureSelectors.@Tooltip",
                         "Список селекторів структур, які з'єднуватимуть дороги.");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors", "Селектори вимірів");
+                add.accept("text.config.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "Список ідентифікаторів вимірів, у яких мають працювати дороги.");
                 add.accept("text.autoconfig.roadarchitect.title", "Налаштування Road Architect");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius", "Початковий радіус сканування");
                 add.accept("text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip",
@@ -737,6 +784,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors", "Селектори структур");
                 add.accept("text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip",
                         "Список селекторів структур, які з'єднуватимуть дороги.");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors", "Селектори вимірів");
+                add.accept("text.autoconfig.roadarchitect.option.dimensionSelectors.@Tooltip",
+                        "Список ідентифікаторів вимірів, у яких мають працювати дороги.");
                 // Детерміновані прикраси (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Інтервал ліхтарів");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",

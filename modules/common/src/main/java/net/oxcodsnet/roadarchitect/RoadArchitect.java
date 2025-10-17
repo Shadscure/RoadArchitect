@@ -61,6 +61,11 @@ public final class RoadArchitect {
         }
 
         @Override
+        public List<String> dimensionSelectors() {
+            return RAConfigHolder.get().dimensionSelectors();
+        }
+
+        @Override
         public boolean terrainAnalyzerEnabled() {
             return RAConfigHolder.get().terrainAnalyzerEnabled();
         }

@@ -41,6 +41,11 @@ public interface RAConfig {
 
     List<String> structureSelectors();
 
+    /**
+     * Dimensions (world identifiers) where the mod should operate.
+     */
+    List<String> dimensionSelectors();
+
     // Terrain Analyzer (mountain/roughness avoidance)
     boolean terrainAnalyzerEnabled();
     int terrainRoughRadius();

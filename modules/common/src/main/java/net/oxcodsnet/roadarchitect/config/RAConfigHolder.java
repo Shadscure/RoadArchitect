@@ -90,6 +90,11 @@ public final class RAConfigHolder {
             return List.of("#minecraft:village");
         }
 
+        @Override
+        public List<String> dimensionSelectors() {
+            return List.of("minecraft:overworld");
+        }
+
         // Terrain Analyzer defaults
         @Override
         public boolean terrainAnalyzerEnabled() {

@@ -75,6 +75,11 @@ public final class RAConfigFabricBridge {
                 return holder.getConfig().structureSelectors;
             }
 
+            @Override
+            public java.util.List<String> dimensionSelectors() {
+                return holder.getConfig().dimensionSelectors;
+            }
+
             // Terrain Analyzer
             @Override
             public boolean terrainAnalyzerEnabled() {

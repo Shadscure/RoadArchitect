@@ -49,6 +49,8 @@
   "text.autoconfig.roadarchitect.option.sideDecorationInterval.@Tooltip": "Distance en blocs entre les décorations latérales le long de la route.",
   "text.autoconfig.roadarchitect.option.structureSelectors": "Sélecteurs de structures",
   "text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip": "Liste des sélecteurs de structures que les routes relieront.",
+  "text.autoconfig.roadarchitect.option.dimensionSelectors": "Sélecteurs de dimensions",
+  "text.autoconfig.roadarchitect.option.dimensionSelectors.@Tooltip": "Liste des identifiants de dimensions où les routes doivent fonctionner.",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled": "Activer l’analyse du relief",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip": "Éloigne les routes des zones accidentées/montagneuses via une pénalisation de l’écart d’altitude.",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale": "Échelle de pénalité",
@@ -69,5 +71,7 @@
   "text.config.roadarchitect.option.pipelineIntervalSeconds": "Intervalle du pipeline (secondes)",
   "text.config.roadarchitect.option.pipelineIntervalSeconds.@Tooltip": "Délai en secondes entre les exécutions du pipeline.",
   "text.config.roadarchitect.option.structureSelectors": "Sélecteurs de structures",
-  "text.config.roadarchitect.option.structureSelectors.@Tooltip": "Liste des sélecteurs de structures que les routes relieront."
+  "text.config.roadarchitect.option.structureSelectors.@Tooltip": "Liste des sélecteurs de structures que les routes relieront.",
+  "text.config.roadarchitect.option.dimensionSelectors": "Sélecteurs de dimensions",
+  "text.config.roadarchitect.option.dimensionSelectors.@Tooltip": "Liste des identifiants de dimensions où les routes doivent fonctionner."
 }

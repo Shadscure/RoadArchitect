@@ -49,6 +49,8 @@
   "text.autoconfig.roadarchitect.option.sideDecorationInterval.@Tooltip": "沿路径的侧边装饰之间的方块距离。",
   "text.autoconfig.roadarchitect.option.structureSelectors": "结构选择器",
   "text.autoconfig.roadarchitect.option.structureSelectors.@Tooltip": "将被道路连接的结构选择器列表。",
+  "text.autoconfig.roadarchitect.option.dimensionSelectors": "维度选择器",
+  "text.autoconfig.roadarchitect.option.dimensionSelectors.@Tooltip": "道路应当运行的维度标识符列表。",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled": "启用地形分析",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip": "通过惩罚高度变化，让道路绕开崎岖/山地地形。",
   "text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale": "惩罚系数",
@@ -69,5 +71,7 @@
   "text.config.roadarchitect.option.pipelineIntervalSeconds": "管线间隔（秒）",
   "text.config.roadarchitect.option.pipelineIntervalSeconds.@Tooltip": "每次管线运行之间的秒数。",
   "text.config.roadarchitect.option.structureSelectors": "结构选择器",
-  "text.config.roadarchitect.option.structureSelectors.@Tooltip": "将被道路连接的结构选择器列表。"
+  "text.config.roadarchitect.option.structureSelectors.@Tooltip": "将被道路连接的结构选择器列表。",
+  "text.config.roadarchitect.option.dimensionSelectors": "维度选择器",
+  "text.config.roadarchitect.option.dimensionSelectors.@Tooltip": "道路应当运行的维度标识符列表。"
 }

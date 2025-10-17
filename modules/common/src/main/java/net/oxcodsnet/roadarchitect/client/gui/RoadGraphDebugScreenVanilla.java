@@ -4,7 +4,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.CyclingButtonWidget;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -33,8 +32,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     private static final int RADIUS = 4;
     private static final int PADDING = 20;
     private static final int TARGET_GRID_PX = 80;
-    private static final int LAYER_BUTTON_WIDTH = 180;
-    private static final int LAYER_BUTTON_HEIGHT = 20;
 
     private final List<DimensionLayer> layers;
     private final Supplier<Text> titleSupplier;
@@ -51,8 +48,8 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     private final List<EdgeStorage.Edge> edges = new ArrayList<>();
     private final Set<String> currentTypes = new LinkedHashSet<>();
 
-    private CyclingButtonWidget<DimensionLayer> layerCycler;
     private DimensionLayer currentLayer;
+    private RegistryKey<World> lastPlayerDimension;
 
     private boolean dragging = false;
     private boolean firstLayout = true;
@@ -76,10 +73,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
                 typeColors.computeIfAbsent(node.type(), t -> hsvToArgb(Math.abs(t.hashCode() % 360), 0.6f, 0.9f));
             }
         }
-
-        if (!this.layers.isEmpty()) {
-            setActiveLayer(0);
-        } else {
+        if (this.layers.isEmpty()) {
             recalcBounds();
         }
     }
@@ -89,24 +83,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     @Override
     protected void init() {
         super.init();
-        if (layers.size() > 1) {
-            DimensionLayer initial = currentLayer == null ? layers.get(0) : currentLayer;
-            layerCycler = addDrawableChild(CyclingButtonWidget.builder(RoadGraphDebugScreenVanilla::describeLayer)
-                    .values(layers)
-                    .initially(initial)
-                    .omitKeyText()
-                    .build((width - LAYER_BUTTON_WIDTH) / 2,
-                            PADDING - LAYER_BUTTON_HEIGHT - 2,
-                            LAYER_BUTTON_WIDTH,
-                            LAYER_BUTTON_HEIGHT,
-                            Text.translatable("screen.roadarchitect.debug.dimension"),
-                            (button, layer) -> setActiveLayer(layers.indexOf(layer))));
-            if (currentLayer != null) {
-                layerCycler.setValue(currentLayer);
-            }
-        } else {
-            layerCycler = null;
-        }
+        focusOnCurrentDimension();
     }
 
     @Override
@@ -120,6 +97,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
 
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
+        focusOnCurrentDimension();
         computeLayout();
 
         ctx.fill(PADDING, PADDING, width - PADDING, height - PADDING, 0xA0101010);
@@ -558,9 +536,53 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         loadViewState(currentLayer);
         screenPositions.clear();
 
-        if (layerCycler != null) {
-            layerCycler.setValue(currentLayer);
+        lastPlayerDimension = currentLayer.dimension();
+    }
+
+    private void clearActiveLayer() {
+        saveCurrentViewState();
+        if (currentLayer == null && nodes.isEmpty() && edges.isEmpty()) {
+            return;
         }
+        currentLayer = null;
+        nodes.clear();
+        edges.clear();
+        currentTypes.clear();
+        recalcBounds();
+        screenPositions.clear();
+        zoom = 1.0;
+        offsetX = 0;
+        offsetY = 0;
+        baseScale = 1.0;
+        firstLayout = true;
+    }
+
+    private void focusOnCurrentDimension() {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (mc == null || mc.world == null) {
+            if (currentLayer != null) {
+                clearActiveLayer();
+            }
+            lastPlayerDimension = null;
+            return;
+        }
+        RegistryKey<World> playerDimension = mc.world.getRegistryKey();
+        if (currentLayer != null && Objects.equals(currentLayer.dimension(), playerDimension)) {
+            lastPlayerDimension = playerDimension;
+            return;
+        }
+        for (int i = 0; i < layers.size(); i++) {
+            DimensionLayer layer = layers.get(i);
+            if (Objects.equals(layer.dimension(), playerDimension)) {
+                setActiveLayer(i);
+                lastPlayerDimension = playerDimension;
+                return;
+            }
+        }
+        if (currentLayer != null || !Objects.equals(lastPlayerDimension, playerDimension)) {
+            clearActiveLayer();
+        }
+        lastPlayerDimension = playerDimension;
     }
 
     private void recalcBounds() {

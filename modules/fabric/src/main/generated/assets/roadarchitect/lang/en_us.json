@@ -1,6 +1,8 @@
 {
   "category.roadarchitect": "Road Architect",
   "key.roadarchitect.debug": "Road Graph Debug",
+  "screen.roadarchitect.debug.dimension": "Dimension",
+  "screen.roadarchitect.debug.dimension_label": "Dimension: %s",
   "modmenu.descriptionTranslation.roadarchitect": "Travel around the world without barriers: RoadArchitect automatically scans your world, finds villages, and other structures, and then lays a network of roads between them.",
   "roadarchitect.stage.complete": "Complete",
   "roadarchitect.stage.initialisation": "Initialising",

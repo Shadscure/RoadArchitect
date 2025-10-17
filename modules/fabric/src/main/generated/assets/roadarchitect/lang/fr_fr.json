@@ -1,6 +1,8 @@
 {
   "category.roadarchitect": "Architecte routier",
   "key.roadarchitect.debug": "Débogage du graphe routier",
+  "screen.roadarchitect.debug.dimension": "Dimension",
+  "screen.roadarchitect.debug.dimension_label": "Dimension : %s",
   "modmenu.descriptionTranslation.roadarchitect": "Voyagez dans le monde sans barrières : RoadArchitect analyse automatiquement votre monde, trouve les villages et autres structures, puis trace un réseau de routes entre eux.",
   "roadarchitect.stage.complete": "Terminé",
   "roadarchitect.stage.initialisation": "Initialisation",

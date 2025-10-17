@@ -1,6 +1,8 @@
 {
   "category.roadarchitect": "Road Architect",
   "key.roadarchitect.debug": "Налагодження графіка доріг",
+  "screen.roadarchitect.debug.dimension": "Вимір",
+  "screen.roadarchitect.debug.dimension_label": "Вимір: %s",
   "modmenu.descriptionTranslation.roadarchitect": "Подорожуйте навколо світу без бар'єрів: RoadArchitect автоматично сканує ваш світ, знаходить села та інші структури, а потім прокладає мережу доріг між ними",
   "roadarchitect.stage.complete": "Завершення…",
   "roadarchitect.stage.initialisation": "Ініціалізація…",

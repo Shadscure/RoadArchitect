@@ -13,6 +13,8 @@ public final class RALanguage {
         switch (code) {
             case "en_us": {
                 add.accept("key.roadarchitect.debug", "Road Graph Debug");
+                add.accept("screen.roadarchitect.debug.dimension", "Dimension");
+                add.accept("screen.roadarchitect.debug.dimension_label", "Dimension: %s");
                 add.accept("category.roadarchitect", "Road Architect");
                 add.accept("text.autoconfig.roadarchitect.category.default", "General Settings");
                 add.accept("roadarchitect.stage.initialisation", "Initialising");
@@ -128,6 +130,8 @@ public final class RALanguage {
             }
             case "ru_ru": {
                 add.accept("key.roadarchitect.debug", "Отладка графа дорог");
+                add.accept("screen.roadarchitect.debug.dimension", "Измерение");
+                add.accept("screen.roadarchitect.debug.dimension_label", "Измерение: %s");
                 add.accept("category.roadarchitect", "Архитектор дорог");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Основные настройки");
                 add.accept("roadarchitect.stage.initialisation", "Инициализация");
@@ -253,6 +257,8 @@ public final class RALanguage {
             }
             case "es_es": {
                 add.accept("key.roadarchitect.debug", "Depuración del grafo de carreteras");
+                add.accept("screen.roadarchitect.debug.dimension", "Dimensión");
+                add.accept("screen.roadarchitect.debug.dimension_label", "Dimensión: %s");
                 add.accept("category.roadarchitect", "Arquitecto de Carreteras");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Configuración general");
                 add.accept("roadarchitect.stage.initialisation", "Inicialización");
@@ -378,6 +384,8 @@ public final class RALanguage {
             }
             case "fr_fr": {
                 add.accept("key.roadarchitect.debug", "Débogage du graphe routier");
+                add.accept("screen.roadarchitect.debug.dimension", "Dimension");
+                add.accept("screen.roadarchitect.debug.dimension_label", "Dimension : %s");
                 add.accept("category.roadarchitect", "Architecte routier");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Paramètres généraux");
                 add.accept("roadarchitect.stage.initialisation", "Initialisation");
@@ -503,6 +511,8 @@ public final class RALanguage {
             }
             case "de_de": {
                 add.accept("key.roadarchitect.debug", "Straßengraph-Debug");
+                add.accept("screen.roadarchitect.debug.dimension", "Dimension");
+                add.accept("screen.roadarchitect.debug.dimension_label", "Dimension: %s");
                 add.accept("category.roadarchitect", "Straßenarchitekt");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Allgemeine Einstellungen");
                 add.accept("roadarchitect.stage.initialisation", "Initialisierung");
@@ -628,6 +638,8 @@ public final class RALanguage {
             }
             case "zh_cn": {
                 add.accept("key.roadarchitect.debug", "道路网络调试");
+                add.accept("screen.roadarchitect.debug.dimension", "维度");
+                add.accept("screen.roadarchitect.debug.dimension_label", "维度：%s");
                 add.accept("category.roadarchitect", "道路架构师");
                 add.accept("text.autoconfig.roadarchitect.category.default", "常规设置");
                 add.accept("roadarchitect.stage.initialisation", "初始化");
@@ -743,6 +755,8 @@ public final class RALanguage {
             }
             case "uk_ua": {
                 add.accept("key.roadarchitect.debug", "Налагодження графіка доріг");
+                add.accept("screen.roadarchitect.debug.dimension", "Вимір");
+                add.accept("screen.roadarchitect.debug.dimension_label", "Вимір: %s");
                 add.accept("category.roadarchitect", "Road Architect");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Загальні налаштування");
                 add.accept("roadarchitect.stage.initialisation", "Ініціалізація…");

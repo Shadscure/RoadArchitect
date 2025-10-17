@@ -4,12 +4,24 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.CyclingButtonWidget;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.world.World;
 import net.oxcodsnet.roadarchitect.storage.EdgeStorage;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -21,18 +33,26 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     private static final int RADIUS = 4;
     private static final int PADDING = 20;
     private static final int TARGET_GRID_PX = 80;
+    private static final int LAYER_BUTTON_WIDTH = 180;
+    private static final int LAYER_BUTTON_HEIGHT = 20;
 
-    private final List<Node> nodes;
-    private final Collection<EdgeStorage.Edge> edges;
+    private final List<DimensionLayer> layers;
     private final Supplier<Text> titleSupplier;
 
     private final Map<String, ScreenPos> screenPositions = new HashMap<>();
     private final Map<String, Integer> typeColors = new HashMap<>();
     private final Map<EdgeStorage.Status, Integer> statusColors = Map.of(
-            EdgeStorage.Status.NEW,     0xFFF2C94C,
+            EdgeStorage.Status.NEW, 0xFFF2C94C,
             EdgeStorage.Status.SUCCESS, 0xFF27AE60,
             EdgeStorage.Status.FAILURE, 0xFFAE162B
     );
+    private final Map<RegistryKey<World>, ViewState> viewStates = new HashMap<>();
+    private final List<Node> nodes = new ArrayList<>();
+    private final List<EdgeStorage.Edge> edges = new ArrayList<>();
+    private final Set<String> currentTypes = new LinkedHashSet<>();
+
+    private CyclingButtonWidget<DimensionLayer> layerCycler;
+    private DimensionLayer currentLayer;
 
     private boolean dragging = false;
     private boolean firstLayout = true;
@@ -42,41 +62,71 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     private double baseScale = 1.0;
     private int minX, maxX, minZ, maxZ;
 
-    public RoadGraphDebugScreenVanilla(List<Node> nodes, Collection<EdgeStorage.Edge> edges) {
-        this(nodes, edges, () -> Text.literal("Road Graph Debug"));
+    public RoadGraphDebugScreenVanilla(List<DimensionLayer> layers) {
+        this(layers, () -> Text.literal("Road Graph Debug"));
     }
 
-    public RoadGraphDebugScreenVanilla(List<Node> nodes, Collection<EdgeStorage.Edge> edges, Supplier<Text> titleSupplier) {
+    public RoadGraphDebugScreenVanilla(List<DimensionLayer> layers, Supplier<Text> titleSupplier) {
         super(titleSupplier.get());
-        this.nodes = nodes;
-        this.edges = edges;
+        this.layers = List.copyOf(layers);
         this.titleSupplier = titleSupplier;
 
-        if (!nodes.isEmpty()) {
-            minX = nodes.stream().mapToInt(n -> n.pos().getX()).min().orElse(0);
-            maxX = nodes.stream().mapToInt(n -> n.pos().getX()).max().orElse(0);
-            minZ = nodes.stream().mapToInt(n -> n.pos().getZ()).min().orElse(0);
-            maxZ = nodes.stream().mapToInt(n -> n.pos().getZ()).max().orElse(0);
+        for (DimensionLayer layer : this.layers) {
+            for (Node node : layer.nodes()) {
+                typeColors.computeIfAbsent(node.type(), t -> hsvToArgb(Math.abs(t.hashCode() % 360), 0.6f, 0.9f));
+            }
         }
-        for (Node node : nodes) {
-            typeColors.computeIfAbsent(node.type(), t -> hsvToArgb(Math.abs(t.hashCode() % 360), 0.6f, 0.9f));
+
+        if (!this.layers.isEmpty()) {
+            setActiveLayer(0);
+        } else {
+            recalcBounds();
         }
     }
 
     // ---------- жизненный цикл ----------
 
     @Override
+    protected void init() {
+        super.init();
+        if (layers.size() > 1) {
+            DimensionLayer initial = currentLayer == null ? layers.get(0) : currentLayer;
+            layerCycler = addDrawableChild(CyclingButtonWidget.builder(RoadGraphDebugScreenVanilla::describeLayer)
+                    .values(layers)
+                    .initially(initial)
+                    .omitKeyText()
+                    .build((width - LAYER_BUTTON_WIDTH) / 2,
+                            PADDING - LAYER_BUTTON_HEIGHT - 2,
+                            LAYER_BUTTON_WIDTH,
+                            LAYER_BUTTON_HEIGHT,
+                            Text.translatable("screen.roadarchitect.debug.dimension"),
+                            (button, layer) -> setActiveLayer(layers.indexOf(layer))));
+            if (currentLayer != null) {
+                layerCycler.setValue(currentLayer);
+            }
+        } else {
+            layerCycler = null;
+        }
+    }
+
+    @Override
+    public void resize(MinecraftClient client, int width, int height) {
+        saveCurrentViewState();
+        super.resize(client, width, height);
+        if (currentLayer != null) {
+            loadViewState(currentLayer);
+        }
+    }
+
+    @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
-        //this.renderBackground(ctx, mouseX, mouseY, delta); // затемнение фона
         computeLayout();
 
-        // панель + рамка
         ctx.fill(PADDING, PADDING, width - PADDING, height - PADDING, 0xA0101010);
         ctx.drawBorder(PADDING, PADDING, width - 2 * PADDING, height - 2 * PADDING, 0xFFFFFFFF);
 
         drawGrid(ctx);
 
-        // рёбра
         for (EdgeStorage.Edge e : edges) {
             ScreenPos a = screenPositions.get(e.nodeA());
             ScreenPos b = screenPositions.get(e.nodeB());
@@ -85,7 +135,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             drawLine(ctx, a.x, a.y, b.x, b.y, col);
         }
 
-        // узлы + тултип
         Node hovered = null;
         for (Node n : nodes) {
             ScreenPos p = screenPositions.get(n.id());
@@ -103,17 +152,25 @@ public class RoadGraphDebugScreenVanilla extends Screen {
 
         drawPlayerMarker(ctx);
 
-        // линейка масштаба + легенда
         drawScale(ctx);
         drawLegend(ctx);
+        drawDimensionLabel(ctx);
 
-        // заголовок
         drawCenteredTitle(ctx);
 
         super.render(ctx, mouseX, mouseY, delta);
     }
 
-    @Override public boolean shouldCloseOnEsc() { return true; }
+    @Override
+    public void removed() {
+        saveCurrentViewState();
+        super.removed();
+    }
+
+    @Override
+    public boolean shouldCloseOnEsc() {
+        return true;
+    }
 
     // ---------- ввод ----------
 
@@ -126,11 +183,9 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button != 0) return super.mouseClicked(mouseX, mouseY, button);
 
-        // клик по узлу = телепорт (только одиночка, на сервер — TODO: отправить пакет)
         Node clicked = findClickedNode(mouseX, mouseY);
         if (clicked != null) {
-            teleportTo(clicked);
-            return true;
+            return teleportTo(clicked);
         }
         dragging = true;
         return true;
@@ -141,6 +196,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         if (dragging && button == 0) {
             offsetX += deltaX;
             offsetY += deltaY;
+            firstLayout = false;
             return true;
         }
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
@@ -148,16 +204,20 @@ public class RoadGraphDebugScreenVanilla extends Screen {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (button == 0 && dragging) { dragging = false; return true; }
+        if (button == 0 && dragging) {
+            dragging = false;
+            return true;
+        }
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
         double old = zoom;
-        zoom = vertical > 0 ? zoom * 1.1 : zoom / 1.1;
+        zoom = MathHelper.clamp(vertical > 0 ? zoom * 1.1 : zoom / 1.1, 0.1, 10.0);
         offsetX = (offsetX - mouseX + PADDING) * (zoom / old) + mouseX - PADDING;
         offsetY = (offsetY - mouseY + PADDING) * (zoom / old) + mouseY - PADDING;
+        firstLayout = false;
         return true;
     }
 
@@ -171,7 +231,11 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     }
 
     private void drawGrid(DrawContext ctx) {
-        int w = width - PADDING * 2, h = height - PADDING * 2;
+        if (nodes.isEmpty()) {
+            return;
+        }
+        int w = width - PADDING * 2;
+        int h = height - PADDING * 2;
 
         double worldX0 = minX + (-offsetX) / (baseScale * zoom);
         double worldZ0 = minZ + (-offsetY) / (baseScale * zoom);
@@ -180,24 +244,27 @@ public class RoadGraphDebugScreenVanilla extends Screen {
 
         int spacing = computeGridSpacing();
 
-        int startWX = (int)Math.floor(worldX0 / spacing) * spacing;
-        int startWZ = (int)Math.floor(worldZ0 / spacing) * spacing;
+        int startWX = (int) Math.floor(worldX0 / spacing) * spacing;
+        int startWZ = (int) Math.floor(worldZ0 / spacing) * spacing;
 
         for (int x = startWX; x <= worldX1; x += spacing) {
-            int sx = PADDING + (int)((x - worldX0) * baseScale * zoom);
+            int sx = PADDING + (int) ((x - worldX0) * baseScale * zoom);
             fillV(ctx, sx, PADDING, PADDING + h, 0x60444444);
             drawSmallLabel(ctx, String.valueOf(x), sx + 2, PADDING + 2);
         }
         for (int z = startWZ; z <= worldZ1; z += spacing) {
-            int sz = PADDING + (int)((z - worldZ0) * baseScale * zoom);
+            int sz = PADDING + (int) ((z - worldZ0) * baseScale * zoom);
             fillH(ctx, PADDING, PADDING + w, sz, 0x60444444);
             drawSmallLabel(ctx, String.valueOf(z), PADDING + 2, sz + 2);
         }
     }
 
     private void drawScale(DrawContext ctx) {
+        if (nodes.isEmpty()) {
+            return;
+        }
         int spacing = computeGridSpacing();
-        int lengthPx = (int)(spacing * baseScale * zoom);
+        int lengthPx = (int) (spacing * baseScale * zoom);
         int x = width - PADDING - lengthPx - 10;
         int y = height - PADDING - 8;
 
@@ -208,20 +275,37 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     }
 
     private void drawLegend(DrawContext ctx) {
+        if (currentTypes.isEmpty()) {
+            return;
+        }
         int x = PADDING;
-        int y = height - PADDING - typeColors.size() * 12;
-        for (Map.Entry<String, Integer> e : typeColors.entrySet()) {
-            ctx.fill(x, y, x + 8, y + 8, e.getValue());
+        int y = height - PADDING - currentTypes.size() * 12;
+        for (String type : currentTypes) {
+            int color = typeColors.getOrDefault(type, 0xFFFFFFFF);
+            ctx.fill(x, y, x + 8, y + 8, color);
             ctx.drawBorder(x, y, 8, 8, 0xFFFFFFFF);
-            drawSmallLabel(ctx, e.getKey(), x + 10, y);
+            drawSmallLabel(ctx, type, x + 10, y);
             y += 12;
         }
+    }
+
+    private void drawDimensionLabel(DrawContext ctx) {
+        if (currentLayer == null) {
+            return;
+        }
+        TextRenderer font = MinecraftClient.getInstance().textRenderer;
+        String dimName = describeLayer(currentLayer).getString();
+        Text label = Text.translatable("screen.roadarchitect.debug.dimension_label", dimName)
+                .formatted(Formatting.GRAY);
+        ctx.drawText(font, label, PADDING + 4, PADDING + 4, 0xFFAAAAAA, false);
     }
 
     // ---------- вычисления/утилиты ----------
 
     private void computeLayout() {
-        if (nodes.isEmpty()) return;
+        if (nodes.isEmpty()) {
+            return;
+        }
         int w = Math.max(1, width - PADDING * 2);
         int h = Math.max(1, height - PADDING * 2);
 
@@ -241,7 +325,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         for (Node node : nodes) {
             double sx = (node.pos().getX() - minX) * baseScale * zoom + offsetX;
             double sy = (node.pos().getZ() - minZ) * baseScale * zoom + offsetY;
-            screenPositions.put(node.id(), new ScreenPos(PADDING + (int)sx, PADDING + (int)sy));
+            screenPositions.put(node.id(), new ScreenPos(PADDING + (int) sx, PADDING + (int) sy));
         }
     }
 
@@ -253,7 +337,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             double candidate = n * pow10;
             if (candidate >= raw) return (int) candidate;
         }
-        return (int)(10 * pow10);
+        return (int) (10 * pow10);
     }
 
     private Node findClickedNode(double mouseX, double mouseY) {
@@ -266,26 +350,30 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         return null;
     }
 
-    private void teleportTo(Node node) {
+    private boolean teleportTo(Node node) {
         MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.player == null) {
-            return;
+        if (mc.player == null || mc.world == null) {
+            return false;
+        }
+        if (currentLayer == null || !Objects.equals(mc.world.getRegistryKey(), currentLayer.dimension())) {
+            return false;
         }
 
         if (mc.getServer() != null) {
-            // Интегрированный сервер: телепорт выполняем на его треде, иначе пакет не уйдёт клиенту.
             mc.getServer().execute(() -> {
                 ServerPlayerEntity sp = mc.getServer().getPlayerManager().getPlayer(mc.player.getUuid());
                 if (sp != null) {
                     sp.requestTeleport(node.pos().getX() + 0.5, node.pos().getY(), node.pos().getZ() + 0.5);
                 }
             });
+            return true;
         }
-        // Иначе: на сервере — отправить пакет с позицией (реализуется платформенно)
+        return false;
     }
 
     private static double dist2(double x1, double y1, double x2, double y2) {
-        double dx = x1 - x2, dy = y1 - y2; return dx*dx + dy*dy;
+        double dx = x1 - x2, dy = y1 - y2;
+        return dx * dx + dy * dy;
     }
 
     private void drawSmallLabel(DrawContext ctx, String s, int x, int y) {
@@ -293,20 +381,25 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         ctx.drawText(font, Text.literal(s), x, y, 0xFFFFFFFF, true);
     }
 
-    // --- примитивы (без GL-шейдеров): достаточно для отладки ---
-
     private static void fillH(DrawContext ctx, int x0, int x1, int y, int argb) {
-        if (x1 < x0) { int t = x0; x0 = x1; x1 = t; }
+        if (x1 < x0) {
+            int t = x0;
+            x0 = x1;
+            x1 = t;
+        }
         ctx.fill(x0, y, x1, y + 1, argb);
     }
 
     private static void fillV(DrawContext ctx, int x, int y0, int y1, int argb) {
-        if (y1 < y0) { int t = y0; y0 = y1; y1 = t; }
+        if (y1 < y0) {
+            int t = y0;
+            y0 = y1;
+            y1 = t;
+        }
         ctx.fill(x, y0, x + 1, y1, argb);
     }
 
     private static void drawLine(DrawContext ctx, int x0, int y0, int x1, int y1, int argb) {
-        // Брезенхем, 1px
         int dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
         int dy = -Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
         int err = dx + dy;
@@ -315,25 +408,35 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             ctx.fill(x, y, x + 1, y + 1, argb);
             if (x == x1 && y == y1) break;
             int e2 = 2 * err;
-            if (e2 >= dy) { err += dy; x += sx; }
-            if (e2 <= dx) { err += dx; y += sy; }
+            if (e2 >= dy) {
+                err += dy;
+                x += sx;
+            }
+            if (e2 <= dx) {
+                err += dx;
+                y += sy;
+            }
         }
     }
 
     private static void fillCircle(DrawContext ctx, int cx, int cy, int r, int argb) {
         for (int dy = -r; dy <= r; dy++) {
-            int span = (int)Math.round(Math.sqrt(r * r - dy * dy));
+            int span = (int) Math.round(Math.sqrt(r * r - dy * dy));
             ctx.fill(cx - span, cy + dy, cx + span + 1, cy + dy + 1, argb);
         }
     }
 
     private static void drawCircleOutline(DrawContext ctx, int cx, int cy, int r, int argb) {
-        int x = r, y = 0; int err = 0;
+        int x = r, y = 0;
+        int err = 0;
         while (x >= y) {
             plot8(ctx, cx, cy, x, y, argb);
             y++;
-            if (err <= 0) err += 2*y + 1;
-            if (err > 0) { x--; err -= 2*x + 1; }
+            if (err <= 0) err += 2 * y + 1;
+            if (err > 0) {
+                x--;
+                err -= 2 * x + 1;
+            }
         }
     }
 
@@ -350,56 +453,164 @@ public class RoadGraphDebugScreenVanilla extends Screen {
 
     private static int hsvToArgb(float hDeg, float s, float v) {
         float h = (hDeg % 360 + 360) % 360 / 60f;
-        int i = (int)Math.floor(h);
+        int i = (int) Math.floor(h);
         float f = h - i;
         float p = v * (1 - s);
         float q = v * (1 - s * f);
         float t = v * (1 - s * (1 - f));
-        float r=0,g=0,b=0;
+        float r = 0, g = 0, b = 0;
         switch (i) {
-            case 0 -> { r = v; g = t; b = p; }
-            case 1 -> { r = q; g = v; b = p; }
-            case 2 -> { r = p; g = v; b = t; }
-            case 3 -> { r = p; g = q; b = v; }
-            case 4 -> { r = t; g = p; b = v; }
-            case 5, -1 -> { r = v; g = p; b = q; }
+            case 0 -> {
+                r = v;
+                g = t;
+                b = p;
+            }
+            case 1 -> {
+                r = q;
+                g = v;
+                b = p;
+            }
+            case 2 -> {
+                r = p;
+                g = v;
+                b = t;
+            }
+            case 3 -> {
+                r = p;
+                g = q;
+                b = v;
+            }
+            case 4 -> {
+                r = t;
+                g = p;
+                b = v;
+            }
+            case 5, -1 -> {
+                r = v;
+                g = p;
+                b = q;
+            }
         }
-        int ri = Math.round(r * 255), gi = Math.round(g * 255), bi = Math.round(b * 255);
+        int ri = Math.round(r * 255);
+        int gi = Math.round(g * 255);
+        int bi = Math.round(b * 255);
         return (0xFF << 24) | (ri << 16) | (gi << 8) | bi;
     }
 
     private ScreenPos worldToScreen(double wx, double wz) {
-        int sx = PADDING + (int)((wx - minX) * baseScale * zoom + offsetX);
-        int sy = PADDING + (int)((wz - minZ) * baseScale * zoom + offsetY);
+        int sx = PADDING + (int) ((wx - minX) * baseScale * zoom + offsetX);
+        int sy = PADDING + (int) ((wz - minZ) * baseScale * zoom + offsetY);
         return new ScreenPos(sx, sy);
     }
 
     private void drawPlayerMarker(DrawContext ctx) {
         MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc == null || mc.player == null || nodes.isEmpty()) return;
+        if (mc == null || mc.player == null || mc.world == null) return;
+        if (currentLayer == null || !Objects.equals(mc.world.getRegistryKey(), currentLayer.dimension())) return;
+        if (nodes.isEmpty()) return;
 
         double px = mc.player.getX();
         double pz = mc.player.getZ();
 
         ScreenPos p = worldToScreen(px, pz);
 
-        // Красная «точка» в стилистике: заливка + чёрный контур
         final int r = RADIUS + 2;
-        final int fill = 0xFFE74C3C;     // насыщенно-красный
-        final int outline = 0xFF000000;  // чёрный
+        final int fill = 0xFFE74C3C;
+        final int outline = 0xFF000000;
 
         fillCircle(ctx, p.x, p.y, r, fill);
         drawCircleOutline(ctx, p.x, p.y, r, outline);
 
-        // (опционально) маленькая «носик-стрелка» по направлению взгляда:
-        // В Minecraft yaw = 0 смотрит на +Z, а положительный yaw поворачивает влево (против часовой стрелки).
         float yaw = mc.player.getYaw();
         double a = Math.toRadians(yaw) + Math.PI / 2.0;
-        int tx = p.x + (int)Math.round(Math.cos(a) * (r + 3));
-        int ty = p.y + (int)Math.round(Math.sin(a) * (r + 3));
+        int tx = p.x + (int) Math.round(Math.cos(a) * (r + 3));
+        int ty = p.y + (int) Math.round(Math.sin(a) * (r + 3));
         drawLine(ctx, p.x, p.y, tx, ty, 0xFFFFFFFF);
     }
 
+    private void setActiveLayer(int index) {
+        if (layers.isEmpty()) {
+            currentLayer = null;
+            nodes.clear();
+            edges.clear();
+            currentTypes.clear();
+            recalcBounds();
+            return;
+        }
 
-    private record ScreenPos(int x, int y) {}
+        saveCurrentViewState();
+
+        int normalized = Math.floorMod(index, layers.size());
+        currentLayer = layers.get(normalized);
+
+        nodes.clear();
+        nodes.addAll(currentLayer.nodes());
+        edges.clear();
+        edges.addAll(currentLayer.edges());
+
+        currentTypes.clear();
+        for (Node node : nodes) {
+            currentTypes.add(node.type());
+            typeColors.computeIfAbsent(node.type(), t -> hsvToArgb(Math.abs(t.hashCode() % 360), 0.6f, 0.9f));
+        }
+
+        recalcBounds();
+        loadViewState(currentLayer);
+        screenPositions.clear();
+
+        if (layerCycler != null) {
+            layerCycler.setValue(currentLayer);
+        }
+    }
+
+    private void recalcBounds() {
+        if (nodes.isEmpty()) {
+            minX = maxX = minZ = maxZ = 0;
+            return;
+        }
+        minX = nodes.stream().mapToInt(n -> n.pos().getX()).min().orElse(0);
+        maxX = nodes.stream().mapToInt(n -> n.pos().getX()).max().orElse(0);
+        minZ = nodes.stream().mapToInt(n -> n.pos().getZ()).min().orElse(0);
+        maxZ = nodes.stream().mapToInt(n -> n.pos().getZ()).max().orElse(0);
+    }
+
+    private void saveCurrentViewState() {
+        if (currentLayer == null) {
+            return;
+        }
+        viewStates.put(currentLayer.dimension(), new ViewState(zoom, offsetX, offsetY, firstLayout));
+    }
+
+    private void loadViewState(DimensionLayer layer) {
+        ViewState state = viewStates.get(layer.dimension());
+        if (state != null) {
+            this.zoom = state.zoom();
+            this.offsetX = state.offsetX();
+            this.offsetY = state.offsetY();
+            this.firstLayout = state.firstLayout();
+        } else {
+            this.zoom = 1.0;
+            this.offsetX = 0;
+            this.offsetY = 0;
+            this.firstLayout = true;
+        }
+    }
+
+    private static Text describeLayer(DimensionLayer layer) {
+        Identifier id = layer.dimension().getValue();
+        return Text.literal(id.toString());
+    }
+
+    public record DimensionLayer(RegistryKey<World> dimension, List<Node> nodes, List<EdgeStorage.Edge> edges) {
+        public DimensionLayer {
+            nodes = List.copyOf(nodes);
+            edges = List.copyOf(edges);
+        }
+    }
+
+    private record ViewState(double zoom, double offsetX, double offsetY, boolean firstLayout) {
+    }
+
+    private record ScreenPos(int x, int y) {
+    }
 }

@@ -14,6 +14,7 @@
   "text.autoconfig.roadarchitect.category.lampPosts": "Laternenmasten",
   "text.autoconfig.roadarchitect.category.pathfinding": "Pfadsuche",
   "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Reliefanalyse (Beta)",
+  "text.autoconfig.roadarchitect.option.LampPostDefinition": "Laternenstil",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock": "Blockkennung für Fundament",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock.@Tooltip": "Block für den Bodensockel (meist eine Mauer).",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors": "Biom-Selektoren",

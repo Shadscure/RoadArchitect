@@ -14,6 +14,7 @@
   "text.autoconfig.roadarchitect.category.lampPosts": "Ліхтарні стовпи",
   "text.autoconfig.roadarchitect.category.pathfinding": "Пошук шляху",
   "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Аналіз рельєфу (Бета)",
+  "text.autoconfig.roadarchitect.option.LampPostDefinition": "Стиль ліхтарного стовпа",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock": "Ідентифікатор блока основи",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock.@Tooltip": "Блок для опори на землі (зазвичай стіна).",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors": "Селектори біомів",

@@ -14,6 +14,7 @@
   "text.autoconfig.roadarchitect.category.lampPosts": "Lamp Posts",
   "text.autoconfig.roadarchitect.category.pathfinding": "Pathfinding",
   "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Terrain Analyzer (Beta)",
+  "text.autoconfig.roadarchitect.option.LampPostDefinition": "Lamp Post Style",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock": "Base Block Identifier",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock.@Tooltip": "Block identifier used for the ground support portion (typically a wall).",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors": "Biome Selectors",

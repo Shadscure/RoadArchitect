@@ -14,6 +14,7 @@
   "text.autoconfig.roadarchitect.category.lampPosts": "路灯",
   "text.autoconfig.roadarchitect.category.pathfinding": "路径搜索",
   "text.autoconfig.roadarchitect.category.terrainAnalyzer": "地形分析（测试版）",
+  "text.autoconfig.roadarchitect.option.LampPostDefinition": "灯柱样式",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock": "基础方块标识符",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock.@Tooltip": "用于地面支撑的方块（通常是墙）。",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors": "生物群系选择器",

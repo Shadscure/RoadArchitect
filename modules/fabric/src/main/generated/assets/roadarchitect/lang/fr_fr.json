@@ -14,6 +14,7 @@
   "text.autoconfig.roadarchitect.category.lampPosts": "Lampadaires",
   "text.autoconfig.roadarchitect.category.pathfinding": "Recherche d'itinéraire",
   "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Analyse du relief (Bêta)",
+  "text.autoconfig.roadarchitect.option.LampPostDefinition": "Style de lampadaire",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock": "Identifiant du bloc de base",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock.@Tooltip": "Bloc utilisé pour le support au sol (généralement un mur).",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors": "Sélecteurs de biome",

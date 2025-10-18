@@ -14,6 +14,7 @@
   "text.autoconfig.roadarchitect.category.lampPosts": "Farolas",
   "text.autoconfig.roadarchitect.category.pathfinding": "Búsqueda de rutas",
   "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Analizador de Terreno (Beta)",
+  "text.autoconfig.roadarchitect.option.LampPostDefinition": "Estilo de farola",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock": "Identificador del bloque base",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock.@Tooltip": "Bloque usado para el soporte en el suelo (normalmente un muro).",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors": "Selectores de bioma",

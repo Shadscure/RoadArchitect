@@ -14,6 +14,7 @@
   "text.autoconfig.roadarchitect.category.lampPosts": "Фонарные столбы",
   "text.autoconfig.roadarchitect.category.pathfinding": "Поиск пути",
   "text.autoconfig.roadarchitect.category.terrainAnalyzer": "Анализ рельефа (Бета)",
+  "text.autoconfig.roadarchitect.option.LampPostDefinition": "Стиль фонарного столба",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock": "Идентификатор блока основания",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.baseBlock.@Tooltip": "Блок, используемый для опоры на земле (обычно стена).",
   "text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors": "Селекторы биомов",

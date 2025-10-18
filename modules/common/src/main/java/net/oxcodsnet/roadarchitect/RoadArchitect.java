@@ -134,6 +134,11 @@ public final class RoadArchitect {
         public double partialProgressThreshold() {
             return RAConfigHolder.get().partialProgressThreshold();
         }
+
+        @Override
+        public java.util.List<net.oxcodsnet.roadarchitect.config.LampPostConfigEntry> lampPostOverrides() {
+            return RAConfigHolder.get().lampPostOverrides();
+        }
     };
 
     private RoadArchitect() {

@@ -168,5 +168,10 @@ public final class RAConfigHolder {
         public double partialProgressThreshold() {
             return 0.80; // 80%
         }
+
+        @Override
+        public List<LampPostConfigEntry> lampPostOverrides() {
+            return List.of();
+        }
     }
 }

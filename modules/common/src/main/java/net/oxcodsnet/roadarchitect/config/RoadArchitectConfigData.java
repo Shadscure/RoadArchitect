@@ -40,6 +40,10 @@ public final class RoadArchitectConfigData implements ConfigData {
     @ConfigEntry.Gui.Tooltip
     public boolean deterministicDecorations = true;
 
+    @ConfigEntry.Category("decorations")
+    @ConfigEntry.Gui.TransitiveObject
+    public LampPostSettings lampPosts = new LampPostSettings();
+
     @ConfigEntry.Gui.Tooltip
     public List<String> structureSelectors = List.of("#minecraft:village");
 
@@ -96,6 +100,28 @@ public final class RoadArchitectConfigData implements ConfigData {
         @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
         @ConfigEntry.Gui.Tooltip
         public int partialProgressPercent = 80;
+    }
+
+    public static final class LampPostSettings {
+        @ConfigEntry.Gui.Tooltip
+        public boolean enabled = false;
+
+        @ConfigEntry.Gui.Tooltip
+        public java.util.List<LampPostDefinition> overrides = new java.util.ArrayList<>();
+    }
+
+    public static final class LampPostDefinition {
+        @ConfigEntry.Gui.Tooltip
+        public List<String> biomeSelectors = new java.util.ArrayList<>();
+
+        @ConfigEntry.Gui.Tooltip
+        public String baseBlock = "minecraft:cobblestone_wall";
+
+        @ConfigEntry.Gui.Tooltip
+        public String postBlock = "minecraft:oak_fence";
+
+        @ConfigEntry.Gui.Tooltip
+        public String lampBlock = "minecraft:lantern";
     }
 
     // Forbidden biome rules (separate tab)

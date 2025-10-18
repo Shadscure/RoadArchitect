@@ -25,6 +25,7 @@ import net.oxcodsnet.roadarchitect.worldgen.style.RoadStyles;
 import net.oxcodsnet.roadarchitect.worldgen.style.decoration.BuoyDecoration;
 import net.oxcodsnet.roadarchitect.worldgen.style.decoration.Decoration;
 import net.oxcodsnet.roadarchitect.worldgen.style.decoration.FenceDecoration;
+import net.oxcodsnet.roadarchitect.worldgen.style.decoration.LampPostConfigResolver;
 import net.oxcodsnet.roadarchitect.worldgen.style.decoration.LampPostDecoration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -340,12 +341,14 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
                     // Seed left/right deterministically by (pathKey, ordinal)
                     boolean leftFirst = PathDecorUtil.detBool(pathKey, m.k());
+                    RegistryEntry<Biome> biomeAtP = world.getBiome(p);
                     LampPostDecoration lamp = null;
-                    for (Decoration deco : RoadStyles.forBiome(world.getBiome(p)).decorations()) {
+                    for (Decoration deco : RoadStyles.forBiome(biomeAtP).decorations()) {
                         if (deco instanceof LampPostDecoration lp) { lamp = lp; break; }
                     }
-                    if (lamp != null) {
-                        placeLampDet(world, p, nx, nz, halfWidth, lamp, leftFirst, random);
+                    LampPostDecoration resolved = LampPostConfigResolver.resolve(world, biomeAtP, lamp);
+                    if (resolved != null) {
+                        placeLampDet(world, p, nx, nz, halfWidth, resolved, leftFirst, random);
                     }
                 }
             }

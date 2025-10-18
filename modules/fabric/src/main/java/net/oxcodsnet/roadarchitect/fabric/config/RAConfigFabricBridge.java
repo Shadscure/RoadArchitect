@@ -5,6 +5,7 @@ import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.ActionResult;
+import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.config.RoadArchitectConfigData;
@@ -154,6 +155,20 @@ public final class RAConfigFabricBridge {
                 if (pct <= 0) return 0.0;
                 if (pct >= 100) return 1.0;
                 return pct / 100.0;
+            }
+
+            @Override
+            public java.util.List<LampPostConfigEntry> lampPostOverrides() {
+                RoadArchitectConfigData.LampPostSettings settings = holder.getConfig().lampPosts;
+                if (settings == null || !settings.enabled || settings.overrides == null || settings.overrides.isEmpty()) {
+                    return java.util.List.of();
+                }
+                java.util.ArrayList<LampPostConfigEntry> out = new java.util.ArrayList<>(settings.overrides.size());
+                for (RoadArchitectConfigData.LampPostDefinition def : settings.overrides) {
+                    if (def == null) continue;
+                    out.add(new LampPostConfigEntry(def.biomeSelectors, def.baseBlock, def.postBlock, def.lampBlock));
+                }
+                return java.util.List.copyOf(out);
             }
         });
 

@@ -75,4 +75,10 @@ public interface RAConfig {
      * For example, 0.8 means 80% progress towards the L1 goal distance.
      */
     double partialProgressThreshold();
+
+    /**
+     * Custom lamp post definitions loaded from the configuration. The list can be empty when
+     * overrides are disabled on the current platform implementation.
+     */
+    List<LampPostConfigEntry> lampPostOverrides();
 }

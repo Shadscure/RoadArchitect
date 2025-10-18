@@ -104,10 +104,10 @@ public final class RoadArchitectConfigData implements ConfigData {
 
     public static final class LampPostSettings {
         @ConfigEntry.Gui.Tooltip
-        public boolean enabled = false;
+        public boolean enabled = true;
 
         @ConfigEntry.Gui.Tooltip
-        public java.util.List<LampPostDefinition> overrides = new java.util.ArrayList<>();
+        public java.util.List<LampPostDefinition> overrides = LampPostDefaults.createDefinitionCopies();
     }
 
     public static final class LampPostDefinition {

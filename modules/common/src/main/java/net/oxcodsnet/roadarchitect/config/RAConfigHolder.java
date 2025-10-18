@@ -171,7 +171,7 @@ public final class RAConfigHolder {
 
         @Override
         public List<LampPostConfigEntry> lampPostOverrides() {
-            return List.of();
+            return LampPostDefaults.entries();
         }
     }
 }

@@ -31,7 +31,7 @@
   "text.autoconfig.roadarchitect.option.lampInterval.@Tooltip": "Distance en blocs le long de la route entre les lampadaires.",
   "text.autoconfig.roadarchitect.category.lampPosts": "Lampadaires",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled": "Activer les lampadaires personnalisés",
-  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Utiliser les entrées ci-dessous à la place des valeurs propres à chaque biome.",
+  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Activez pour appliquer les entrées éditables ci-dessous ; désactivez pour revenir aux préréglages intégrés.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides": "Entrées de lampadaires",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip": "Définissez des styles de lampadaire personnalisés. Chaque entrée énumère les biomes concernés ; si plusieurs entrées couvrent un même biome, un style est choisi aléatoirement.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors": "Sélecteurs de biome",

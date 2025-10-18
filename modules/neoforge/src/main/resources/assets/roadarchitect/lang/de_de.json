@@ -31,7 +31,7 @@
   "text.autoconfig.roadarchitect.option.lampInterval.@Tooltip": "Abstand in Blöcken entlang des Pfads zwischen Laternen.",
   "text.autoconfig.roadarchitect.category.lampPosts": "Laternenmasten",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled": "Benutzerdefinierte Lampen aktivieren",
-  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Verwende die untenstehenden Einträge statt der biomeigenen Vorgaben.",
+  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Aktiviere, um die bearbeitbaren Einträge unten zu verwenden; deaktiviere für die eingebauten Presets.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides": "Laternen-Einträge",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip": "Definiere individuelle Laternenstile. Jede Eingabe listet Biome auf; decken mehrere Einträge dasselbe Biom ab, wird ein Stil zufällig gewählt.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors": "Biom-Selektoren",

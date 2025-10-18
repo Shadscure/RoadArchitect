@@ -9,6 +9,7 @@ import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.config.RoadArchitectConfigData;
+import net.oxcodsnet.roadarchitect.config.LampPostDefaults;
 import net.oxcodsnet.roadarchitect.handlers.RoadPipelineController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,11 +161,18 @@ public final class RAConfigFabricBridge {
             @Override
             public java.util.List<LampPostConfigEntry> lampPostOverrides() {
                 RoadArchitectConfigData.LampPostSettings settings = holder.getConfig().lampPosts;
-                if (settings == null || !settings.enabled || settings.overrides == null || settings.overrides.isEmpty()) {
-                    return java.util.List.of();
+                if (settings == null) {
+                    return LampPostDefaults.entries();
                 }
-                java.util.ArrayList<LampPostConfigEntry> out = new java.util.ArrayList<>(settings.overrides.size());
-                for (RoadArchitectConfigData.LampPostDefinition def : settings.overrides) {
+                if (!settings.enabled) {
+                    return LampPostDefaults.entries();
+                }
+                java.util.List<RoadArchitectConfigData.LampPostDefinition> defs = settings.overrides;
+                if (defs == null || defs.isEmpty()) {
+                    return LampPostDefaults.entries();
+                }
+                java.util.ArrayList<LampPostConfigEntry> out = new java.util.ArrayList<>(defs.size());
+                for (RoadArchitectConfigData.LampPostDefinition def : defs) {
                     if (def == null) continue;
                     out.add(new LampPostConfigEntry(def.biomeSelectors, def.baseBlock, def.postBlock, def.lampBlock));
                 }

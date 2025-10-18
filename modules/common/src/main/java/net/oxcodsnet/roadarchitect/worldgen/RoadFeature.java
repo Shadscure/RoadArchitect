@@ -342,11 +342,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                     // Seed left/right deterministically by (pathKey, ordinal)
                     boolean leftFirst = PathDecorUtil.detBool(pathKey, m.k());
                     RegistryEntry<Biome> biomeAtP = world.getBiome(p);
-                    LampPostDecoration lamp = null;
-                    for (Decoration deco : RoadStyles.forBiome(biomeAtP).decorations()) {
-                        if (deco instanceof LampPostDecoration lp) { lamp = lp; break; }
-                    }
-                    LampPostDecoration resolved = LampPostConfigResolver.resolve(world, biomeAtP, lamp, pathKey, m.k());
+                    LampPostDecoration resolved = LampPostConfigResolver.resolve(world, biomeAtP, null, pathKey, m.k());
                     if (resolved != null) {
                         placeLampDet(world, p, nx, nz, halfWidth, resolved, leftFirst, random);
                     }

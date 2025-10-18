@@ -31,7 +31,7 @@
   "text.autoconfig.roadarchitect.option.lampInterval.@Tooltip": "Distance in blocks along the path between lamp posts.",
   "text.autoconfig.roadarchitect.category.lampPosts": "Lamp Posts",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled": "Enable Custom Lamp Posts",
-  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Use the entries below instead of biome-specific lamp defaults.",
+  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Toggle to apply the editable entries below; disable to restore the built-in presets.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides": "Lamp Post Entries",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip": "Define custom lamp post styles. Each entry lists biomes it applies to; if multiple entries cover a biome, a random style will be chosen.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors": "Biome Selectors",

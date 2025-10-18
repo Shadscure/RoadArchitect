@@ -31,7 +31,7 @@
   "text.autoconfig.roadarchitect.option.lampInterval.@Tooltip": "Відстань у блоках уздовж дороги між ліхтарними стовпами.",
   "text.autoconfig.roadarchitect.category.lampPosts": "Ліхтарні стовпи",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled": "Увімкнути користувацькі ліхтарі",
-  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Використовувати наведені нижче записи замість біомних налаштувань ліхтарів.",
+  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Увімкніть, щоб застосувати записи, які можна редагувати нижче; вимкніть, щоб повернути вбудовані пресети.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides": "Записи ліхтарів",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip": "Налаштуйте окремі стилі ліхтарів. Кожна запис має список біомів; якщо кілька записів охоплюють один біом, стиль обирається випадково.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors": "Селектори біомів",

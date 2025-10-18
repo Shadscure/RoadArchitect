@@ -31,7 +31,7 @@
   "text.autoconfig.roadarchitect.option.lampInterval.@Tooltip": "Distancia en bloques a lo largo del camino entre farolas.",
   "text.autoconfig.roadarchitect.category.lampPosts": "Farolas",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled": "Habilitar farolas personalizadas",
-  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Usa las entradas de abajo en lugar de los valores predeterminados por bioma.",
+  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Activa para aplicar las entradas editables; desactiva para volver a los ajustes integrados.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides": "Entradas de farolas",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip": "Define estilos de farola personalizados. Cada entrada lista los biomas donde se aplica; si varias entradas cubren un mismo bioma, se elige un estilo al azar.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors": "Selectores de bioma",

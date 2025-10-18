@@ -31,7 +31,7 @@
   "text.autoconfig.roadarchitect.option.lampInterval.@Tooltip": "沿路径的灯之间的方块距离。",
   "text.autoconfig.roadarchitect.category.lampPosts": "路灯",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled": "启用自定义路灯",
-  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "使用下方的条目替代生物群系的默认路灯设置。",
+  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "启用以使用下方可编辑的条目；禁用则恢复内置预设。",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides": "路灯条目",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip": "配置自定义路灯样式。每个条目列出生效的生物群系；当多个条目覆盖同一生物群系时，将随机选择样式。",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors": "生物群系选择器",

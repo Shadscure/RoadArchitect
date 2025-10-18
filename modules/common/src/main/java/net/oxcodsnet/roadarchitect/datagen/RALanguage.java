@@ -78,7 +78,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Lamp Posts");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Enable Custom Lamp Posts");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "Use the entries below instead of biome-specific lamp defaults.");
+                        "Toggle to apply the editable entries below; disable to restore the built-in presets.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Lamp Post Entries");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "Define custom lamp post styles. Each entry lists biomes it applies to; if multiple entries cover a biome, a random style is picked.");
@@ -224,7 +224,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Фонарные столбы");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Включить пользовательские фонари");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "Использовать записи ниже вместо биомных значений фонарей.");
+                        "Включите, чтобы применять настраиваемые записи ниже; отключите, чтобы вернуть встроенные пресеты.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Записи фонарей");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "Настройте отдельные стили фонарей. Каждая запись задаёт список биомов; если несколько записей покрывают один биом, стиль выбирается случайно.");
@@ -402,7 +402,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Farolas");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Habilitar farolas personalizadas");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "Usa las entradas de abajo en lugar de los valores predeterminados por bioma.");
+                        "Activa para aplicar las entradas editables; desactiva para volver a los ajustes integrados.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Entradas de farolas");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "Define estilos de farola personalizados. Cada entrada lista los biomas donde se aplica; si varias entradas cubren un mismo bioma, se elige un estilo al azar.");
@@ -548,7 +548,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Lampadaires");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Activer les lampadaires personnalisés");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "Utiliser les entrées ci-dessous à la place des valeurs propres à chaque biome.");
+                        "Activez pour appliquer les entrées éditables ci-dessous ; désactivez pour revenir aux préréglages intégrés.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Entrées de lampadaires");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "Définissez des styles de lampadaire personnalisés. Chaque entrée énumère les biomes concernés ; si plusieurs entrées couvrent un même biome, un style est choisi aléatoirement.");
@@ -662,7 +662,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Laternenmasten");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Benutzerdefinierte Lampen aktivieren");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "Verwende die untenstehenden Einträge statt der biomeigenen Vorgaben.");
+                        "Aktiviere, um die bearbeitbaren Einträge unten zu verwenden; deaktiviere für die eingebauten Presets.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Laternen-Einträge");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "Definiere individuelle Laternenstile. Jede Eingabe listet Biome auf; decken mehrere Einträge dasselbe Biom ab, wird ein Stil zufällig gewählt.");
@@ -798,7 +798,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "路灯");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "启用自定义路灯");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "使用下方的条目替代生物群系的默认路灯设置。");
+                        "启用以使用下方可编辑的条目；禁用则恢复内置预设。");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "路灯条目");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "配置自定义路灯样式。每个条目列出生效的生物群系；当多个条目覆盖同一生物群系时，将随机选择样式。");
@@ -934,7 +934,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Ліхтарні стовпи");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Увімкнути користувацькі ліхтарі");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "Використовувати наведені нижче записи замість біомних налаштувань ліхтарів.");
+                        "Увімкніть, щоб застосувати записи, які можна редагувати нижче; вимкніть, щоб повернути вбудовані пресети.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Записи ліхтарів");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "Налаштуйте окремі стилі ліхтарів. Кожна запис має список біомів; якщо кілька записів охоплюють один біом, стиль обирається випадково.");

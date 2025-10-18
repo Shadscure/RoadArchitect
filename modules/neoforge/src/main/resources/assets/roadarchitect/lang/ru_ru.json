@@ -31,7 +31,7 @@
   "text.autoconfig.roadarchitect.option.lampInterval.@Tooltip": "Расстояние в блоках вдоль пути между фонарями.",
   "text.autoconfig.roadarchitect.category.lampPosts": "Фонарные столбы",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled": "Включить пользовательские фонари",
-  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Использовать записи ниже вместо биомных значений фонарей.",
+  "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Включите, чтобы применять настраиваемые записи ниже; отключите, чтобы вернуть встроенные пресеты.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides": "Записи фонарей",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip": "Настройте отдельные стили фонарей. Каждая запись задаёт список биомов; если несколько записей покрывают один биом, стиль выбирается случайно.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors": "Селекторы биомов",

@@ -13,6 +13,7 @@ import net.minecraft.world.biome.Biome;
 import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
+import net.oxcodsnet.roadarchitect.config.LampPostDefaults;
 import net.oxcodsnet.roadarchitect.util.BiomeSelectorUtil;
 import net.oxcodsnet.roadarchitect.util.PathDecorUtil;
 import org.slf4j.Logger;
@@ -44,24 +45,24 @@ public final class LampPostConfigResolver {
 
     private static void reload(RAConfig config) {
         List<LampPostConfigEntry> entries = config.lampPostOverrides();
-        if (entries == null || entries.isEmpty()) {
-            OVERRIDES = List.of();
-        } else {
-            ArrayList<Override> parsed = new ArrayList<>(entries.size());
-            for (LampPostConfigEntry entry : entries) {
-                if (entry == null) continue;
-                BlockState base = resolveBlockState(entry.baseBlock(), "base block");
-                BlockState post = resolveBlockState(entry.postBlock(), "post block");
-                BlockState lamp = resolveBlockState(entry.lampBlock(), "lamp block");
-                if (base == null || post == null || lamp == null) {
-                    LOGGER.warn("Skipping lamp post override due to missing block: base={}, post={}, lamp={}", entry.baseBlock(), entry.postBlock(), entry.lampBlock());
-                    continue;
-                }
-                LampPostDecoration decoration = new LampPostDecoration(base, post, lamp);
-                parsed.add(new Override(entry.biomeSelectors(), decoration));
+        List<LampPostConfigEntry> source = (entries == null || entries.isEmpty())
+                ? LampPostDefaults.entries()
+                : entries;
+
+        ArrayList<Override> parsed = new ArrayList<>(source.size());
+        for (LampPostConfigEntry entry : source) {
+            if (entry == null) continue;
+            BlockState base = resolveBlockState(entry.baseBlock(), "base block");
+            BlockState post = resolveBlockState(entry.postBlock(), "post block");
+            BlockState lamp = resolveBlockState(entry.lampBlock(), "lamp block");
+            if (base == null || post == null || lamp == null) {
+                LOGGER.warn("Skipping lamp post override due to missing block: base={}, post={}, lamp={}", entry.baseBlock(), entry.postBlock(), entry.lampBlock());
+                continue;
             }
-            OVERRIDES = List.copyOf(parsed);
+            LampPostDecoration decoration = new LampPostDecoration(base, post, lamp);
+            parsed.add(new Override(entry.biomeSelectors(), decoration));
         }
+        OVERRIDES = List.copyOf(parsed);
         VERSION.incrementAndGet();
         CACHE.clear();
     }

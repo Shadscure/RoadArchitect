@@ -82,6 +82,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Lamp Post Entries");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "Define custom lamp post styles. Each entry lists biomes it applies to; if multiple entries cover a biome, a random style is picked.");
+                add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition", "Lamp Post Style");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors", "Biome Selectors");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors.@Tooltip",
                         "Biome IDs or #tags where this style can spawn. Leave empty to turn it into a global fallback.");
@@ -228,6 +229,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Записи фонарей");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "Настройте отдельные стили фонарей. Каждая запись задаёт список биомов; если несколько записей покрывают один биом, стиль выбирается случайно.");
+                add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition", "Стиль фонарного столба");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors", "Селекторы биомов");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors.@Tooltip",
                         "ID биомов или #теги, где применяется стиль. Оставьте пустым, чтобы сделать запись глобальным запасным вариантом.");
@@ -406,6 +408,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Entradas de farolas");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "Define estilos de farola personalizados. Cada entrada lista los biomas donde se aplica; si varias entradas cubren un mismo bioma, se elige un estilo al azar.");
+                add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition", "Estilo de farola");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors", "Selectores de bioma");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors.@Tooltip",
                         "ID de biomas o #etiquetas donde puede generarse este estilo. Déjalo vacío para usarlo como estilo global de reserva.");
@@ -552,6 +555,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Entrées de lampadaires");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "Définissez des styles de lampadaire personnalisés. Chaque entrée énumère les biomes concernés ; si plusieurs entrées couvrent un même biome, un style est choisi aléatoirement.");
+                add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition", "Style de lampadaire");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors", "Sélecteurs de biome");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors.@Tooltip",
                         "ID de biome ou #tags où ce style peut apparaître. Laissez vide pour en faire un repli global.");
@@ -666,6 +670,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Laternen-Einträge");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "Definiere individuelle Laternenstile. Jede Eingabe listet Biome auf; decken mehrere Einträge dasselbe Biom ab, wird ein Stil zufällig gewählt.");
+                add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition", "Laternenstil");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors", "Biom-Selektoren");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors.@Tooltip",
                         "Biome-IDs oder #Tags, in denen dieser Stil erscheinen darf. Leer lassen, um ihn als globalen Fallback zu nutzen.");
@@ -802,6 +807,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "路灯条目");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "配置自定义路灯样式。每个条目列出生效的生物群系；当多个条目覆盖同一生物群系时，将随机选择样式。");
+                add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition", "灯柱样式");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors", "生物群系选择器");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors.@Tooltip",
                         "该样式可生成的生物群系 ID 或 #标签；留空则作为全局备用样式。");
@@ -938,6 +944,7 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Записи ліхтарів");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
                         "Налаштуйте окремі стилі ліхтарів. Кожна запис має список біомів; якщо кілька записів охоплюють один біом, стиль обирається випадково.");
+                add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition", "Стиль ліхтарного стовпа");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors", "Селектори біомів");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.biomeSelectors.@Tooltip",
                         "ID біомів або #теги, де може з’явитися цей стиль. Залиште порожнім, щоб зробити запис глобальним запасним варіантом.");

@@ -14,6 +14,7 @@ import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.util.BiomeSelectorUtil;
+import net.oxcodsnet.roadarchitect.util.PathDecorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +66,8 @@ public final class LampPostConfigResolver {
         CACHE.clear();
     }
 
-    public static LampPostDecoration resolve(StructureWorldAccess world, RegistryEntry<Biome> biome, LampPostDecoration fallback) {
+    public static LampPostDecoration resolve(StructureWorldAccess world, RegistryEntry<Biome> biome,
+                                             LampPostDecoration fallback, String pathKey, long ordinal) {
         List<Override> overrides = OVERRIDES;
         if (overrides.isEmpty()) {
             return fallback;
@@ -87,10 +89,27 @@ public final class LampPostConfigResolver {
             return new CacheEntry(current, compiled);
         });
 
+        ArrayList<LampPostDecoration> matches = null;
+        ArrayList<LampPostDecoration> fallbacks = null;
+
         for (CompiledOverride entry : cache.overrides) {
-            if (entry.selectors().isEmpty() || BiomeSelectorUtil.matches(biome, entry.selectors())) {
-                return entry.decoration();
+            List<RegistryEntryList<Biome>> selectors = entry.selectors();
+            if (selectors.isEmpty()) {
+                if (fallbacks == null) fallbacks = new ArrayList<>();
+                fallbacks.add(entry.decoration());
+            } else if (BiomeSelectorUtil.matches(biome, selectors)) {
+                if (matches == null) matches = new ArrayList<>();
+                matches.add(entry.decoration());
             }
+        }
+
+        if (matches != null && !matches.isEmpty()) {
+            int choice = PathDecorUtil.detInt(pathKey, ordinal, matches.size());
+            return matches.get(choice);
+        }
+        if (fallbacks != null && !fallbacks.isEmpty()) {
+            int choice = PathDecorUtil.detInt(pathKey, ordinal ^ 0x5F3759DFL, fallbacks.size());
+            return fallbacks.get(choice);
         }
         return fallback;
     }

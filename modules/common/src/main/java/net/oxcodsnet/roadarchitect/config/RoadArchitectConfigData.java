@@ -40,7 +40,7 @@ public final class RoadArchitectConfigData implements ConfigData {
     @ConfigEntry.Gui.Tooltip
     public boolean deterministicDecorations = true;
 
-    @ConfigEntry.Category("decorations")
+    @ConfigEntry.Category("lampPosts")
     @ConfigEntry.Gui.TransitiveObject
     public LampPostSettings lampPosts = new LampPostSettings();
 

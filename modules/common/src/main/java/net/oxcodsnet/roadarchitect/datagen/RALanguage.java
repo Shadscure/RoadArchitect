@@ -75,16 +75,16 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Deterministic Decorations");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Place lamps, buoys and sides using a global marker grid (chunk-agnostic).");
-                add.accept("text.autoconfig.roadarchitect.category.decorations", "Decorations");
+                add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Lamp Posts");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Enable Custom Lamp Posts");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "Use the overrides below instead of biome-specific lamp defaults.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Lamp Post Overrides");
+                        "Use the entries below instead of biome-specific lamp defaults.");
+                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Lamp Post Entries");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
-                        "Ordered list of custom lamp post definitions (first match wins).");
+                        "Define custom lamp post styles. Each entry lists biomes it applies to; if multiple entries cover a biome, a random style is picked.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "Biome Selectors");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
-                        "Selectors (IDs or #tags) that must match for the override; leave empty for a global fallback.");
+                        "Biome IDs or #tags where this style can spawn. Leave empty to turn it into a global fallback.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "Base Block Identifier");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
                         "Block identifier used for the ground support portion (typically a wall).");
@@ -221,16 +221,16 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Детерминированные украшения");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Размещение по глобальной сетке маркеров (не зависит от чанков).");
-                add.accept("text.autoconfig.roadarchitect.category.decorations", "Украшения");
+                add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Фонарные столбы");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Включить пользовательские фонари");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "Использовать переопределения ниже вместо биомных значений фонарей.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Переопределения фонарей");
+                        "Использовать записи ниже вместо биомных значений фонарей.");
+                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Записи фонарей");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
-                        "Упорядоченный список пользовательских схем фонарей (первое совпадение применяется).");
+                        "Настройте отдельные стили фонарей. Каждая запись задаёт список биомов; если несколько записей покрывают один биом, стиль выбирается случайно.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "Селекторы биомов");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
-                        "Селекторы (ID или #теги), которые должны совпасть; оставьте пустым для глобального варианта.");
+                        "ID биомов или #теги, где применяется стиль. Оставьте пустым, чтобы сделать запись глобальным запасным вариантом.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "Идентификатор блока основания");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
                         "Блок, используемый для опоры на земле (обычно стена).");
@@ -399,16 +399,16 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Decoraciones deterministas");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Colocación mediante una cuadrícula global de marcadores (independiente de chunks).");
-                add.accept("text.autoconfig.roadarchitect.category.decorations", "Decoraciones");
+                add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Farolas");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Habilitar farolas personalizadas");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "Usa las anulaciones de abajo en lugar de los valores predeterminados por bioma.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Anulaciones de farolas");
+                        "Usa las entradas de abajo en lugar de los valores predeterminados por bioma.");
+                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Entradas de farolas");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
-                        "Lista ordenada de definiciones personalizadas (se aplica la primera coincidencia).");
+                        "Define estilos de farola personalizados. Cada entrada lista los biomas donde se aplica; si varias entradas cubren un mismo bioma, se elige un estilo al azar.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "Selectores de bioma");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
-                        "Selectores (ID o #etiquetas) que deben coincidir; dejar vacío para un valor global.");
+                        "ID de biomas o #etiquetas donde puede generarse este estilo. Déjalo vacío para usarlo como estilo global de reserva.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "Identificador del bloque base");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
                         "Bloque usado para el soporte en el suelo (normalmente un muro).");
@@ -545,16 +545,16 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Décorations déterministes");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Placement via une grille de marqueurs globale (indépendante des chunks).");
-                add.accept("text.autoconfig.roadarchitect.category.decorations", "Décorations");
+                add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Lampadaires");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Activer les lampadaires personnalisés");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "Utiliser les remplacements ci-dessous à la place des valeurs propres à chaque biome.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Remplacements de lampadaires");
+                        "Utiliser les entrées ci-dessous à la place des valeurs propres à chaque biome.");
+                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Entrées de lampadaires");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
-                        "Liste ordonnée de définitions personnalisées (la première correspondance est utilisée).");
+                        "Définissez des styles de lampadaire personnalisés. Chaque entrée énumère les biomes concernés ; si plusieurs entrées couvrent un même biome, un style est choisi aléatoirement.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "Sélecteurs de biome");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
-                        "Sélecteurs (ID ou #tags) devant correspondre; laisser vide pour un repli global.");
+                        "ID de biome ou #tags où ce style peut apparaître. Laissez vide pour en faire un repli global.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "Identifiant du bloc de base");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
                         "Bloc utilisé pour le support au sol (généralement un mur).");
@@ -659,16 +659,16 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Deterministische Dekorationen");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Platzierung über globales Markerraster (chunk-unabhängig).");
-                add.accept("text.autoconfig.roadarchitect.category.decorations", "Dekorationen");
+                add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Laternenmasten");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Benutzerdefinierte Lampen aktivieren");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "Verwende die unten definierten Überschreibungen statt der biomeigenen Vorgaben.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Lampen-Überschreibungen");
+                        "Verwende die untenstehenden Einträge statt der biomeigenen Vorgaben.");
+                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Laternen-Einträge");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
-                        "Geordnete Liste benutzerdefinierter Lampenkonfigurationen (erste Übereinstimmung gewinnt).");
+                        "Definiere individuelle Laternenstile. Jede Eingabe listet Biome auf; decken mehrere Einträge dasselbe Biom ab, wird ein Stil zufällig gewählt.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "Biom-Selektoren");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
-                        "Selektoren (IDs oder #Tags), die passen müssen; leer lassen für globale Rückfallebene.");
+                        "Biome-IDs oder #Tags, in denen dieser Stil erscheinen darf. Leer lassen, um ihn als globalen Fallback zu nutzen.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "Blockkennung für Fundament");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
                         "Block für den Bodensockel (meist eine Mauer).");
@@ -795,16 +795,16 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "确定性装饰");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "使用全局标记网格进行放置（与区块无关）。");
-                add.accept("text.autoconfig.roadarchitect.category.decorations", "装饰");
+                add.accept("text.autoconfig.roadarchitect.category.lampPosts", "路灯");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "启用自定义路灯");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "使用下方的覆盖项替代生物群系的默认路灯设置。");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "路灯覆盖列表");
+                        "使用下方的条目替代生物群系的默认路灯设置。");
+                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "路灯条目");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
-                        "按顺序应用的自定义路灯定义（匹配的第一个生效）。");
+                        "配置自定义路灯样式。每个条目列出生效的生物群系；当多个条目覆盖同一生物群系时，将随机选择样式。");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "生物群系选择器");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
-                        "需要匹配的选择器（ID 或 #标签）；留空表示全局回退。");
+                        "该样式可生成的生物群系 ID 或 #标签；留空则作为全局备用样式。");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "基础方块标识符");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
                         "用于地面支撑的方块（通常是墙）。");
@@ -931,16 +931,16 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Детерміновані прикраси");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Розміщує ліхтарі, буйки та паркани, використовуючи глобальну сітку маркерів (незалежно від чанків).");
-                add.accept("text.autoconfig.roadarchitect.category.decorations", "Прикраси");
+                add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Ліхтарні стовпи");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Увімкнути користувацькі ліхтарі");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
-                        "Використовувати наведені нижче перевизначення замість біомних налаштувань ліхтарів.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Перевизначення ліхтарів");
+                        "Використовувати наведені нижче записи замість біомних налаштувань ліхтарів.");
+                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Записи ліхтарів");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
-                        "Впорядкований список користувацьких схем (застосовується перше співпадіння).");
+                        "Налаштуйте окремі стилі ліхтарів. Кожна запис має список біомів; якщо кілька записів охоплюють один біом, стиль обирається випадково.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "Селектори біомів");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
-                        "Селектори (ID або #теги), які мають збігатися; залиште порожнім для глобального варіанту.");
+                        "ID біомів або #теги, де може з’явитися цей стиль. Залиште порожнім, щоб зробити запис глобальним запасним варіантом.");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "Ідентифікатор блока основи");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
                         "Блок для опори на землі (зазвичай стіна).");

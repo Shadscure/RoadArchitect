@@ -79,20 +79,20 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Enable Custom Lamp Posts");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
                         "Toggle to apply the editable entries below; disable to restore the built-in presets.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Lamp Post Entries");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition", "Lamp Post Entries");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.@Tooltip",
                         "Define custom lamp post styles. Each entry lists biomes it applies to; if multiple entries cover a biome, a random style is picked.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "Biome Selectors");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors", "Biome Selectors");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors.@Tooltip",
                         "Biome IDs or #tags where this style can spawn. Leave empty to turn it into a global fallback.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "Base Block Identifier");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock", "Base Block Identifier");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock.@Tooltip",
                         "Block identifier used for the ground support portion (typically a wall).");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock", "Post Block Identifier");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock", "Post Block Identifier");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock.@Tooltip",
                         "Block identifier used for the vertical post and arm (typically a fence).");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock", "Lamp Block Identifier");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock", "Lamp Block Identifier");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock.@Tooltip",
                         "Block identifier used for the hanging light (must support hanging lantern placement).");
                 // Terrain Analyzer (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Terrain Analyzer (Beta)");
@@ -225,20 +225,20 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Включить пользовательские фонари");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
                         "Включите, чтобы применять настраиваемые записи ниже; отключите, чтобы вернуть встроенные пресеты.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Записи фонарей");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition", "Записи фонарей");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.@Tooltip",
                         "Настройте отдельные стили фонарей. Каждая запись задаёт список биомов; если несколько записей покрывают один биом, стиль выбирается случайно.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "Селекторы биомов");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors", "Селекторы биомов");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors.@Tooltip",
                         "ID биомов или #теги, где применяется стиль. Оставьте пустым, чтобы сделать запись глобальным запасным вариантом.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "Идентификатор блока основания");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock", "Идентификатор блока основания");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock.@Tooltip",
                         "Блок, используемый для опоры на земле (обычно стена).");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock", "Идентификатор блока стойки");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock", "Идентификатор блока стойки");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock.@Tooltip",
                         "Блок для вертикальной стойки и кронштейна (обычно забор).");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock", "Идентификатор блока фонаря");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock", "Идентификатор блока фонаря");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock.@Tooltip",
                         "Блок подвесного света (должен поддерживать подвешенный фонарь).");
                 // Анализ рельефа (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Анализ рельефа (Бета)");
@@ -403,20 +403,20 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Habilitar farolas personalizadas");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
                         "Activa para aplicar las entradas editables; desactiva para volver a los ajustes integrados.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Entradas de farolas");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition", "Entradas de farolas");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.@Tooltip",
                         "Define estilos de farola personalizados. Cada entrada lista los biomas donde se aplica; si varias entradas cubren un mismo bioma, se elige un estilo al azar.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "Selectores de bioma");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors", "Selectores de bioma");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors.@Tooltip",
                         "ID de biomas o #etiquetas donde puede generarse este estilo. Déjalo vacío para usarlo como estilo global de reserva.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "Identificador del bloque base");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock", "Identificador del bloque base");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock.@Tooltip",
                         "Bloque usado para el soporte en el suelo (normalmente un muro).");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock", "Identificador del bloque del poste");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock", "Identificador del bloque del poste");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock.@Tooltip",
                         "Bloque usado para el poste vertical y el brazo (normalmente una valla).");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock", "Identificador del bloque de la lámpara");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock", "Identificador del bloque de la lámpara");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock.@Tooltip",
                         "Bloque usado para la luz colgante (debe admitir linternas colgantes).");
                 // Analizador de Terreno (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Analizador de Terreno (Beta)");
@@ -549,20 +549,20 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Activer les lampadaires personnalisés");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
                         "Activez pour appliquer les entrées éditables ci-dessous ; désactivez pour revenir aux préréglages intégrés.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Entrées de lampadaires");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition", "Entrées de lampadaires");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.@Tooltip",
                         "Définissez des styles de lampadaire personnalisés. Chaque entrée énumère les biomes concernés ; si plusieurs entrées couvrent un même biome, un style est choisi aléatoirement.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "Sélecteurs de biome");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors", "Sélecteurs de biome");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors.@Tooltip",
                         "ID de biome ou #tags où ce style peut apparaître. Laissez vide pour en faire un repli global.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "Identifiant du bloc de base");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock", "Identifiant du bloc de base");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock.@Tooltip",
                         "Bloc utilisé pour le support au sol (généralement un mur).");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock", "Identifiant du bloc de poteau");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock", "Identifiant du bloc de poteau");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock.@Tooltip",
                         "Bloc utilisé pour le poteau vertical et le bras (généralement une clôture).");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock", "Identifiant du bloc de lampe");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock", "Identifiant du bloc de lampe");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock.@Tooltip",
                         "Bloc utilisé pour la lumière suspendue (doit supporter les lanternes suspendues).");
                 // Analyse du relief (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Analyse du relief (Bêta)");
@@ -663,20 +663,20 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Benutzerdefinierte Lampen aktivieren");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
                         "Aktiviere, um die bearbeitbaren Einträge unten zu verwenden; deaktiviere für die eingebauten Presets.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Laternen-Einträge");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition", "Laternen-Einträge");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.@Tooltip",
                         "Definiere individuelle Laternenstile. Jede Eingabe listet Biome auf; decken mehrere Einträge dasselbe Biom ab, wird ein Stil zufällig gewählt.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "Biom-Selektoren");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors", "Biom-Selektoren");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors.@Tooltip",
                         "Biome-IDs oder #Tags, in denen dieser Stil erscheinen darf. Leer lassen, um ihn als globalen Fallback zu nutzen.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "Blockkennung für Fundament");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock", "Blockkennung für Fundament");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock.@Tooltip",
                         "Block für den Bodensockel (meist eine Mauer).");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock", "Blockkennung für Pfosten");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock", "Blockkennung für Pfosten");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock.@Tooltip",
                         "Block für den vertikalen Pfosten und Ausleger (meist ein Zaun).");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock", "Blockkennung für Lampe");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock", "Blockkennung für Lampe");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock.@Tooltip",
                         "Block für die hängende Leuchte (muss hängende Laternen unterstützen).");
                 // Reliefanalyse (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Reliefanalyse (Beta)");
@@ -799,20 +799,20 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "启用自定义路灯");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
                         "启用以使用下方可编辑的条目；禁用则恢复内置预设。");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "路灯条目");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition", "路灯条目");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.@Tooltip",
                         "配置自定义路灯样式。每个条目列出生效的生物群系；当多个条目覆盖同一生物群系时，将随机选择样式。");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "生物群系选择器");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors", "生物群系选择器");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors.@Tooltip",
                         "该样式可生成的生物群系 ID 或 #标签；留空则作为全局备用样式。");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "基础方块标识符");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock", "基础方块标识符");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock.@Tooltip",
                         "用于地面支撑的方块（通常是墙）。");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock", "立柱方块标识符");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock", "立柱方块标识符");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock.@Tooltip",
                         "用于竖直立柱和横臂的方块（通常是栅栏）。");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock", "灯体方块标识符");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock", "灯体方块标识符");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock.@Tooltip",
                         "用于悬挂灯的方块（必须支持悬挂灯笼）。");
                 // 地形分析 (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "地形分析（测试版）");
@@ -935,20 +935,20 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Увімкнути користувацькі ліхтарі");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
                         "Увімкніть, щоб застосувати записи, які можна редагувати нижче; вимкніть, щоб повернути вбудовані пресети.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides", "Записи ліхтарів");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition", "Записи ліхтарів");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.@Tooltip",
                         "Налаштуйте окремі стилі ліхтарів. Кожна запис має список біомів; якщо кілька записів охоплюють один біом, стиль обирається випадково.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors", "Селектори біомів");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.biomeSelectors.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors", "Селектори біомів");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.biomeSelectors.@Tooltip",
                         "ID біомів або #теги, де може з’явитися цей стиль. Залиште порожнім, щоб зробити запис глобальним запасним варіантом.");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock", "Ідентифікатор блока основи");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.baseBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock", "Ідентифікатор блока основи");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.baseBlock.@Tooltip",
                         "Блок для опори на землі (зазвичай стіна).");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock", "Ідентифікатор блока стійки");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.postBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock", "Ідентифікатор блока стійки");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.postBlock.@Tooltip",
                         "Блок для вертикальної стійки та кронштейна (зазвичай паркан).");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock", "Ідентифікатор блока ліхтаря");
-                add.accept("text.autoconfig.roadarchitect.option.lampPosts.overrides.lampBlock.@Tooltip",
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock", "Ідентифікатор блока ліхтаря");
+                add.accept("text.autoconfig.roadarchitect.option.lampPostDefinition.lampBlock.@Tooltip",
                         "Блок підвісного світла (має підтримувати підвішені ліхтарі).");
                 // Аналіз рельєфу (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Аналіз рельєфу (Бета)");

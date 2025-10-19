@@ -173,5 +173,10 @@ public final class RAConfigHolder {
         public List<LampPostConfigEntry> lampPostOverrides() {
             return LampPostDefaults.entries();
         }
+
+        @Override
+        public List<RoadStyleConfigEntry> roadStyleOverrides() {
+            return RoadStyleDefaults.entries();
+        }
     }
 }

@@ -81,4 +81,10 @@ public interface RAConfig {
      * overrides are disabled on the current platform implementation.
      */
     List<LampPostConfigEntry> lampPostOverrides();
+
+    /**
+     * Custom road surface styles loaded from the configuration. The list can be empty to fall back
+     * to the built-in defaults.
+     */
+    List<RoadStyleConfigEntry> roadStyleOverrides();
 }

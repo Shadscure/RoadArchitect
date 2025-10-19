@@ -2,6 +2,7 @@ package net.oxcodsnet.roadarchitect;
 
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
+import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
 
 import java.util.List;
 
@@ -138,6 +139,11 @@ public final class RoadArchitect {
         @Override
         public java.util.List<net.oxcodsnet.roadarchitect.config.LampPostConfigEntry> lampPostOverrides() {
             return RAConfigHolder.get().lampPostOverrides();
+        }
+
+        @Override
+        public java.util.List<RoadStyleConfigEntry> roadStyleOverrides() {
+            return RAConfigHolder.get().roadStyleOverrides();
         }
     };
 

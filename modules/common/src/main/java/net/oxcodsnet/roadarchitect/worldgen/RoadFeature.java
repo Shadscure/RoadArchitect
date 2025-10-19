@@ -3,6 +3,8 @@ package net.oxcodsnet.roadarchitect.worldgen;
 import com.mojang.serialization.Codec;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.world.ServerWorld;
@@ -53,6 +55,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
 
     private static void buildRoadStripe(StructureWorldAccess world, List<BlockPos> pts, int halfWidth, Random random) {
+        Registry<Biome> biomeRegistry = world.getRegistryManager().get(RegistryKeys.BIOME);
         for (int i = 0; i < pts.size(); i++) {
             BlockPos p = pts.get(i);
             int prevIdx = Math.max(0, i - 2);
@@ -76,13 +79,13 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
                     if (!isNotWaterBlock(world, p)) {continue;}
                     RegistryEntry<Biome> biome = world.getBiome(roadPos);
-                    RoadStyle style = RoadStyles.forBiome(biome);
+                    RoadStyle style = RoadStyles.forBiome(biomeRegistry, biome);
                     BlockState roadState = style.palette().pick(random);
                     placeRoad(world, roadPos, roadState);
                 }
             }
 
-            RoadStyle style = RoadStyles.forBiome(world.getBiome(p));
+            RoadStyle style = RoadStyles.forBiome(biomeRegistry, world.getBiome(p));
             for (Decoration deco : style.decorations()) {
                 if (deco instanceof LampPostDecoration) {
                     // handled via deterministic markers below
@@ -372,7 +375,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                     double nz = dir.z;
 
                     // collect non-lamp decos for this biome
-                    RoadStyle styleAtP = RoadStyles.forBiome(world.getBiome(p));
+                    RoadStyle styleAtP = RoadStyles.forBiome(biomeRegistry, world.getBiome(p));
                     java.util.ArrayList<Decoration> sideDecos = new java.util.ArrayList<>();
                     for (Decoration d : styleAtP.decorations()) if (!(d instanceof LampPostDecoration)) sideDecos.add(d);
                     if (sideDecos.isEmpty()) continue;

@@ -75,6 +75,35 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Deterministic Decorations");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Place lamps, buoys and sides using a global marker grid (chunk-agnostic).");
+                add.accept("text.autoconfig.roadarchitect.category.roadStyles", "Road Styles");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled", "Enable Custom Road Styles");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
+                        "Toggle to apply the editable road style entries; disable to restore the built-in presets.");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "Road Style Entries");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
+                        "Define custom surface palettes and decorations. Entries without selectors act as a fallback.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Road Style Entry");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "Biome Selectors");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",
+                        "Biome IDs or #tags that use this style. Leave empty to make it the global fallback.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette", "Surface Palette");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette.@Tooltip",
+                        "List of block entries (blocks or #tags) with weights that control surface composition.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block", "Block or Tag");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block.@Tooltip",
+                        "Block identifier or #block tag added to the surface palette.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight", "Weight");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight.@Tooltip",
+                        "Relative chance for this entry when picking surface blocks.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations", "Decorations");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations.@Tooltip",
+                        "Optional side decorations placed alongside this road style.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "Decoration Type");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
+                        "Type identifier such as 'fence'. Use 'none' to disable.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "Decoration Block");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
+                        "Block identifier or #tag used by the decoration when applicable.");
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Lamp Posts");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Enable Custom Lamp Posts");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
@@ -222,6 +251,35 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Детерминированные украшения");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Размещение по глобальной сетке маркеров (не зависит от чанков).");
+                add.accept("text.autoconfig.roadarchitect.category.roadStyles", "Дорожные стили");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled", "Включить пользовательские дорожные стили");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
+                        "Применять настраиваемые записи ниже; отключите, чтобы вернуть встроенные пресеты.");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "Записи дорожных стилей");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
+                        "Определите палитры поверхности и украшения. Записи без селекторов работают как запасной вариант.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Запись дорожного стиля");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "Селекторы биомов");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",
+                        "ID биомов или #теги, где используется стиль. Пустой список делает его глобальным запасным вариантом.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette", "Палитра поверхности");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette.@Tooltip",
+                        "Список блоков (ID или #теги) с весами, определяющими покрытие дороги.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block", "Блок или тег");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block.@Tooltip",
+                        "Идентификатор блока или #тег блоков, добавляемый в палитру поверхности.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight", "Вес");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight.@Tooltip",
+                        "Относительный шанс выбора при подборе блоков поверхности.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations", "Украшения");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations.@Tooltip",
+                        "Необязательные боковые украшения для этого стиля.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "Тип украшения");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
+                        "Идентификатор типа, например 'fence'. Используйте 'none', чтобы отключить.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "Блок украшения");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
+                        "Идентификатор блока или #тег, используемый украшением (если требуется).");
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Фонарные столбы");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Включить пользовательские фонари");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
@@ -401,6 +459,35 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Decoraciones deterministas");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Colocación mediante una cuadrícula global de marcadores (independiente de chunks).");
+                add.accept("text.autoconfig.roadarchitect.category.roadStyles", "Estilos de caminos");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled", "Activar estilos de camino personalizados");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
+                        "Activa las entradas editables; desactiva para restaurar los preajustes integrados.");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "Entradas de estilos de camino");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
+                        "Define paletas de superficie y decoraciones. Las entradas sin selectores actúan como reserva.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Entrada de estilo de camino");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "Selectores de bioma");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",
+                        "IDs de bioma o #etiquetas que usan este estilo. Déjalo vacío para usarlo como reserva global.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette", "Paleta de superficie");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette.@Tooltip",
+                        "Lista de bloques (IDs o #etiquetas) con pesos que controlan la composición de la superficie.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block", "Bloque o etiqueta");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block.@Tooltip",
+                        "Identificador de bloque o etiqueta #block añadida a la paleta de superficie.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight", "Peso");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight.@Tooltip",
+                        "Probabilidad relativa de esta entrada al seleccionar bloques de superficie.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations", "Decoraciones");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations.@Tooltip",
+                        "Decoraciones laterales opcionales para este estilo.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "Tipo de decoración");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
+                        "Identificador del tipo, por ejemplo 'fence'. Usa 'none' para desactivar.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "Bloque de la decoración");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
+                        "Identificador de bloque o #etiqueta usada por la decoración (si aplica).");
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Farolas");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Habilitar farolas personalizadas");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
@@ -548,6 +635,35 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Décorations déterministes");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Placement via une grille de marqueurs globale (indépendante des chunks).");
+                add.accept("text.autoconfig.roadarchitect.category.roadStyles", "Styles de routes");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled", "Activer les styles de route personnalisés");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
+                        "Active les entrées modifiables ci-dessous ; désactivez pour revenir aux préréglages intégrés.");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "Entrées de styles de route");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
+                        "Définissez les palettes de surface et décorations. Les entrées sans sélecteur servent de repli.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Entrée de style de route");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "Sélecteurs de biome");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",
+                        "IDs ou #tags de biomes utilisant ce style. Laisser vide pour en faire le repli global.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette", "Palette de surface");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette.@Tooltip",
+                        "Liste de blocs (ID ou #tags) avec poids définissant la composition de surface.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block", "Bloc ou tag");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block.@Tooltip",
+                        "Identifiant de bloc ou tag #block ajouté à la palette de surface.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight", "Poids");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight.@Tooltip",
+                        "Chance relative de cette entrée lors du choix des blocs de surface.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations", "Décorations");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations.@Tooltip",
+                        "Décorations latérales optionnelles pour ce style.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "Type de décoration");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
+                        "Identifiant du type, p. ex. 'fence'. Utilisez 'none' pour désactiver.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "Bloc de décoration");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
+                        "Identifiant de bloc ou #tag utilisé par la décoration (le cas échéant).");
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Lampadaires");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Activer les lampadaires personnalisés");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
@@ -663,6 +779,35 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Deterministische Dekorationen");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Platzierung über globales Markerraster (chunk-unabhängig).");
+                add.accept("text.autoconfig.roadarchitect.category.roadStyles", "Straßenstile");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled", "Benutzerdefinierte Straßenstile aktivieren");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
+                        "Aktiviert die bearbeitbaren Einträge unten; deaktivieren, um die eingebauten Vorgaben zu verwenden.");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "Straßenstil-Einträge");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
+                        "Definiert Oberflächenpaletten und Dekorationen. Einträge ohne Selektoren dienen als Fallback.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Straßenstil-Eintrag");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "Biom-Selektoren");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",
+                        "Biome-IDs oder #Tags, die diesen Stil verwenden. Leer lassen, um ihn als globalen Fallback zu nutzen.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette", "Oberflächenpalette");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette.@Tooltip",
+                        "Liste von Blöcken (IDs oder #Tags) mit Gewichten für die Oberflächenzusammensetzung.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block", "Block oder Tag");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block.@Tooltip",
+                        "Blockkennung oder #Block-Tag, der zur Oberflächenpalette hinzugefügt wird.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight", "Gewicht");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight.@Tooltip",
+                        "Relative Chance für diesen Eintrag bei der Auswahl von Oberflächenblöcken.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations", "Dekorationen");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations.@Tooltip",
+                        "Optionale seitliche Dekorationen für diesen Stil.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "Dekorationstyp");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
+                        "Typbezeichner, z. B. 'fence'. Verwende 'none', um zu deaktivieren.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "Dekorationsblock");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
+                        "Blockkennung oder #Tag, die von der Dekoration verwendet wird (falls zutreffend).");
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Laternenmasten");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Benutzerdefinierte Lampen aktivieren");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
@@ -800,6 +945,35 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "确定性装饰");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "使用全局标记网格进行放置（与区块无关）。");
+                add.accept("text.autoconfig.roadarchitect.category.roadStyles", "道路样式");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled", "启用自定义道路样式");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
+                        "启用以使用下方可编辑的条目，禁用则恢复内置预设。");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "道路样式条目");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
+                        "定义表面方块调色板与装饰。没有选择器的条目会作为兜底样式。");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "道路样式条目");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "生物群系选择器");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",
+                        "使用该样式的生物群系 ID 或 #标签。留空则作为全局兜底样式。");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette", "表面调色板");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette.@Tooltip",
+                        "包含方块或 #标签及其权重的列表，用于决定道路表面组成。");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block", "方块或标签");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block.@Tooltip",
+                        "加入表面调色板的方块 ID 或 #标签。");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight", "权重");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight.@Tooltip",
+                        "选择表面方块时此条目的相对概率。");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations", "装饰");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations.@Tooltip",
+                        "该样式可选的道路两侧装饰。");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "装饰类型");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
+                        "类型标识，例如 'fence'。使用 'none' 表示禁用。");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "装饰方块");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
+                        "装饰使用的方块 ID 或 #标签（若适用）。");
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "路灯");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "启用自定义路灯");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",
@@ -937,6 +1111,35 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations", "Детерміновані прикраси");
                 add.accept("text.autoconfig.roadarchitect.option.deterministicDecorations.@Tooltip",
                         "Розміщує ліхтарі, буйки та паркани, використовуючи глобальну сітку маркерів (незалежно від чанків).");
+                add.accept("text.autoconfig.roadarchitect.category.roadStyles", "Дорожні стилі");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled", "Увімкнути користувацькі дорожні стилі");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
+                        "Застосувати редаговані записи нижче; вимкніть, щоб повернути вбудовані пресети.");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "Записи дорожніх стилів");
+                add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
+                        "Визначте палітри поверхні та прикраси. Записи без селекторів працюють як запасний варіант.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Запис дорожнього стилю");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "Селектори біомів");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",
+                        "ID біомів або #теги, що використовують цей стиль. Порожній список робить його глобальним запасним варіантом.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette", "Палітра поверхні");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette.@Tooltip",
+                        "Список блоків (ID чи #теги) з вагами, що формують покриття дороги.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block", "Блок або тег");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.block.@Tooltip",
+                        "Ідентифікатор блока або #тег блоків, доданий до палітри поверхні.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight", "Вага");
+                add.accept("text.autoconfig.roadarchitect.option.RoadPaletteEntry.weight.@Tooltip",
+                        "Відносний шанс вибору під час підбору блоків поверхні.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations", "Прикраси");
+                add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.decorations.@Tooltip",
+                        "Необов'язкові бокові прикраси для цього стилю.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "Тип прикраси");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
+                        "Ідентифікатор типу, наприклад 'fence'. Використовуйте 'none', щоб вимкнути.");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "Блок прикраси");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
+                        "Ідентифікатор блока або #тег, який використовує прикраса (за потреби).");
                 add.accept("text.autoconfig.roadarchitect.category.lampPosts", "Ліхтарні стовпи");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled", "Увімкнути користувацькі ліхтарі");
                 add.accept("text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip",

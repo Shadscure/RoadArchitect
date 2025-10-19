@@ -40,6 +40,10 @@ public final class RoadArchitectConfigData implements ConfigData {
     @ConfigEntry.Gui.Tooltip
     public boolean deterministicDecorations = true;
 
+    @ConfigEntry.Category("roadStyles")
+    @ConfigEntry.Gui.TransitiveObject
+    public RoadStyleSettings roadStyles = new RoadStyleSettings();
+
     @ConfigEntry.Category("lampPosts")
     @ConfigEntry.Gui.TransitiveObject
     public LampPostSettings lampPosts = new LampPostSettings();
@@ -108,6 +112,41 @@ public final class RoadArchitectConfigData implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public java.util.List<LampPostDefinition> overrides = LampPostDefaults.createDefinitionCopies();
+    }
+
+    public static final class RoadStyleSettings {
+        @ConfigEntry.Gui.Tooltip
+        public boolean enabled = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public java.util.List<RoadStyleDefinition> overrides = RoadStyleDefaults.createDefinitionCopies();
+    }
+
+    public static final class RoadStyleDefinition {
+        @ConfigEntry.Gui.Tooltip
+        public List<String> biomeSelectors = new java.util.ArrayList<>();
+
+        @ConfigEntry.Gui.Tooltip
+        public java.util.List<RoadPaletteEntry> palette = new java.util.ArrayList<>();
+
+        @ConfigEntry.Gui.Tooltip
+        public java.util.List<RoadDecorationEntry> decorations = new java.util.ArrayList<>();
+    }
+
+    public static final class RoadPaletteEntry {
+        @ConfigEntry.Gui.Tooltip
+        public String block = "";
+
+        @ConfigEntry.Gui.Tooltip
+        public int weight = 1;
+    }
+
+    public static final class RoadDecorationEntry {
+        @ConfigEntry.Gui.Tooltip
+        public String type = "fence";
+
+        @ConfigEntry.Gui.Tooltip
+        public String block = "";
     }
 
     public static final class LampPostDefinition {

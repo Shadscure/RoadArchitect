@@ -272,6 +272,6 @@ public final class RoadStyleDefaults {
     }
 
     private static RoadStyleConfigEntry.DecorationEntry fence(String blockId) {
-        return new RoadStyleConfigEntry.DecorationEntry("fence", blockId);
+        return new RoadStyleConfigEntry.DecorationEntry(RoadDecorationType.FENCE, blockId);
     }
 }

@@ -37,7 +37,11 @@ public record RoadStyleConfigEntry(List<String> biomeSelectors,
                 continue;
             }
             DecorationEntry normalized = new DecorationEntry(entry.type(), entry.block());
-            if (normalized.type().isBlank()) {
+            if (normalized.type() == RoadDecorationType.NONE) {
+                list.add(normalized.withBlock(""));
+                continue;
+            }
+            if (normalized.block().isBlank()) {
                 continue;
             }
             list.add(normalized);
@@ -64,10 +68,14 @@ public record RoadStyleConfigEntry(List<String> biomeSelectors,
      * @param type  Decoration type identifier (e.g. {@code fence}).
      * @param block Block identifier or tag used by the decoration.
      */
-    public record DecorationEntry(String type, String block) {
+    public record DecorationEntry(RoadDecorationType type, String block) {
         public DecorationEntry {
-            type = type == null ? "" : type.trim();
+            type = type == null ? RoadDecorationType.NONE : type;
             block = block == null ? "" : block.trim();
+        }
+
+        public DecorationEntry withBlock(String newBlock) {
+            return new DecorationEntry(this.type, newBlock);
         }
     }
 }

@@ -40,14 +40,12 @@ import java.util.List;
  * <p>
  * Толстая линия реализована через проверку расстояния от клетки до центральной
  * прямой (|dx · dir.z − dz · dir.x| ≤ halfWidth). Такой подход избегает
- * «шахматных» дыр на диагоналях :contentReference[oaicite:2]{index=2}.
+ * «шахматных» дыр на диагоналях.
  */
 public final class RoadFeature extends Feature<RoadFeatureConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/" + RoadFeature.class.getSimpleName());
 
     private static final BuoyDecoration BUOY = new BuoyDecoration();
-
-    // OFFSETS_8 removed; water interior detection is handled in PathDecorUtil
 
     public RoadFeature(Codec<RoadFeatureConfig> codec) {
         super(codec);
@@ -97,7 +95,6 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         }
     }
 
-    /* ============================================================= */
     /* ======================  ВСПОМОГАТЕЛЬНОЕ  ==================== */
 
     private static void decorateSide(StructureWorldAccess world, BlockPos center, double nx, double nz, int halfWidth, Decoration deco, Random random) {
@@ -393,8 +390,4 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         }
         return placedAny;
     }
-
-    // computeBuoyIndices removed: unified deterministic marker grid is used for all decorations
-
-
 }

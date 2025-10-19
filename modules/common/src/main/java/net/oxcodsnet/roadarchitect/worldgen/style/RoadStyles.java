@@ -13,6 +13,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.Biome;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
+import net.oxcodsnet.roadarchitect.config.RoadDecorationType;
 import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.util.BiomeSelectorUtil;
@@ -23,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -211,21 +211,21 @@ public final class RoadStyles {
             if (entry == null) {
                 continue;
             }
-            String type = entry.type();
+            RoadDecorationType type = entry.type();
             if (type == null) {
                 continue;
             }
-            switch (type.toLowerCase(Locale.ROOT)) {
-                case "fence" -> {
+            switch (type) {
+                case FENCE -> {
                     BlockState state = resolveBlockState(entry.block(), "fence decoration");
                     if (state != null) {
                         list.add(new FenceDecoration(state));
                     }
                 }
-                case "none" -> {
+                case NONE -> {
                     // Explicit opt-out: ignore entry.
                 }
-                default -> LOGGER.warn("Unknown road decoration type '{}'", entry.type());
+                default -> LOGGER.warn("Unknown road decoration type '{}'", type.id());
             }
         }
         return list.isEmpty() ? List.of() : List.copyOf(list);

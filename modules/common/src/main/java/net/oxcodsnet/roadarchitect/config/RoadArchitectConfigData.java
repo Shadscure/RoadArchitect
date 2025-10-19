@@ -143,7 +143,8 @@ public final class RoadArchitectConfigData implements ConfigData {
 
     public static final class RoadDecorationEntry {
         @ConfigEntry.Gui.Tooltip
-        public String type = "fence";
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public RoadDecorationType type = RoadDecorationType.FENCE;
 
         @ConfigEntry.Gui.Tooltip
         public String block = "";

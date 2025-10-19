@@ -5,21 +5,18 @@ import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import net.minecraft.text.Text;
-import net.oxcodsnet.roadarchitect.config.BopRoadStyleDefaults;
+import net.oxcodsnet.roadarchitect.config.defaults.BopRoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.config.RoadArchitectConfigData;
-import net.oxcodsnet.roadarchitect.config.LampPostDefaults;
+import net.oxcodsnet.roadarchitect.config.defaults.LampPostDefaults;
 import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
-import net.oxcodsnet.roadarchitect.config.RoadStyleDefaults;
+import net.oxcodsnet.roadarchitect.config.defaults.RoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.handlers.RoadPipelineController;
 import net.oxcodsnet.roadarchitect.handlers.compat.BopCompat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.awt.*;
 
 import static net.minecraft.text.Text.translatable;
 

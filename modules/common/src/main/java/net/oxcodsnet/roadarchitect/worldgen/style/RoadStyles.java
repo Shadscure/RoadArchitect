@@ -15,7 +15,7 @@ import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.config.RoadDecorationType;
 import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
-import net.oxcodsnet.roadarchitect.config.RoadStyleDefaults;
+import net.oxcodsnet.roadarchitect.config.defaults.RoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.handlers.compat.BopCompat;
 import net.oxcodsnet.roadarchitect.util.BiomeSelectorUtil;
 import net.oxcodsnet.roadarchitect.worldgen.style.decoration.Decoration;

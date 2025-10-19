@@ -1,4 +1,8 @@
-package net.oxcodsnet.roadarchitect.config;
+package net.oxcodsnet.roadarchitect.config.defaults;
+
+import net.oxcodsnet.roadarchitect.config.RoadArchitectConfigData;
+import net.oxcodsnet.roadarchitect.config.RoadDecorationType;
+import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -146,7 +150,7 @@ public final class BopRoadStyleDefaults {
                     ),
                     palette(
                             block("minecraft:dirt_path", 5),
-                            block("minecraft:grass_block", 3),
+                            block("minecraft:dirt_path", 3),
                             block("minecraft:stone", 1),
                             block("minecraft:gravel", 1),
                             block("minecraft:smooth_stone", 1)
@@ -173,7 +177,7 @@ public final class BopRoadStyleDefaults {
                             "biomesoplenty:wintry_origin_valley"
                     ),
                     palette(
-                            block("minecraft:grass_block", 6),
+                            block("minecraft:dirt_path", 6),
                             block("minecraft:moss_block", 2),
                             block("minecraft:smooth_stone", 2),
                             block("minecraft:calcite", 1),
@@ -283,7 +287,7 @@ public final class BopRoadStyleDefaults {
                             "biomesoplenty:ebony_woods"
                     ),
                     palette(
-                            block("minecraft:grass_block", 4),
+                            block("minecraft:dirt_path", 4),
                             block("minecraft:smooth_stone", 2),
                             block("minecraft:mossy_cobblestone", 1),
                             block("minecraft:granite", 1)

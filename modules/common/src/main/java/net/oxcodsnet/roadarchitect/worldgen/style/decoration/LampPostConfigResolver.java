@@ -13,7 +13,7 @@ import net.minecraft.world.biome.Biome;
 import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
-import net.oxcodsnet.roadarchitect.config.LampPostDefaults;
+import net.oxcodsnet.roadarchitect.config.defaults.LampPostDefaults;
 import net.oxcodsnet.roadarchitect.util.BiomeSelectorUtil;
 import net.oxcodsnet.roadarchitect.util.PathDecorUtil;
 import org.slf4j.Logger;

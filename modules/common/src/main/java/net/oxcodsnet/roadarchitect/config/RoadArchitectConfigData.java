@@ -3,6 +3,10 @@ package net.oxcodsnet.roadarchitect.config;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
+import net.oxcodsnet.roadarchitect.config.defaults.BopRoadStyleDefaults;
+import net.oxcodsnet.roadarchitect.config.defaults.LampPostDefaults;
+import net.oxcodsnet.roadarchitect.config.defaults.RoadStyleDefaults;
+
 import java.util.List;
 
 /**

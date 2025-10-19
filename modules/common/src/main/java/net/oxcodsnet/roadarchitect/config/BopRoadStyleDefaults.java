@@ -23,7 +23,7 @@ public final class BopRoadStyleDefaults {
                             block("biomesoplenty:mossy_black_sand", 3),
                             block("minecraft:packed_mud", 2),
                             block("minecraft:mossy_cobblestone", 1),
-                            block("biomesoplenty:willow_planks", 1)
+                            block("biomesoplenty:black_sandstone", 1)
                     ),
                     decorations(fence("biomesoplenty:willow_fence"))),
 
@@ -35,8 +35,8 @@ public final class BopRoadStyleDefaults {
                             "biomesoplenty:overgrown_greens"
                     ),
                     palette(
-                            block("biomesoplenty:mahogany_planks", 4),
-                            block("biomesoplenty:palm_planks", 3),
+                            block("biomesoplenty:brimstone_bricks", 4),
+                            block("biomesoplenty:brimstone", 3),
                             block("minecraft:moss_block", 2),
                             block("minecraft:andesite", 1),
                             block("minecraft:gravel", 1)
@@ -70,7 +70,7 @@ public final class BopRoadStyleDefaults {
                             block("biomesoplenty:white_sandstone", 3),
                             block("biomesoplenty:black_sand", 2),
                             block("minecraft:smooth_sandstone", 1),
-                            block("biomesoplenty:palm_planks", 1)
+                            block("biomesoplenty:cut_white_sandstone", 1)
                     ),
                     decorations(fence("biomesoplenty:palm_fence"))),
 
@@ -85,7 +85,7 @@ public final class BopRoadStyleDefaults {
                             block("minecraft:calcite", 3),
                             block("minecraft:stone", 2),
                             block("minecraft:cobbled_deepslate", 1),
-                            block("biomesoplenty:pine_planks", 1)
+                            block("biomesoplenty:chiseled_white_sandstone", 1)
                     ),
                     decorations(fence("biomesoplenty:pine_fence"))),
 
@@ -96,7 +96,7 @@ public final class BopRoadStyleDefaults {
                             "biomesoplenty:snowy_fir_clearing"
                     ),
                     palette(
-                            block("biomesoplenty:fir_planks", 5),
+                            block("minecraft:stone_bricks", 5),
                             block("minecraft:stone", 3),
                             block("minecraft:gravel", 2),
                             block("minecraft:andesite", 1),
@@ -110,7 +110,7 @@ public final class BopRoadStyleDefaults {
                             "biomesoplenty:woodland"
                     ),
                     palette(
-                            block("biomesoplenty:redwood_planks", 6),
+                            block("minecraft:stone", 6),
                             block("minecraft:coarse_dirt", 3),
                             block("minecraft:mossy_cobblestone", 1),
                             block("minecraft:stone_bricks", 1),
@@ -128,7 +128,7 @@ public final class BopRoadStyleDefaults {
                             "biomesoplenty:pumpkin_patch"
                     ),
                     palette(
-                            block("biomesoplenty:maple_planks", 5),
+                            block("biomesoplenty:white_sandstone", 5),
                             block("minecraft:dirt_path", 3),
                             block("minecraft:coarse_dirt", 2),
                             block("minecraft:granite", 1),
@@ -149,7 +149,7 @@ public final class BopRoadStyleDefaults {
                             block("biomesoplenty:origin_grass_block", 3),
                             block("minecraft:stone", 1),
                             block("minecraft:gravel", 1),
-                            block("biomesoplenty:jacaranda_planks", 1)
+                            block("minecraft:smooth_stone", 1)
                     ),
                     decorations(fence("biomesoplenty:jacaranda_fence"))),
 
@@ -163,7 +163,7 @@ public final class BopRoadStyleDefaults {
                             block("biomesoplenty:glowing_moss_block", 4),
                             block("biomesoplenty:glowshroom_block", 3),
                             block("minecraft:amethyst_block", 2),
-                            block("biomesoplenty:magic_planks", 1),
+                            block("minecraft:chiseled_deepslate", 1),
                             block("minecraft:end_stone_bricks", 1)
                     ),
                     decorations(fence("biomesoplenty:magic_fence"))),
@@ -177,7 +177,7 @@ public final class BopRoadStyleDefaults {
                             block("minecraft:moss_block", 2),
                             block("minecraft:smooth_stone", 2),
                             block("minecraft:calcite", 1),
-                            block("biomesoplenty:empyreal_planks", 1)
+                            block("biomesoplenty:thermal_calcite", 1)
                     ),
                     decorations(fence("biomesoplenty:empyreal_fence"))),
 
@@ -200,7 +200,7 @@ public final class BopRoadStyleDefaults {
                             "biomesoplenty:old_growth_dead_forest"
                     ),
                     palette(
-                            block("biomesoplenty:dead_planks", 5),
+                            block("minecraft:deepslate_bricks", 5),
                             block("minecraft:coarse_dirt", 3),
                             block("minecraft:mud", 1),
                             block("minecraft:deepslate", 1),
@@ -271,7 +271,7 @@ public final class BopRoadStyleDefaults {
                             block("minecraft:packed_ice", 3),
                             block("minecraft:stone", 2),
                             block("minecraft:gravel", 1),
-                            block("biomesoplenty:pine_planks", 1)
+                            block("minecraft:stone_bricks", 1)
                     ),
                     decorations(fence("biomesoplenty:pine_fence"))),
 
@@ -283,8 +283,8 @@ public final class BopRoadStyleDefaults {
                             "biomesoplenty:ebony_woods"
                     ),
                     palette(
-                            block("biomesoplenty:jacaranda_planks", 4),
-                            block("biomesoplenty:mahogany_planks", 3),
+                            block("biomesoplenty:white_sandstone", 4),
+                            block("biomesoplenty:cut_white_sandstone", 3),
                             block("minecraft:smooth_stone", 2),
                             block("minecraft:mossy_cobblestone", 1),
                             block("minecraft:granite", 1)

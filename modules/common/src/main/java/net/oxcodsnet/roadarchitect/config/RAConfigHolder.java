@@ -178,5 +178,10 @@ public final class RAConfigHolder {
         public List<RoadStyleConfigEntry> roadStyleOverrides() {
             return RoadStyleDefaults.entries();
         }
+
+        @Override
+        public List<RoadStyleConfigEntry> bopRoadStyleOverrides() {
+            return BopRoadStyleDefaults.entries();
+        }
     }
 }

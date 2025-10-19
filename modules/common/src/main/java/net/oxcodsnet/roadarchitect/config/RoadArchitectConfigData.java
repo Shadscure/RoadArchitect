@@ -44,6 +44,10 @@ public final class RoadArchitectConfigData implements ConfigData {
     @ConfigEntry.Gui.TransitiveObject
     public RoadStyleSettings roadStyles = new RoadStyleSettings();
 
+    @ConfigEntry.Category("bopRoadStyles")
+    @ConfigEntry.Gui.TransitiveObject
+    public BopRoadStyleSettings bopRoadStyles = new BopRoadStyleSettings();
+
     @ConfigEntry.Category("lampPosts")
     @ConfigEntry.Gui.TransitiveObject
     public LampPostSettings lampPosts = new LampPostSettings();
@@ -120,6 +124,14 @@ public final class RoadArchitectConfigData implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public java.util.List<RoadStyleDefinition> overrides = RoadStyleDefaults.createDefinitionCopies();
+    }
+
+    public static final class BopRoadStyleSettings {
+        @ConfigEntry.Gui.Tooltip
+        public boolean enabled = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public java.util.List<RoadStyleDefinition> overrides = BopRoadStyleDefaults.createDefinitionCopies();
     }
 
     public static final class RoadStyleDefinition {

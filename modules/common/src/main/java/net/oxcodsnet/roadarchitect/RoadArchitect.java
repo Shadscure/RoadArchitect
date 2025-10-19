@@ -145,6 +145,11 @@ public final class RoadArchitect {
         public java.util.List<RoadStyleConfigEntry> roadStyleOverrides() {
             return RAConfigHolder.get().roadStyleOverrides();
         }
+
+        @Override
+        public java.util.List<RoadStyleConfigEntry> bopRoadStyleOverrides() {
+            return RAConfigHolder.get().bopRoadStyleOverrides();
+        }
     };
 
     private RoadArchitect() {

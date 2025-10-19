@@ -16,6 +16,7 @@ import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.config.RoadDecorationType;
 import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RoadStyleDefaults;
+import net.oxcodsnet.roadarchitect.handlers.compat.BopCompat;
 import net.oxcodsnet.roadarchitect.util.BiomeSelectorUtil;
 import net.oxcodsnet.roadarchitect.worldgen.style.decoration.Decoration;
 import net.oxcodsnet.roadarchitect.worldgen.style.decoration.FenceDecoration;
@@ -83,9 +84,19 @@ public final class RoadStyles {
 
     private static void reload(RAConfig config) {
         List<RoadStyleConfigEntry> entries = config.roadStyleOverrides();
-        List<RoadStyleConfigEntry> source = (entries == null || entries.isEmpty())
+        List<RoadStyleConfigEntry> baseSource = (entries == null || entries.isEmpty())
                 ? RoadStyleDefaults.entries()
                 : entries;
+        List<RoadStyleConfigEntry> bopEntries = List.of();
+        if (BopCompat.isPresent()) {
+            List<RoadStyleConfigEntry> bopOverrides = config.bopRoadStyleOverrides();
+            if (bopOverrides != null && !bopOverrides.isEmpty()) {
+                bopEntries = bopOverrides;
+            }
+        }
+        ArrayList<RoadStyleConfigEntry> source = new ArrayList<>(baseSource.size() + bopEntries.size());
+        source.addAll(baseSource);
+        source.addAll(bopEntries);
 
         ArrayList<ParsedStyle> parsed = new ArrayList<>(source.size());
         RoadStyle fallback = null;

@@ -5,6 +5,7 @@ import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.ActionResult;
+import net.oxcodsnet.roadarchitect.config.BopRoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
@@ -13,6 +14,7 @@ import net.oxcodsnet.roadarchitect.config.LampPostDefaults;
 import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.handlers.RoadPipelineController;
+import net.oxcodsnet.roadarchitect.handlers.compat.BopCompat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +30,13 @@ public final class RAConfigFabricBridge {
 
     public static void bootstrap() {
         holder = AutoConfig.register(RoadArchitectConfigData.class, GsonConfigSerializer::new);
+        if (!BopCompat.isPresent()) {
+            AutoConfig.getGuiRegistry(RoadArchitectConfigData.class)
+                    .registerPredicateProvider(
+                            (name, field, config, defaults, registry) -> java.util.List.of(),
+                            field -> field.getDeclaringClass() == RoadArchitectConfigData.class
+                                    && field.getType() == RoadArchitectConfigData.BopRoadStyleSettings.class);
+        }
         RAConfigHolder.set(new RAConfig() {
             @Override
             public int initScanRadius() {
@@ -184,50 +193,22 @@ public final class RAConfigFabricBridge {
             @Override
             public java.util.List<RoadStyleConfigEntry> roadStyleOverrides() {
                 RoadArchitectConfigData.RoadStyleSettings settings = holder.getConfig().roadStyles;
-                if (settings == null) {
+                if (settings == null || !settings.enabled) {
                     return RoadStyleDefaults.entries();
                 }
-                if (!settings.enabled) {
-                    return RoadStyleDefaults.entries();
+                return compileRoadStyles(settings.overrides, RoadStyleDefaults.entries());
+            }
+
+            @Override
+            public java.util.List<RoadStyleConfigEntry> bopRoadStyleOverrides() {
+                if (!BopCompat.isPresent()) {
+                    return java.util.List.of();
                 }
-                java.util.List<RoadArchitectConfigData.RoadStyleDefinition> defs = settings.overrides;
-                if (defs == null || defs.isEmpty()) {
-                    return RoadStyleDefaults.entries();
+                RoadArchitectConfigData.BopRoadStyleSettings settings = holder.getConfig().bopRoadStyles;
+                if (settings == null || !settings.enabled) {
+                    return BopRoadStyleDefaults.entries();
                 }
-                java.util.ArrayList<RoadStyleConfigEntry> out = new java.util.ArrayList<>(defs.size());
-                for (RoadArchitectConfigData.RoadStyleDefinition def : defs) {
-                    if (def == null) {
-                        continue;
-                    }
-                    java.util.ArrayList<RoadStyleConfigEntry.SurfaceBlockEntry> palette = new java.util.ArrayList<>();
-                    if (def.palette != null) {
-                        for (RoadArchitectConfigData.RoadPaletteEntry entry : def.palette) {
-                            if (entry == null) {
-                                continue;
-                            }
-                            palette.add(new RoadStyleConfigEntry.SurfaceBlockEntry(entry.block, entry.weight));
-                        }
-                    }
-                    java.util.ArrayList<RoadStyleConfigEntry.DecorationEntry> decorations = new java.util.ArrayList<>();
-                    if (def.decorations != null) {
-                        for (RoadArchitectConfigData.RoadDecorationEntry entry : def.decorations) {
-                            if (entry == null) {
-                                continue;
-                            }
-                            decorations.add(new RoadStyleConfigEntry.DecorationEntry(entry.type, entry.block));
-                        }
-                    }
-                    RoadStyleConfigEntry compiled = new RoadStyleConfigEntry(def.biomeSelectors, palette, decorations);
-                    if (compiled.palette().isEmpty()) {
-                        LOG.warn("Skipping road style override with empty palette for selectors {}", def.biomeSelectors);
-                        continue;
-                    }
-                    out.add(compiled);
-                }
-                if (out.isEmpty()) {
-                    return RoadStyleDefaults.entries();
-                }
-                return java.util.List.copyOf(out);
+                return compileRoadStyles(settings.overrides, BopRoadStyleDefaults.entries());
             }
         });
 
@@ -238,6 +219,48 @@ public final class RAConfigFabricBridge {
         });
 
         LOG.info("[RoadArchitect] cloth-config bridge initialized");
+    }
+
+    private static java.util.List<RoadStyleConfigEntry> compileRoadStyles(
+            java.util.List<RoadArchitectConfigData.RoadStyleDefinition> definitions,
+            java.util.List<RoadStyleConfigEntry> defaults) {
+        if (definitions == null || definitions.isEmpty()) {
+            return defaults;
+        }
+        java.util.ArrayList<RoadStyleConfigEntry> out = new java.util.ArrayList<>(definitions.size());
+        for (RoadArchitectConfigData.RoadStyleDefinition def : definitions) {
+            if (def == null) {
+                continue;
+            }
+            java.util.ArrayList<RoadStyleConfigEntry.SurfaceBlockEntry> palette = new java.util.ArrayList<>();
+            if (def.palette != null) {
+                for (RoadArchitectConfigData.RoadPaletteEntry entry : def.palette) {
+                    if (entry == null) {
+                        continue;
+                    }
+                    palette.add(new RoadStyleConfigEntry.SurfaceBlockEntry(entry.block, entry.weight));
+                }
+            }
+            java.util.ArrayList<RoadStyleConfigEntry.DecorationEntry> decorations = new java.util.ArrayList<>();
+            if (def.decorations != null) {
+                for (RoadArchitectConfigData.RoadDecorationEntry entry : def.decorations) {
+                    if (entry == null) {
+                        continue;
+                    }
+                    decorations.add(new RoadStyleConfigEntry.DecorationEntry(entry.type, entry.block));
+                }
+            }
+            RoadStyleConfigEntry compiled = new RoadStyleConfigEntry(def.biomeSelectors, palette, decorations);
+            if (compiled.palette().isEmpty()) {
+                LOG.warn("Skipping road style override with empty palette for selectors {}", def.biomeSelectors);
+                continue;
+            }
+            out.add(compiled);
+        }
+        if (out.isEmpty()) {
+            return defaults;
+        }
+        return java.util.List.copyOf(out);
     }
 
     public static Screen createScreen(Screen parent) {

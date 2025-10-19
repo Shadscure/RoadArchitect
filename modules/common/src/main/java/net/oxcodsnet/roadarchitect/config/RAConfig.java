@@ -87,4 +87,9 @@ public interface RAConfig {
      * to the built-in defaults.
      */
     List<RoadStyleConfigEntry> roadStyleOverrides();
+
+    /**
+     * Biomes O' Plenty specific road surface styles pulled from configuration.
+     */
+    List<RoadStyleConfigEntry> bopRoadStyleOverrides();
 }

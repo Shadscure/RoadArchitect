@@ -80,6 +80,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
                         "Toggle to apply the editable road style entries; disable to restore the built-in presets.");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "Road Style Entries");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry", "Decoration Entry");
+                add.accept("text.autoconfig.roadarchitect.option.RoadfaletteEntry", "Road Palette Entry");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
                         "Define custom surface palettes and decorations. Entries without selectors act as a fallback.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Road Style Entry");
@@ -256,6 +258,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
                         "Применять настраиваемые записи ниже; отключите, чтобы вернуть встроенные пресеты.");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "Записи дорожных стилей");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry", "Запись украшения");
+                add.accept("text.autoconfig.roadarchitect.option.RoadfaletteEntry", "Запись палитры дороги");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
                         "Определите палитры поверхности и украшения. Записи без селекторов работают как запасной вариант.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Запись дорожного стиля");
@@ -464,6 +468,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
                         "Activa las entradas editables; desactiva para restaurar los preajustes integrados.");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "Entradas de estilos de camino");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry", "Entrada de decoración");
+                add.accept("text.autoconfig.roadarchitect.option.RoadfaletteEntry", "Entrada de paleta de camino");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
                         "Define paletas de superficie y decoraciones. Las entradas sin selectores actúan como reserva.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Entrada de estilo de camino");
@@ -640,6 +646,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
                         "Active les entrées modifiables ci-dessous ; désactivez pour revenir aux préréglages intégrés.");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "Entrées de styles de route");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry", "Entrée de décoration");
+                add.accept("text.autoconfig.roadarchitect.option.RoadfaletteEntry", "Entrée de palette de route");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
                         "Définissez les palettes de surface et décorations. Les entrées sans sélecteur servent de repli.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Entrée de style de route");
@@ -784,6 +792,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
                         "Aktiviert die bearbeitbaren Einträge unten; deaktivieren, um die eingebauten Vorgaben zu verwenden.");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "Straßenstil-Einträge");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry", "Dekorationseintrag");
+                add.accept("text.autoconfig.roadarchitect.option.RoadfaletteEntry", "Straßenpaletten-Eintrag");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
                         "Definiert Oberflächenpaletten und Dekorationen. Einträge ohne Selektoren dienen als Fallback.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Straßenstil-Eintrag");
@@ -950,6 +960,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
                         "启用以使用下方可编辑的条目，禁用则恢复内置预设。");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "道路样式条目");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry", "装饰条目");
+                add.accept("text.autoconfig.roadarchitect.option.RoadfaletteEntry", "道路调色板条目");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
                         "定义表面方块调色板与装饰。没有选择器的条目会作为兜底样式。");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "道路样式条目");
@@ -1116,6 +1128,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.enabled.@Tooltip",
                         "Застосувати редаговані записи нижче; вимкніть, щоб повернути вбудовані пресети.");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides", "Записи дорожніх стилів");
+                add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry", "Запис прикраси");
+                add.accept("text.autoconfig.roadarchitect.option.RoadfaletteEntry", "Запис палітри дороги");
                 add.accept("text.autoconfig.roadarchitect.option.roadStyles.overrides.@Tooltip",
                         "Визначте палітри поверхні та прикраси. Записи без селекторів працюють як запасний варіант.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Запис дорожнього стилю");

@@ -100,7 +100,7 @@ public final class RALanguage {
                         "Optional side decorations placed alongside this road style.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "Decoration Type");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
-                        "Type identifier such as 'fence'. Use 'none' to disable.");
+                        "Choose how to decorate this style (None or Fence).");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "Decoration Block");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
                         "Block identifier or #tag used by the decoration when applicable.");
@@ -276,7 +276,7 @@ public final class RALanguage {
                         "Необязательные боковые украшения для этого стиля.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "Тип украшения");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
-                        "Идентификатор типа, например 'fence'. Используйте 'none', чтобы отключить.");
+                        "Выберите тип оформления (Нет или Забор).");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "Блок украшения");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
                         "Идентификатор блока или #тег, используемый украшением (если требуется).");
@@ -484,7 +484,7 @@ public final class RALanguage {
                         "Decoraciones laterales opcionales para este estilo.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "Tipo de decoración");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
-                        "Identificador del tipo, por ejemplo 'fence'. Usa 'none' para desactivar.");
+                        "Selecciona cómo decorar (ninguna o valla).");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "Bloque de la decoración");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
                         "Identificador de bloque o #etiqueta usada por la decoración (si aplica).");
@@ -660,7 +660,7 @@ public final class RALanguage {
                         "Décorations latérales optionnelles pour ce style.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "Type de décoration");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
-                        "Identifiant du type, p. ex. 'fence'. Utilisez 'none' pour désactiver.");
+                        "Choisissez le type de décoration (Aucune ou Clôture).");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "Bloc de décoration");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
                         "Identifiant de bloc ou #tag utilisé par la décoration (le cas échéant).");
@@ -804,7 +804,7 @@ public final class RALanguage {
                         "Optionale seitliche Dekorationen für diesen Stil.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "Dekorationstyp");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
-                        "Typbezeichner, z. B. 'fence'. Verwende 'none', um zu deaktivieren.");
+                        "Wähle die Dekoration (Keine oder Zaun).");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "Dekorationsblock");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
                         "Blockkennung oder #Tag, die von der Dekoration verwendet wird (falls zutreffend).");
@@ -970,7 +970,7 @@ public final class RALanguage {
                         "该样式可选的道路两侧装饰。");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "装饰类型");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
-                        "类型标识，例如 'fence'。使用 'none' 表示禁用。");
+                        "选择装饰方式（无或栅栏）。");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "装饰方块");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
                         "装饰使用的方块 ID 或 #标签（若适用）。");
@@ -1136,7 +1136,7 @@ public final class RALanguage {
                         "Необов'язкові бокові прикраси для цього стилю.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type", "Тип прикраси");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.type.@Tooltip",
-                        "Ідентифікатор типу, наприклад 'fence'. Використовуйте 'none', щоб вимкнути.");
+                        "Оберіть спосіб декорування (Немає або Паркан).");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block", "Блок прикраси");
                 add.accept("text.autoconfig.roadarchitect.option.RoadDecorationEntry.block.@Tooltip",
                         "Ідентифікатор блока або #тег, який використовує прикраса (за потреби).");

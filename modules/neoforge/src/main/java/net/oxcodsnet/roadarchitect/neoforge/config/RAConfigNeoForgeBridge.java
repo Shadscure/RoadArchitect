@@ -3,7 +3,9 @@ package net.oxcodsnet.roadarchitect.neoforge.config;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
+import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
+import net.minecraft.text.Text;
 import net.oxcodsnet.roadarchitect.config.BopRoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
@@ -14,9 +16,12 @@ import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.handlers.RoadPipelineController;
 import net.oxcodsnet.roadarchitect.handlers.compat.BopCompat;
-import net.minecraft.network.chat.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.awt.*;
+
+import static net.minecraft.text.Text.translatable;
 
 /**
  * Bridges Cloth Config with the common {@link RAConfigHolder} on NeoForge.
@@ -32,11 +37,23 @@ public final class RAConfigNeoForgeBridge {
         if (!BopCompat.isPresent()) {
             AutoConfig.getGuiRegistry(RoadArchitectConfigData.class)
                     .registerPredicateProvider(
-                            (name, field, config, defaults, registry) -> java.util.List.of(
-                                    ConfigEntryBuilder.create()
-                                            .startTextDescription(Component.translatable("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint"))
-                                            .build()
-                            ),
+                            (name, field, config, defaults, registry) -> {
+                                try {
+                                    Object builder = ConfigEntryBuilder.create();
+                                    Class<?> componentClass = Class.forName("net.minecraft.network.chat.Component");
+                                    Object component = componentClass
+                                            .getMethod("translatable", String.class, Object[].class)
+                                            .invoke(null, "text.autoconfig.roadarchitect.option.bopRoadStyles.installHint", new Object[0]);
+                                    Object descriptionBuilder = builder.getClass()
+                                            .getMethod("startTextDescription", componentClass)
+                                            .invoke(builder, component);
+                                    Object entry = descriptionBuilder.getClass().getMethod("build").invoke(descriptionBuilder);
+                                    return java.util.List.of((AbstractConfigListEntry<?>) entry);
+                                } catch (ReflectiveOperationException | RuntimeException e) {
+                                    LOG.warn("Failed to create Cloth Config hint entry for missing Biomes O' Plenty", e);
+                                    return java.util.List.of();
+                                }
+                            },
                             field -> field.getDeclaringClass() == RoadArchitectConfigData.class
                                     && field.getType() == RoadArchitectConfigData.BopRoadStyleSettings.class);
         }

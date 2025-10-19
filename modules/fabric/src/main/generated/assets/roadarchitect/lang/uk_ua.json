@@ -44,6 +44,7 @@
   "text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette.@Tooltip": "Список блоків (ID чи #теги) з вагами, що формують покриття дороги.",
   "text.autoconfig.roadarchitect.option.bopRoadStyles.enabled": "Увімкнути стилі Biomes O' Plenty",
   "text.autoconfig.roadarchitect.option.bopRoadStyles.enabled.@Tooltip": "Перемикає застосування пресетів Biomes O' Plenty; вимкніть, щоб використовувати лише ванільні стилі.",
+  "text.autoconfig.roadarchitect.option.bopRoadStyles.installHint": "Встановіть Biomes O' Plenty, щоб відкрити ці пресети.",
   "text.autoconfig.roadarchitect.option.bopRoadStyles.overrides": "Записи стилів Biomes O' Plenty",
   "text.autoconfig.roadarchitect.option.bopRoadStyles.overrides.@Tooltip": "Редаговані дорожні стилі для біомів із Biomes O' Plenty.",
   "text.autoconfig.roadarchitect.option.buoyInterval": "Інтервал буйків",

@@ -44,6 +44,7 @@
   "text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette.@Tooltip": "Liste de blocs (ID ou #tags) avec poids définissant la composition de surface.",
   "text.autoconfig.roadarchitect.option.bopRoadStyles.enabled": "Activer les styles Biomes O' Plenty",
   "text.autoconfig.roadarchitect.option.bopRoadStyles.enabled.@Tooltip": "Permet d'appliquer les préréglages de Biomes O' Plenty ; désactivez pour revenir aux styles uniquement vanilla.",
+  "text.autoconfig.roadarchitect.option.bopRoadStyles.installHint": "Installez Biomes O' Plenty pour déverrouiller ces préréglages.",
   "text.autoconfig.roadarchitect.option.bopRoadStyles.overrides": "Entrées de styles Biomes O' Plenty",
   "text.autoconfig.roadarchitect.option.bopRoadStyles.overrides.@Tooltip": "Styles de route personnalisables pour les biomes de Biomes O' Plenty.",
   "text.autoconfig.roadarchitect.option.buoyInterval": "Intervalle des bouées",

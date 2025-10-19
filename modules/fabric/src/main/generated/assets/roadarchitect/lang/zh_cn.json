@@ -44,6 +44,7 @@
   "text.autoconfig.roadarchitect.option.RoadStyleDefinition.palette.@Tooltip": "包含方块或 #标签及其权重的列表，用于决定道路表面组成。",
   "text.autoconfig.roadarchitect.option.bopRoadStyles.enabled": "启用 Biomes O' Plenty 样式",
   "text.autoconfig.roadarchitect.option.bopRoadStyles.enabled.@Tooltip": "切换以应用 Biomes O' Plenty 预设；关闭后仅使用原版样式。",
+  "text.autoconfig.roadarchitect.option.bopRoadStyles.installHint": "安装 Biomes O' Plenty 以解锁这些预设。",
   "text.autoconfig.roadarchitect.option.bopRoadStyles.overrides": "Biomes O' Plenty 样式条目",
   "text.autoconfig.roadarchitect.option.bopRoadStyles.overrides.@Tooltip": "针对 Biomes O' Plenty 生物群系的可编辑道路样式。",
   "text.autoconfig.roadarchitect.option.buoyInterval": "浮标间距",

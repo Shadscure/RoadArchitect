@@ -146,7 +146,7 @@ public final class BopRoadStyleDefaults {
                     ),
                     palette(
                             block("minecraft:dirt_path", 5),
-                            block("biomesoplenty:origin_grass_block", 3),
+                            block("minecraft:grass_block", 3),
                             block("minecraft:stone", 1),
                             block("minecraft:gravel", 1),
                             block("minecraft:smooth_stone", 1)
@@ -173,7 +173,7 @@ public final class BopRoadStyleDefaults {
                             "biomesoplenty:wintry_origin_valley"
                     ),
                     palette(
-                            block("biomesoplenty:origin_grass_block", 6),
+                            block("minecraft:grass_block", 6),
                             block("minecraft:moss_block", 2),
                             block("minecraft:smooth_stone", 2),
                             block("minecraft:calcite", 1),
@@ -283,8 +283,7 @@ public final class BopRoadStyleDefaults {
                             "biomesoplenty:ebony_woods"
                     ),
                     palette(
-                            block("biomesoplenty:white_sandstone", 4),
-                            block("biomesoplenty:cut_white_sandstone", 3),
+                            block("minecraft:grass_block", 4),
                             block("minecraft:smooth_stone", 2),
                             block("minecraft:mossy_cobblestone", 1),
                             block("minecraft:granite", 1)

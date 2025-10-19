@@ -3,7 +3,9 @@ package net.oxcodsnet.roadarchitect.fabric.config;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
+import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.oxcodsnet.roadarchitect.config.BopRoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
@@ -33,7 +35,11 @@ public final class RAConfigFabricBridge {
         if (!BopCompat.isPresent()) {
             AutoConfig.getGuiRegistry(RoadArchitectConfigData.class)
                     .registerPredicateProvider(
-                            (name, field, config, defaults, registry) -> java.util.List.of(),
+                            (name, field, config, defaults, registry) -> java.util.List.of(
+                                    ConfigEntryBuilder.create()
+                                            .startTextDescription(Text.translatable("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint"))
+                                            .build()
+                            ),
                             field -> field.getDeclaringClass() == RoadArchitectConfigData.class
                                     && field.getType() == RoadArchitectConfigData.BopRoadStyleSettings.class);
         }

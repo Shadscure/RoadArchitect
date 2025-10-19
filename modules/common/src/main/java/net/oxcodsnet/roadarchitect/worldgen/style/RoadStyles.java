@@ -166,7 +166,7 @@ public final class RoadStyles {
                     continue;
                 }
                 TagKey<Block> tag = TagKey.of(RegistryKeys.BLOCK, id);
-                Optional<RegistryEntryList<Block>> optional = Registries.BLOCK.getEntryList(tag);
+                Optional<RegistryEntryList.Named<Block>> optional = Registries.BLOCK.getEntryList(tag);
                 if (optional.isEmpty()) {
                     LOGGER.warn("Road style palette tag '{}' resolved to nothing", raw);
                     continue;
@@ -244,7 +244,7 @@ public final class RoadStyles {
                 return null;
             }
             TagKey<Block> tag = TagKey.of(RegistryKeys.BLOCK, id);
-            Optional<RegistryEntryList<Block>> optional = Registries.BLOCK.getEntryList(tag);
+            Optional<RegistryEntryList.Named<Block>> optional = Registries.BLOCK.getEntryList(tag);
             if (optional.isEmpty()) {
                 LOGGER.warn("Road style {} tag '{}' resolved to nothing", role, raw);
                 return null;

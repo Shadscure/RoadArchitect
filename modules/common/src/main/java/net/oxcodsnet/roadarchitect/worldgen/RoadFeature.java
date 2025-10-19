@@ -272,6 +272,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
         int halfWidth = Math.max(0, ctx.getConfig().orthWidth() / 2);
         Random random = world.getRandom();
+        Registry<Biome> biomeRegistry = world.getRegistryManager().get(RegistryKeys.BIOME);
         boolean placedAny = false;
 
         for (RoadBuilderStorage.SegmentEntry entry : queue) {

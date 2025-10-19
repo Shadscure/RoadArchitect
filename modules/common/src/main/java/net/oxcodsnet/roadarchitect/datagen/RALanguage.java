@@ -91,6 +91,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides", "Biomes O' Plenty Style Entries");
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides.@Tooltip",
                         "Editable road style entries targeting Biomes O' Plenty biome selectors.");
+                add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint",
+                        "Install Biomes O' Plenty to unlock these presets.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Road Style Entry");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "Biome Selectors");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",
@@ -276,6 +278,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides", "Записи стилей Biomes O' Plenty");
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides.@Tooltip",
                         "Редактируемые дорожные стили для биомов из Biomes O' Plenty.");
+                add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint",
+                        "Установите Biomes O' Plenty, чтобы получить доступ к этим пресетам.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Запись дорожного стиля");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "Селекторы биомов");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",
@@ -493,6 +497,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides", "Entradas de estilos de Biomes O' Plenty");
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides.@Tooltip",
                         "Estilos de carretera editables para los biomas de Biomes O' Plenty.");
+                add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint",
+                        "Instala Biomes O' Plenty para habilitar estos preajustes.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Entrada de estilo de camino");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "Selectores de bioma");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",
@@ -678,6 +684,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides", "Entrées de styles Biomes O' Plenty");
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides.@Tooltip",
                         "Styles de route personnalisables pour les biomes de Biomes O' Plenty.");
+                add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint",
+                        "Installez Biomes O' Plenty pour déverrouiller ces préréglages.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Entrée de style de route");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "Sélecteurs de biome");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",
@@ -831,6 +839,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides", "Biomes O' Plenty-Stileinträge");
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides.@Tooltip",
                         "Bearbeitbare Straßenstile für Biomes O' Plenty-Biome.");
+                add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint",
+                        "Installiere Biomes O' Plenty, um diese Presets freizuschalten.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Straßenstil-Eintrag");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "Biom-Selektoren");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",
@@ -1006,6 +1016,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides", "Biomes O' Plenty 样式条目");
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides.@Tooltip",
                         "针对 Biomes O' Plenty 生物群系的可编辑道路样式。");
+                add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint",
+                        "安装 Biomes O' Plenty 以解锁这些预设。");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "道路样式条目");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "生物群系选择器");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",
@@ -1181,6 +1193,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides", "Записи стилів Biomes O' Plenty");
                 add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.overrides.@Tooltip",
                         "Редаговані дорожні стилі для біомів із Biomes O' Plenty.");
+                add.accept("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint",
+                        "Встановіть Biomes O' Plenty, щоб відкрити ці пресети.");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition", "Запис дорожнього стилю");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors", "Селектори біомів");
                 add.accept("text.autoconfig.roadarchitect.option.RoadStyleDefinition.biomeSelectors.@Tooltip",

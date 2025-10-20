@@ -3,15 +3,11 @@ package net.oxcodsnet.roadarchitect.worldgen;
 import com.mojang.serialization.Codec;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.LeavesBlock;
-import net.minecraft.block.PlantBlock;
-import net.minecraft.block.VineBlock;
 import net.minecraft.block.Blocks;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -39,6 +35,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.oxcodsnet.roadarchitect.worldgen.RoadFeatureConfig.GenerationPhase;
 
@@ -53,7 +51,9 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/" + RoadFeature.class.getSimpleName());
 
     private static final BuoyDecoration BUOY = new BuoyDecoration();
-    private static final BlockState PREPARATION_BLOCK = Blocks.STONE.getDefaultState();
+    private static final BlockState PREPARATION_BLOCK = Blocks.BEDROCK.getDefaultState();
+    private static final int PREPARATION_CLEARANCE_EXTRA = 1;
+    private static final Map<Long, BlockState> PREPARATION_BACKUP = new ConcurrentHashMap<>();
 
     public RoadFeature(Codec<RoadFeatureConfig> codec) {
         super(codec);
@@ -62,6 +62,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
     private static void buildRoadStripe(StructureWorldAccess world, List<BlockPos> pts, int halfWidth, Random random, GenerationPhase phase) {
         boolean finalizePhase = phase == GenerationPhase.FINALIZE;
+        int clearanceHalfWidth = halfWidth + PREPARATION_CLEARANCE_EXTRA;
         Registry<Biome> biomeRegistry = finalizePhase ? world.getRegistryManager().get(RegistryKeys.BIOME) : null;
         for (int i = 0; i < pts.size(); i++) {
             BlockPos p = pts.get(i);
@@ -76,24 +77,47 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
             double nz = dir.z;
             boolean diagonal = Math.abs(nx) > 0.001 && Math.abs(nz) > 0.001;
 
-            for (int dx = -halfWidth; dx <= halfWidth; dx++) {
-                for (int dz = -halfWidth; dz <= halfWidth; dz++) {
+            for (int dx = -clearanceHalfWidth; dx <= clearanceHalfWidth; dx++) {
+                for (int dz = -clearanceHalfWidth; dz <= clearanceHalfWidth; dz++) {
                     double dist = Math.abs(dx * nz - dz * nx);
-                    boolean inside = dist <= halfWidth + 0.01 || (diagonal && Math.max(Math.abs(dx), Math.abs(dz)) <= halfWidth);
-                    if (!inside) continue;
+                    int maxAbs = Math.max(Math.abs(dx), Math.abs(dz));
+                    boolean insideRoad = dist <= halfWidth + 0.01 || (diagonal && maxAbs <= halfWidth);
+                    boolean insideClearance = dist <= clearanceHalfWidth + 0.01 || (diagonal && maxAbs <= clearanceHalfWidth);
+                    if (!insideClearance) continue;
 
                     BlockPos roadPos = p.add(dx, 0, dz);
 
-                    if (!isNotWaterBlock(world, p)) {continue;}
-                    BlockState roadState;
-                    if (finalizePhase) {
+                    long packedPos = roadPos.asLong();
+
+                    if (!finalizePhase) {
+                        if (!isNotWaterBlock(world, roadPos)) {
+                            continue;
+                        }
+                        BlockState previous = world.getBlockState(roadPos);
+                        if (!previous.isOf(PREPARATION_BLOCK.getBlock())) {
+                            PREPARATION_BACKUP.putIfAbsent(packedPos, previous);
+                        }
+                        placeRoad(world, roadPos, PREPARATION_BLOCK);
+                        continue;
+                    }
+
+                    if (insideRoad) {
+                        if (!isNotWaterBlock(world, roadPos)) {
+                            continue;
+                        }
                         RegistryEntry<Biome> biome = world.getBiome(roadPos);
                         RoadStyle style = RoadStyles.forBiome(biomeRegistry, biome);
-                        roadState = style.palette().pick(random);
+                        BlockState roadState = style.palette().pick(random);
+                        placeRoad(world, roadPos, roadState);
+                        PREPARATION_BACKUP.remove(packedPos);
                     } else {
-                        roadState = PREPARATION_BLOCK;
+                        BlockState previous = PREPARATION_BACKUP.remove(packedPos);
+                        if (previous != null) {
+                            world.setBlockState(roadPos, previous, Block.NOTIFY_NEIGHBORS);
+                        } else if (world.getBlockState(roadPos).isOf(PREPARATION_BLOCK.getBlock())) {
+                            world.removeBlock(roadPos, false);
+                        }
                     }
-                    placeRoad(world, roadPos, roadState);
                 }
             }
 
@@ -137,32 +161,6 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                 if (!isNotWaterBlock(world, dpos)) {continue;}
                 deco.place(world, dpos, random);
             }
-        }
-    }
-
-    private static void placeLamp(StructureWorldAccess world, BlockPos center, double nx, double nz, int halfWidth, LampPostDecoration base, Random random) {
-        int sx = (int) Math.round(-nz);
-        int sz = (int) Math.round(nx);
-
-        BlockPos leftPos  = center.add( sx * (halfWidth + 1), 0,  sz * (halfWidth + 1));
-        BlockPos rightPos = center.add(-sx * (halfWidth + 1), 0, -sz * (halfWidth + 1));
-        Direction leftFace  = directionFrom(-sx, -sz); // «смотрит» к дороге
-        Direction rightFace = directionFrom( sx,  sz);
-
-        boolean leftFirst = random.nextBoolean();
-
-        BlockPos firstPos     = leftFirst ? leftPos   : rightPos;
-        Direction firstFacing = leftFirst ? leftFace  : rightFace;
-        BlockPos secondPos     = leftFirst ? rightPos  : leftPos;
-        Direction secondFacing = leftFirst ? rightFace : leftFace;
-
-        if (isNotWaterBlock(world, firstPos)) {
-            if (base.facing(firstFacing).tryPlace(world, firstPos, random)) {
-                return; // удалось — вторую сторону не трогаем
-            }
-        }
-        if (isNotWaterBlock(world, secondPos)) {
-            base.facing(secondFacing).tryPlace(world, secondPos, random);
         }
     }
 

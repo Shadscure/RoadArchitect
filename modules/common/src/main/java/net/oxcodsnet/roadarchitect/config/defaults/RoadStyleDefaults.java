@@ -14,7 +14,7 @@ public final class RoadStyleDefaults {
     private static final List<RoadStyleConfigEntry> DEFAULTS = List.of(
             entry(List.of(),
                     palette(
-                            block("minecraft:dirt_path", 4),
+                            block("minecraft:grass_block", 3),
                             block("minecraft:coarse_dirt", 3),
                             block("minecraft:cobblestone", 2),
                             block("minecraft:mossy_cobblestone", 1),
@@ -24,7 +24,7 @@ public final class RoadStyleDefaults {
 
             entry(List.of("minecraft:river"),
                     palette(
-                            block("minecraft:dirt_path", 4),
+                            block("minecraft:grass_block", 4),
                             block("minecraft:coarse_dirt", 3),
                             block("minecraft:sand", 1),
                             block("minecraft:gravel", 1)
@@ -73,7 +73,7 @@ public final class RoadStyleDefaults {
 
             entry(List.of("minecraft:taiga"),
                     palette(
-                            block("minecraft:dirt_path", 4),
+                            block("minecraft:grass_block", 4),
                             block("minecraft:coarse_dirt", 3),
                             block("minecraft:stone_bricks", 1),
                             block("minecraft:mossy_cobblestone", 1),
@@ -112,7 +112,7 @@ public final class RoadStyleDefaults {
 
             entry(List.of("minecraft:snowy_plains"),
                     palette(
-                            block("minecraft:dirt_path", 4),
+                            block("minecraft:grass_block", 4),
                             block("minecraft:coarse_dirt", 3),
                             block("minecraft:stone_bricks", 1),
                             block("minecraft:mossy_cobblestone", 1),
@@ -138,7 +138,7 @@ public final class RoadStyleDefaults {
 
             entry(List.of("minecraft:swamp"),
                     palette(
-                            block("minecraft:dirt_path", 4),
+                            block("minecraft:grass_block", 4),
                             block("minecraft:coarse_dirt", 3),
                             block("minecraft:tuff", 1),
                             block("minecraft:mossy_cobblestone", 1),
@@ -161,7 +161,7 @@ public final class RoadStyleDefaults {
 
             entry(List.of("minecraft:plains"),
                     palette(
-                            block("minecraft:dirt_path", 4),
+                            block("minecraft:grass_block", 4),
                             block("minecraft:coarse_dirt", 3),
                             block("minecraft:stone", 1),
                             block("minecraft:andesite", 1),
@@ -173,7 +173,7 @@ public final class RoadStyleDefaults {
 
             entry(List.of("minecraft:cherry_grove"),
                     palette(
-                            block("minecraft:dirt_path", 4),
+                            block("minecraft:grass_block", 4),
                             block("minecraft:coarse_dirt", 3),
                             block("minecraft:stone", 1),
                             block("minecraft:andesite", 1),
@@ -185,7 +185,7 @@ public final class RoadStyleDefaults {
 
             entry(List.of("minecraft:dark_forest"),
                     palette(
-                            block("minecraft:dirt_path", 4),
+                            block("minecraft:grass_block", 4),
                             block("minecraft:coarse_dirt", 3),
                             block("minecraft:mossy_cobblestone", 1),
                             block("minecraft:moss_block", 1),
@@ -196,7 +196,7 @@ public final class RoadStyleDefaults {
 
             entry(List.of("minecraft:savanna"),
                     palette(
-                            block("minecraft:dirt_path", 4),
+                            block("minecraft:grass_block", 4),
                             block("minecraft:coarse_dirt", 3),
                             block("minecraft:coarse_dirt", 1),
                             block("minecraft:andesite", 1),

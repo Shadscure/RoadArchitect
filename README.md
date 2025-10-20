@@ -244,6 +244,7 @@ Roads adapt their style to the biome, and the network is saved between game sess
   Not only! RoadArchitect can connect any structure discoverable via `/locate structure`. Add the structure IDs or a `#tag` in the config, then reload/restart the world to rescan.
 </details>
 
+---
 
 ## 🌉 Related mods & inspiration
 

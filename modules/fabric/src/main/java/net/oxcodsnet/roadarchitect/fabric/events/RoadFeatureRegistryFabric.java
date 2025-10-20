@@ -28,10 +28,10 @@ public final class RoadFeatureRegistryFabric {
                 RoadFeatureRegistry.ROAD_PREP_PLACED_FEATURE_KEY
         );
 
-        // 3) Финишный проход на TOP_LAYER_MODIFICATION
+        // 3) Финишный проход на VEGETAL_DECORATION
         BiomeModifications.addFeature(
                 BiomeSelectors.all(),
-                GenerationStep.Feature.TOP_LAYER_MODIFICATION,
+                GenerationStep.Feature.VEGETAL_DECORATION,
                 RoadFeatureRegistry.ROAD_FINAL_PLACED_FEATURE_KEY
         );
     }

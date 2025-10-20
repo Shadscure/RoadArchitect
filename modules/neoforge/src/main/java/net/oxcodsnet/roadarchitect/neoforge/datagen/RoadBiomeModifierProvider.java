@@ -38,7 +38,7 @@ public final class RoadBiomeModifierProvider extends JsonCodecProvider<BiomeModi
         RegistryEntryList.Direct<PlacedFeature> finalFeature = RegistryEntryList.of(lookup.getWrapperOrThrow(RegistryKeys.PLACED_FEATURE).getOrThrow(RoadFeatureRegistry.ROAD_FINAL_PLACED_FEATURE_KEY));
 
         BiomeModifier prepModifier = new BiomeModifiers.AddFeaturesBiomeModifier(overworldBiomes, prepFeature, GenerationStep.Feature.LOCAL_MODIFICATIONS);
-        BiomeModifier finalModifier = new BiomeModifiers.AddFeaturesBiomeModifier(overworldBiomes, finalFeature, GenerationStep.Feature.TOP_LAYER_MODIFICATION);
+        BiomeModifier finalModifier = new BiomeModifiers.AddFeaturesBiomeModifier(overworldBiomes, finalFeature, GenerationStep.Feature.VEGETAL_DECORATION);
 
         unconditional(Identifier.of(RoadArchitect.MOD_ID, "add_road_prepare_feature"), prepModifier);
         unconditional(Identifier.of(RoadArchitect.MOD_ID, "add_road_finalize_feature"), finalModifier);

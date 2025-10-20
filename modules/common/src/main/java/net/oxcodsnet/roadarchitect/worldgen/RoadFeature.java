@@ -3,10 +3,14 @@ package net.oxcodsnet.roadarchitect.worldgen;
 import com.mojang.serialization.Codec;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.LeavesBlock;
+import net.minecraft.block.PlantBlock;
+import net.minecraft.block.VineBlock;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -46,6 +50,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/" + RoadFeature.class.getSimpleName());
 
     private static final BuoyDecoration BUOY = new BuoyDecoration();
+    private static final int MAX_CLEAR_HEIGHT = 12;
 
     public RoadFeature(Codec<RoadFeatureConfig> codec) {
         super(codec);
@@ -208,8 +213,52 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
     private static void placeRoad(StructureWorldAccess world, BlockPos pos, BlockState stateRoad) {
         if (!isNotWaterBlock(world, pos)) {return;}
+        clearRoadColumn(world, pos);
         world.setBlockState(pos, stateRoad, Block.NOTIFY_NEIGHBORS);
         //world.setBlockState(pos.up(), Blocks.AIR.getDefaultState(), Block.NOTIFY_NEIGHBORS);
+    }
+
+    private static void clearRoadColumn(StructureWorldAccess world, BlockPos pos) {
+        BlockPos.Mutable mutable = pos.mutableCopy();
+
+        for (int dy = 1; dy <= MAX_CLEAR_HEIGHT; dy++) {
+            mutable.set(pos.getX(), pos.getY() + dy, pos.getZ());
+            BlockState stateAbove = world.getBlockState(mutable);
+
+            if (stateAbove.isAir()) {
+                if (dy > 2) {
+                    BlockPos nextPos = new BlockPos(pos.getX(), pos.getY() + dy + 1, pos.getZ());
+                    if (world.getBlockState(nextPos).isAir()) {
+                        break;
+                    }
+                }
+                continue;
+            }
+
+            if (shouldClearForRoad(stateAbove)) {
+                world.breakBlock(mutable, false);
+                dy--; // re-check same height in case of stacked plants
+                continue;
+            }
+
+            if (!stateAbove.getCollisionShape(world, mutable).isEmpty()) {
+                break;
+            }
+        }
+    }
+
+    private static boolean shouldClearForRoad(BlockState state) {
+        if (state.isAir()) {
+            return false;
+        }
+
+        if (state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.SAPLINGS)) {
+            return true;
+        }
+
+        return state.getBlock() instanceof PlantBlock
+                || state.getBlock() instanceof LeavesBlock
+                || state.getBlock() instanceof VineBlock;
     }
 
 

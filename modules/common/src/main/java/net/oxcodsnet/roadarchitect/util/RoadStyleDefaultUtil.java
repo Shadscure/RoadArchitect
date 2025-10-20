@@ -1,6 +1,7 @@
 package net.oxcodsnet.roadarchitect.util;
 
 import net.oxcodsnet.roadarchitect.config.RoadArchitectConfigData;
+import net.oxcodsnet.roadarchitect.config.RoadDecorationType;
 import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,5 +32,25 @@ public class RoadStyleDefaultUtil {
             list.add(def);
         }
         return list;
+    }
+
+    public static RoadStyleConfigEntry entry(List<String> selectors, List<RoadStyleConfigEntry.SurfaceBlockEntry> palette, List<RoadStyleConfigEntry.DecorationEntry> decorations) {
+        return new RoadStyleConfigEntry(selectors, palette, decorations);
+    }
+
+    public static List<RoadStyleConfigEntry.SurfaceBlockEntry> palette(RoadStyleConfigEntry.SurfaceBlockEntry... entries) {
+        return List.of(entries);
+    }
+
+    public static List<RoadStyleConfigEntry.DecorationEntry> decorations(RoadStyleConfigEntry.DecorationEntry... entries) {
+        return List.of(entries);
+    }
+
+    public static RoadStyleConfigEntry.SurfaceBlockEntry block(String id, int weight) {
+        return new RoadStyleConfigEntry.SurfaceBlockEntry(id, weight);
+    }
+
+    public static RoadStyleConfigEntry.DecorationEntry fence(String blockId) {
+        return new RoadStyleConfigEntry.DecorationEntry(RoadDecorationType.FENCE, blockId);
     }
 }

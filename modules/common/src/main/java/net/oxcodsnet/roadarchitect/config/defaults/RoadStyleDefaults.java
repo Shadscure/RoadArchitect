@@ -1,13 +1,12 @@
 package net.oxcodsnet.roadarchitect.config.defaults;
 
 import net.oxcodsnet.roadarchitect.config.RoadArchitectConfigData;
-import net.oxcodsnet.roadarchitect.config.RoadDecorationType;
 import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.oxcodsnet.roadarchitect.util.RoadStyleDefaultUtil.getRoadStyleDefinitions;
+import static net.oxcodsnet.roadarchitect.util.RoadStyleDefaultUtil.*;
 
 /**
  * Built-in road style definitions used as defaults and config seeds.
@@ -248,29 +247,5 @@ public final class RoadStyleDefaults {
 
     public static ArrayList<RoadArchitectConfigData.RoadStyleDefinition> createDefinitionCopies() {
         return getRoadStyleDefinitions(DEFAULTS);
-    }
-
-
-
-    private static RoadStyleConfigEntry entry(List<String> selectors,
-                                              List<RoadStyleConfigEntry.SurfaceBlockEntry> palette,
-                                              List<RoadStyleConfigEntry.DecorationEntry> decorations) {
-        return new RoadStyleConfigEntry(selectors, palette, decorations);
-    }
-
-    private static List<RoadStyleConfigEntry.SurfaceBlockEntry> palette(RoadStyleConfigEntry.SurfaceBlockEntry... entries) {
-        return List.of(entries);
-    }
-
-    private static List<RoadStyleConfigEntry.DecorationEntry> decorations(RoadStyleConfigEntry.DecorationEntry... entries) {
-        return List.of(entries);
-    }
-
-    private static RoadStyleConfigEntry.SurfaceBlockEntry block(String id, int weight) {
-        return new RoadStyleConfigEntry.SurfaceBlockEntry(id, weight);
-    }
-
-    private static RoadStyleConfigEntry.DecorationEntry fence(String blockId) {
-        return new RoadStyleConfigEntry.DecorationEntry(RoadDecorationType.FENCE, blockId);
     }
 }

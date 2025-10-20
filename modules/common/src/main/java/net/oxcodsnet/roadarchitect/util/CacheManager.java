@@ -87,7 +87,7 @@ public final class CacheManager {
     private static void load(ServerWorld world) {
         CacheStorage storage = CacheStorage.get(world);
         STATES.put(world.getRegistryKey(), new WorldCacheState(world, storage));
-        LOGGER.debug("Cache loaded for world {}", world.getRegistryKey().getValue());
+        DebugLog.info(LOGGER, "Cache loaded for world {}", world.getRegistryKey().getValue());
     }
 
     private static void save(ServerWorld world) {
@@ -95,7 +95,7 @@ public final class CacheManager {
         if (state != null) {
             state.chunkHeights().clear();
             state.storage().markDirty();
-            LOGGER.debug("Cache saved for world {}", world.getRegistryKey().getValue());
+            DebugLog.info(LOGGER, "Cache saved for world {}", world.getRegistryKey().getValue());
         }
     }
 
@@ -133,7 +133,7 @@ public final class CacheManager {
                     });
                 }
             }
-            LOGGER.debug("Prefill complete [{}..{}]×[{}..{}]",
+            DebugLog.info(LOGGER, "Prefill complete [{}..{}]×[{}..{}]",
                     minX, maxX, minZ, maxZ);
         });
     }
@@ -337,7 +337,7 @@ public final class CacheManager {
             try {
                 return existing.join();
             } catch (RuntimeException e) {
-                LOGGER.debug("Height snapshot future failed for chunk {}", chunkPos, e);
+                DebugLog.info(LOGGER, "Height snapshot future failed for chunk {}", chunkPos, e);
                 return null;
             }
         }

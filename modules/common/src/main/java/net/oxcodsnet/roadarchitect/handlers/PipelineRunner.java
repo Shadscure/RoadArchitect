@@ -4,6 +4,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import java.util.Locale;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
+import net.oxcodsnet.roadarchitect.util.DebugLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,39 +40,43 @@ public final class PipelineRunner {
             return;
         }
         String worldId = world.getRegistryKey().getValue().toString();
-        try (PipelineProfiler profiler = PipelineProfiler.start(mode.reason(), worldId, center)) {
+        PipelineProfiler profiler = null;
+        try {
+            if (RoadArchitect.CONFIG.debugPipelineProfiler()) {
+                profiler = PipelineProfiler.start(mode.reason(), worldId, center);
+            }
             PipelineProfiler.increment("pipeline.run.total");
             PipelineProfiler.increment("pipeline.run." + mode.name().toLowerCase(Locale.ROOT));
             setStage(PipelineStage.INITIALISATION);
-            LOGGER.debug("Pipeline start: {}", mode.reason());
+            DebugLog.info(LOGGER, "Pipeline start: {}", mode.reason());
             switch (mode) {
 
                 case INIT -> {
                     setStage(PipelineStage.SCANNING_STRUCTURES);
-                    try (PipelineProfiler.Section stage = profiler.section("stage.structure_scan")) {
+                    try (PipelineProfiler.Section stage = PipelineProfiler.openSection("stage.structure_scan")) {
                         StructureScanManager.scan(world, mode.reason(), center,
                                 RoadArchitect.CONFIG.initScanRadius());
                     }
 
                     setStage(PipelineStage.PATH_FINDING);
-                    try (PipelineProfiler.Section stage = profiler.section("stage.pathfinding")) {
+                    try (PipelineProfiler.Section stage = PipelineProfiler.openSection("stage.pathfinding")) {
                         PathFinderManager.computePaths(world, 1000);
                     }
 
                     setStage(PipelineStage.POST_PROCESSING);
-                    try (PipelineProfiler.Section stage = profiler.section("stage.post_processing")) {
+                    try (PipelineProfiler.Section stage = PipelineProfiler.openSection("stage.post_processing")) {
                         RoadPostProcessor.processPending(world);
                     }
                 }
                 default -> {
                     setStage(PipelineStage.SCANNING_STRUCTURES);
-                    try (PipelineProfiler.Section stage = profiler.section("stage.structure_scan")) {
+                    try (PipelineProfiler.Section stage = PipelineProfiler.openSection("stage.structure_scan")) {
                         StructureScanManager.scan(world, mode.reason(), center,
                                 RoadArchitect.CONFIG.chunkGenerateScanRadius());
                     }
 
                     setStage(PipelineStage.PATH_FINDING);
-                    try (PipelineProfiler.Section stage = profiler.section("stage.pathfinding")) {
+                    try (PipelineProfiler.Section stage = PipelineProfiler.openSection("stage.pathfinding")) {
                         PathFinderManager.computePaths(world, 50,
                                 RoadArchitect.CONFIG.maxConnectionDistance() * 5);
                     }
@@ -80,9 +85,12 @@ public final class PipelineRunner {
         } catch (Exception e) {
             LOGGER.error("Pipeline failure", e);
         } finally {
+            if (profiler != null) {
+                profiler.close();
+            }
             setStage(PipelineStage.COMPLETE);
             RUNNING.set(false);
-            LOGGER.debug("Pipeline finished: {}", mode.reason());
+            DebugLog.info(LOGGER, "Pipeline finished: {}", mode.reason());
         }
     }
 

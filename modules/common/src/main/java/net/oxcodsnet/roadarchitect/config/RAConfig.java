@@ -92,4 +92,14 @@ public interface RAConfig {
      * Biomes O' Plenty specific road surface styles pulled from configuration.
      */
     List<RoadStyleConfigEntry> bopRoadStyleOverrides();
+
+    /**
+     * Whether verbose diagnostic logging should be emitted.
+     */
+    boolean debugVerboseLogs();
+
+    /**
+     * Whether the pipeline profiler is enabled.
+     */
+    boolean debugPipelineProfiler();
 }

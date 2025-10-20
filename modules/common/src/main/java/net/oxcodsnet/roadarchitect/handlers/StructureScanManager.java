@@ -6,6 +6,7 @@ import net.minecraft.util.math.BlockPos;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.util.StructureLocator;
 import net.oxcodsnet.roadarchitect.util.profiler.PipelineProfiler;
+import net.oxcodsnet.roadarchitect.util.DebugLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class StructureScanManager {
     static void scan(ServerWorld world, String approach, BlockPos center, int overallRadius) {
         int scanRadius = 1;
         List<String> selectors = RoadArchitect.CONFIG.structureSelectors();
-        LOGGER.debug("[{}] Scan launch: overallRadius={}, scanRadius={}, selectors={}", approach, overallRadius, scanRadius, selectors);
+        DebugLog.info(LOGGER, "[{}] Scan launch: overallRadius={}, scanRadius={}, selectors={}", approach, overallRadius, scanRadius, selectors);
         PipelineProfiler.increment("structure_scan.invocations");
         PipelineProfiler.recordValue("structure_scan.selector_count", selectors.size());
         PipelineProfiler.recordValue("structure_scan.overall_radius", overallRadius);
@@ -50,7 +51,7 @@ public class StructureScanManager {
             found = StructureLocator.scanGridAsync(world, center, overallRadius, scanRadius, selectors);
         }
         PipelineProfiler.recordValue("structure_scan.found", found.size());
-        LOGGER.debug("[{}] Scanning is completed. Found structures: {}", approach, found.size());
+        DebugLog.info(LOGGER, "[{}] Scanning is completed. Found structures: {}", approach, found.size());
     }
 
     /**
@@ -65,7 +66,7 @@ public class StructureScanManager {
     static void scan(ServerWorld world, String approach, BlockPos center, int overallRadius, boolean allowChunkLoads) {
         int scanRadius = 1;
         List<String> selectors = RoadArchitect.CONFIG.structureSelectors();
-        LOGGER.debug("[{}] Scan launch: overallRadius={}, scanRadius={}, allowChunkLoads={}, selectors={}",
+        DebugLog.info(LOGGER, "[{}] Scan launch: overallRadius={}, scanRadius={}, allowChunkLoads={}, selectors={}",
                 approach, overallRadius, scanRadius, allowChunkLoads, selectors);
         PipelineProfiler.increment("structure_scan.invocations");
         PipelineProfiler.recordValue("structure_scan.selector_count", selectors.size());
@@ -77,6 +78,6 @@ public class StructureScanManager {
             found = StructureLocator.scanGridAsync(world, center, overallRadius, scanRadius, selectors, allowChunkLoads);
         }
         PipelineProfiler.recordValue("structure_scan.found", found.size());
-        LOGGER.debug("[{}] Scanning is completed. Found structures: {} (allowChunkLoads={})", approach, found.size(), allowChunkLoads);
+        DebugLog.info(LOGGER, "[{}] Scanning is completed. Found structures: {} (allowChunkLoads={})", approach, found.size(), allowChunkLoads);
     }
 }

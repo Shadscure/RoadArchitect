@@ -216,6 +216,18 @@ public final class RAConfigFabricBridge {
                 }
                 return compileRoadStyles(settings.overrides, BopRoadStyleDefaults.entries());
             }
+
+            @Override
+            public boolean debugVerboseLogs() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings != null && settings.enableVerboseLogs;
+            }
+
+            @Override
+            public boolean debugPipelineProfiler() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings != null && settings.enablePipelineProfiler;
+            }
         });
 
         holder.registerSaveListener((h, cfg) -> {

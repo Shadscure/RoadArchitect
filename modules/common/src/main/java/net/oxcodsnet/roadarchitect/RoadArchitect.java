@@ -150,6 +150,16 @@ public final class RoadArchitect {
         public java.util.List<RoadStyleConfigEntry> bopRoadStyleOverrides() {
             return RAConfigHolder.get().bopRoadStyleOverrides();
         }
+
+        @Override
+        public boolean debugVerboseLogs() {
+            return RAConfigHolder.get().debugVerboseLogs();
+        }
+
+        @Override
+        public boolean debugPipelineProfiler() {
+            return RAConfigHolder.get().debugPipelineProfiler();
+        }
     };
 
     private RoadArchitect() {

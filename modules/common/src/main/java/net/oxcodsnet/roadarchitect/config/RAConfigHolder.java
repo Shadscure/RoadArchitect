@@ -187,5 +187,15 @@ public final class RAConfigHolder {
         public List<RoadStyleConfigEntry> bopRoadStyleOverrides() {
             return BopRoadStyleDefaults.entries();
         }
+
+        @Override
+        public boolean debugVerboseLogs() {
+            return false;
+        }
+
+        @Override
+        public boolean debugPipelineProfiler() {
+            return false;
+        }
     }
 }

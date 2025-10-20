@@ -9,6 +9,7 @@ import net.oxcodsnet.roadarchitect.storage.RoadGraphState;
 import net.oxcodsnet.roadarchitect.util.AsyncExecutor;
 import net.oxcodsnet.roadarchitect.util.KeyUtil;
 import net.oxcodsnet.roadarchitect.util.PathFinder;
+import net.oxcodsnet.roadarchitect.util.DebugLog;
 import net.oxcodsnet.roadarchitect.util.profiler.PipelineProfiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,7 @@ public class PathFinderManager {
             String edgeId = entry.getKey();
             String[] nodes = KeyUtil.parseEdgeKey(edgeId);
             if (nodes.length != 2) {
-                LOGGER.debug("Invalid edge id: {}", edgeId);
+                DebugLog.info(LOGGER, "Invalid edge id: {}", edgeId);
                 continue;
             }
             String from = nodes[0], to = nodes[1];
@@ -85,14 +86,16 @@ public class PathFinderManager {
                 if (!job.path().isEmpty()) {
                     graph.edges().setStatus(job.edgeId(), EdgeStorage.Status.SUCCESS);
                     PipelineProfiler.increment("pathfinding.paths.success");
-                    LOGGER.debug(
+                    DebugLog.info(
+                            LOGGER,
                             ">>> Computed path {} ({} ms)",
                             job.edgeId(), job.durationMs()
                     );
                 } else {
                     graph.edges().setStatus(job.edgeId(), EdgeStorage.Status.FAILURE);
                     PipelineProfiler.increment("pathfinding.paths.failure");
-                    LOGGER.debug(
+                    DebugLog.info(
+                            LOGGER,
                             "! No path for {} ({} ms)",
                             job.edgeId(), job.durationMs()
                     );
@@ -106,9 +109,7 @@ public class PathFinderManager {
 
         storage.markDirty();
         graph.markDirty();
-        LOGGER.debug("Path calculation completed for world {}",
-                world.getRegistryKey().getValue()
-        );
+        DebugLog.info(LOGGER, "Path calculation completed for world {}", world.getRegistryKey().getValue());
     }
 
     // overloads for backwards compatibility

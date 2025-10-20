@@ -11,6 +11,7 @@ import net.oxcodsnet.roadarchitect.api.storage.PersistentStore;
 import net.oxcodsnet.roadarchitect.api.core.CoreApi;
 import net.oxcodsnet.roadarchitect.api.core.CoreApiImpl;
 import net.oxcodsnet.roadarchitect.api.storage.AddonPersistentStorage;
+import net.oxcodsnet.roadarchitect.util.DebugLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,7 @@ public final class RoadAddons {
         try {
             ADDONS.add(addon);
             addon.onRegister(new ContextImpl(addon.id()));
-            LOGGER.debug("Registered addon {}", addon.id());
+            DebugLog.info(LOGGER, "Registered addon {}", addon.id());
         } catch (Throwable t) {
             LOGGER.error("Addon registration failed: {}", addon.id(), t);
         }

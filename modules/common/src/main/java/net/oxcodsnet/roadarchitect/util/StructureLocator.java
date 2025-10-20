@@ -324,9 +324,7 @@ public final class StructureLocator {
             }
 
             if (!allowChunkLoads) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Skipping chunk load for candidate {} due to allowChunkLoads=false", c.pos);
-                }
+                DebugLog.info(LOGGER, "Skipping chunk load for candidate {} due to allowChunkLoads=false", c.pos);
                 PipelineProfiler.increment("structure_locator.chunk_loads_skipped");
                 // Не трогаем негативный кэш, чтобы кандидат мог быть проверен позже
                 continue;
@@ -403,9 +401,7 @@ public final class StructureLocator {
             RoadGraphState graph = RoadGraphState.get(world);
             for (Pair<BlockPos, String> pair : found) {
                 Node node = graph.addNodeWithEdges(pair.getFirst(), pair.getSecond());
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Added node {} at {} ({})", node.id(), node.pos(), pair.getSecond());
-                }
+                DebugLog.info(LOGGER, "Added node {} at {} ({})", node.id(), node.pos(), pair.getSecond());
             }
             graph.markDirty();
         });
@@ -430,9 +426,7 @@ public final class StructureLocator {
         }
         if (minSpacing != Integer.MAX_VALUE) {
             int step = Math.max(fallbackStep, minSpacing);
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Grid step optimization: fallbackStep={}, minSpacing={}, chosenStep={}", fallbackStep, minSpacing, step);
-            }
+            DebugLog.info(LOGGER, "Grid step optimization: fallbackStep={}, minSpacing={}, chosenStep={}", fallbackStep, minSpacing, step);
             return step;
         }
         return fallbackStep;

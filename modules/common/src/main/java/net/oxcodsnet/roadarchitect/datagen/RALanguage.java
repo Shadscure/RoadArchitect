@@ -175,6 +175,13 @@ public final class RALanguage {
                         "Minimum convergence (in %) to accept a partial path when A* doesn't reach the goal.");
                 // Forbidden biomes
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Forbidden Biomes");
+                add.accept("text.autoconfig.roadarchitect.category.debug", "Debug & Diagnostics (Advanced)");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs", "Enable Verbose Logs");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs.@Tooltip",
+                        "Writes debug-only messages at info level to help with troubleshooting. May be noisy.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "Enable Pipeline Profiler");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
+                        "Runs the pipeline profiler during road generation to collect detailed timing information.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Forbidden Biome Selectors");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "List of biome selectors (IDs or #tags) that roads cannot traverse.");
@@ -362,6 +369,13 @@ public final class RALanguage {
                         "Минимальный прогресс (в %) для принятия частичного пути, когда цель не достигнута.");
                 // Запрещённые биомы
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Запрещённые биомы");
+                add.accept("text.autoconfig.roadarchitect.category.debug", "Отладка и диагностика (расширено)");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs", "Включить подробные логи");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs.@Tooltip",
+                        "При включении сообщения для отладки записываются на уровне info. Может засорять лог.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "Включить профайлер пайплайна");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
+                        "Запускает профайлер пайплайна во время генерации дорог и собирает подробные тайминги.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селекторы запрещённых биомов");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Список селекторов биомов (ID или #теги), по которым дороги не строятся.");
@@ -432,6 +446,13 @@ public final class RALanguage {
                         "Convergencia mínima (en %) para aceptar un camino parcial cuando A* no llega al objetivo.");
                 // Biomas prohibidos
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Biomas prohibidos");
+                add.accept("text.autoconfig.roadarchitect.category.debug", "Depuración y diagnóstico (avanzado)");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs", "Activar registros detallados");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs.@Tooltip",
+                        "Si se activa, los mensajes de depuración se escribirán en nivel info. Puede generar mucho ruido.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "Activar el perfilador del pipeline");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
+                        "Ejecuta el perfilador del pipeline durante la generación de carreteras para recopilar tiempos detallados.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selectores de biomas prohibidos");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Lista de selectores de biomas (IDs o #etiquetas) por los que las carreteras no pueden pasar.");
@@ -619,6 +640,13 @@ public final class RALanguage {
                         "Convergence minimale (en %) pour accepter un chemin partiel lorsque A* n’atteint pas l’objectif.");
                 // Biomes interdits
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Biomes interdits");
+                add.accept("text.autoconfig.roadarchitect.category.debug", "Débogage et diagnostic (avancé)");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs", "Activer les journaux détaillés");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs.@Tooltip",
+                        "Si activé, les messages de débogage sont écrits au niveau info. Peut devenir verbeux.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "Activer le profileur du pipeline");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
+                        "Lance le profileur du pipeline pendant la génération des routes pour collecter des mesures détaillées.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Sélecteurs de biomes interdits");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Liste des sélecteurs de biomes (IDs ou #tags) que les routes ne peuvent pas traverser.");
@@ -923,6 +951,13 @@ public final class RALanguage {
                         "Mindestfortschritt (in %), um einen Teilpfad zu akzeptieren, wenn das Ziel nicht erreicht wird.");
                 // Verbotene Biome
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Verbotene Biome");
+                add.accept("text.autoconfig.roadarchitect.category.debug", "Debug & Diagnose (Erweitert)");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs", "Ausführliche Logs aktivieren");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs.@Tooltip",
+                        "Schreibt Debug-Nachrichten auf Info-Level, um Fehler zu finden. Kann viele Meldungen erzeugen.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "Pipeline-Profiler aktivieren");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
+                        "Startet den Pipeline-Profiler während der Straßengenerierung und erfasst detaillierte Laufzeiten.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selektoren verbotener Biome");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Liste von Biom-Selektoren (IDs oder #Tags), durch die keine Straßen verlaufen dürfen.");
@@ -1100,6 +1135,13 @@ public final class RALanguage {
                         "当未达目标时，接受部分路径所需的最小收敛百分比。");
                 // 禁止生物群系
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "禁止的生物群系");
+                add.accept("text.autoconfig.roadarchitect.category.debug", "调试与诊断（高级）");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs", "启用详细日志");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs.@Tooltip",
+                        "启用后会将调试信息以 info 级别写入日志，可能会比较嘈杂。");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "启用管线分析器");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
+                        "在道路生成时运行管线分析器并收集详细的耗时信息。");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "禁止生物群系选择器");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "生物群系选择器列表（ID 或 #标签），道路不能穿过这些群系。");
@@ -1277,6 +1319,13 @@ public final class RALanguage {
                         "Мінімальний прогрес (у %), щоб прийняти частковий шлях, коли ціль не досягнута.");
                 // Заборонені біоми
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Заборонені біоми");
+                add.accept("text.autoconfig.roadarchitect.category.debug", "Налагодження й діагностика (розширено)");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs", "Увімкнути докладні логи");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs.@Tooltip",
+                        "Якщо ввімкнено, діагностичні повідомлення записуються на рівні info. Може засмічувати лог.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "Увімкнути профайлер пайплайна");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
+                        "Запускає профайлер пайплайна під час генерації доріг, щоб зібрати докладні часові вимірювання.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селектори заборонених біомів");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Список селекторів біомів (ID або #теги), через які дороги не прокладаються.");

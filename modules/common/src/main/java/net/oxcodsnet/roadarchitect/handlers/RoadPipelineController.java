@@ -16,6 +16,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.structure.Structure;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
+import net.oxcodsnet.roadarchitect.util.DebugLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +59,7 @@ public final class RoadPipelineController {
     public static void init() {
         cacheStructureSelectors();
         tickCounter = 0;
-        LOGGER.debug("RoadPipelineController initialized (selectors cached)");
+        DebugLog.info(LOGGER, "RoadPipelineController initialized (selectors cached)");
     }
 
     /**
@@ -66,7 +67,7 @@ public final class RoadPipelineController {
      */
     public static void refreshStructureSelectorCache() {
         cacheStructureSelectors();
-        LOGGER.debug("RoadPipelineController reloaded selectors from config");
+        DebugLog.info(LOGGER, "RoadPipelineController reloaded selectors from config");
     }
 
     /* ───────────────────────── Точные кейсы из исходного register() ───────────────────────── */
@@ -81,7 +82,7 @@ public final class RoadPipelineController {
         if (!chunk.getPos().equals(spawnChunk)) return;
 
         if (INITIALIZED.add(world.getRegistryKey())) {
-            LOGGER.debug("Spawn chunk {} generated in {}, starting INIT pipeline",
+            DebugLog.info(LOGGER, "Spawn chunk {} generated in {}, starting INIT pipeline",
                     chunk.getPos(), world.getRegistryKey().getValue());
             PipelineRunner.runPipeline(world, world.getSpawnPos(), PipelineRunner.PipelineMode.INIT);
         }
@@ -95,7 +96,7 @@ public final class RoadPipelineController {
         if (!containsTargetStructure(world, chunk)) return;
 
         BlockPos center = chunk.getPos().getCenterAtY(0);
-        LOGGER.debug("Chunk {} generated with target structure, starting CHUNK pipeline", chunk.getPos());
+        DebugLog.info(LOGGER, "Chunk {} generated with target structure, starting CHUNK pipeline", chunk.getPos());
         PipelineRunner.runPipeline(world, center, PipelineRunner.PipelineMode.CHUNK);
     }
 
@@ -107,7 +108,7 @@ public final class RoadPipelineController {
         if (!isDimensionEnabled(world.getRegistryKey())) return;
 
         BlockPos pos = player.getBlockPos();
-        LOGGER.debug("Player {} joined at {}, starting PERIODIC pipeline",
+        DebugLog.info(LOGGER, "Player {} joined at {}, starting PERIODIC pipeline",
                 player.getName().getString(), pos);
         PipelineRunner.runPipeline(world, pos, PipelineRunner.PipelineMode.PERIODIC);
     }
@@ -126,7 +127,7 @@ public final class RoadPipelineController {
             if (!isDimensionEnabled(w.getRegistryKey())) continue;
 
             BlockPos pos = player.getBlockPos();
-            LOGGER.debug("Periodic trigger at player {} pos {}, starting PERIODIC pipeline",
+            DebugLog.info(LOGGER, "Periodic trigger at player {} pos {}, starting PERIODIC pipeline",
                     player.getName().getString(), pos);
             PipelineRunner.runPipeline((ServerWorld) w, pos, PipelineRunner.PipelineMode.PERIODIC);
         }
@@ -138,7 +139,7 @@ public final class RoadPipelineController {
     public static void onServerStopping() {
         INITIALIZED.clear();
         tickCounter = 0;
-        LOGGER.debug("Server stopping, state cleared");
+        DebugLog.info(LOGGER, "Server stopping, state cleared");
     }
 
     /* ─────────────────────────── Вспомогательное ─────────────────────────── */

@@ -199,4 +199,17 @@ public final class RoadArchitectConfigData implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         public double proximityPenalty = 500.0;
     }
+
+    // Debug & diagnostics (placed last intentionally)
+    @ConfigEntry.Category("debug")
+    @ConfigEntry.Gui.TransitiveObject
+    public DebugSettings debug = new DebugSettings();
+
+    public static final class DebugSettings {
+        @ConfigEntry.Gui.Tooltip
+        public boolean enableVerboseLogs = false;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean enablePipelineProfiler = false;
+    }
 }

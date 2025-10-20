@@ -52,7 +52,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
     private static final BuoyDecoration BUOY = new BuoyDecoration();
     private static final BlockState PREPARATION_BLOCK = Blocks.BEDROCK.getDefaultState();
-    private static final int PREPARATION_CLEARANCE_EXTRA = 1;
+    private static final int PREPARATION_CLEARANCE_EXTRA = 2;
     private static final Map<Long, BlockState> PREPARATION_BACKUP = new ConcurrentHashMap<>();
 
     public RoadFeature(Codec<RoadFeatureConfig> codec) {
@@ -98,6 +98,15 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                             PREPARATION_BACKUP.putIfAbsent(packedPos, previous);
                         }
                         placeRoad(world, roadPos, PREPARATION_BLOCK);
+                        if (insideRoad) {
+                            BlockPos topPos = roadPos.up();
+                            long packedTop = topPos.asLong();
+                            BlockState topPrevious = world.getBlockState(topPos);
+                            if (!topPrevious.isOf(PREPARATION_BLOCK.getBlock())) {
+                                PREPARATION_BACKUP.putIfAbsent(packedTop, topPrevious);
+                            }
+                            world.setBlockState(topPos, PREPARATION_BLOCK, Block.NOTIFY_NEIGHBORS);
+                        }
                         continue;
                     }
 
@@ -110,6 +119,14 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                         BlockState roadState = style.palette().pick(random);
                         placeRoad(world, roadPos, roadState);
                         PREPARATION_BACKUP.remove(packedPos);
+                        BlockPos topPos = roadPos.up();
+                        long packedTop = topPos.asLong();
+                        BlockState topPrevious = PREPARATION_BACKUP.remove(packedTop);
+                        if (topPrevious != null) {
+                            world.setBlockState(topPos, topPrevious, Block.NOTIFY_NEIGHBORS);
+                        } else if (world.getBlockState(topPos).isOf(PREPARATION_BLOCK.getBlock())) {
+                            world.removeBlock(topPos, false);
+                        }
                     } else {
                         BlockState previous = PREPARATION_BACKUP.remove(packedPos);
                         if (previous != null) {

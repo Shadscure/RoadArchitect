@@ -71,7 +71,7 @@ public final class RAConfigHolder {
 
         @Override
         public int roadWidth() {
-            return 5;
+            return 3;
         }
 
         @Override

@@ -81,6 +81,11 @@ public final class RAConfigNeoForgeBridge {
             }
 
             @Override
+            public int roadWidth() {
+                return holder.getConfig().roadWidth;
+            }
+
+            @Override
             public int buoyInterval() {
                 return holder.getConfig().buoyInterval;
             }

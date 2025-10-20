@@ -70,6 +70,11 @@ public final class RAConfigHolder {
         }
 
         @Override
+        public int roadWidth() {
+            return 3;
+        }
+
+        @Override
         public int buoyInterval() {
             return 18;
         }

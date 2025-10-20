@@ -30,6 +30,9 @@ public final class RoadArchitectConfigData implements ConfigData {
     public int lampInterval = 30; // numeric field (blocks)
 
     @ConfigEntry.Gui.Tooltip
+    public int roadWidth = 3; // numeric field (blocks across)
+
+    @ConfigEntry.Gui.Tooltip
     public int sideDecorationInterval = 12; // numeric field (blocks)
 
     @ConfigEntry.Gui.Tooltip

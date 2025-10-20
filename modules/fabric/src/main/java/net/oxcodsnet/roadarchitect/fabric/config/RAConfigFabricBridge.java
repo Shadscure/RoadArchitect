@@ -70,6 +70,11 @@ public final class RAConfigFabricBridge {
             }
 
             @Override
+            public int roadWidth() {
+                return holder.getConfig().roadWidth;
+            }
+
+            @Override
             public int sideDecorationInterval() {
                 return holder.getConfig().sideDecorationInterval;
             }

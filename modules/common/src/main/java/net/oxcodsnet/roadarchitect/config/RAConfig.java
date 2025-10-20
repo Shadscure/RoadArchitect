@@ -19,6 +19,11 @@ public interface RAConfig {
     int lampInterval();
 
     /**
+     * Road width (in blocks across) when placing generated segments.
+     */
+    int roadWidth();
+
+    /**
      * Interval (in blocks along the path metric) for placing buoys on water segments.
      */
     int buoyInterval();

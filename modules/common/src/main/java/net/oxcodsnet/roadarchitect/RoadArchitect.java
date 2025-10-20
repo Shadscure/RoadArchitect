@@ -37,6 +37,11 @@ public final class RoadArchitect {
         }
 
         @Override
+        public int roadWidth() {
+            return RAConfigHolder.get().roadWidth();
+        }
+
+        @Override
         public int buoyInterval() {
             return RAConfigHolder.get().buoyInterval();
         }

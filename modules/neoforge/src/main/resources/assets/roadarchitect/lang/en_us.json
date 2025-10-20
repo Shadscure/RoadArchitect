@@ -70,6 +70,8 @@
   "text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip": "Radius in chunks to scan for structures when the world is first loaded.",
   "text.autoconfig.roadarchitect.option.lampInterval": "Lamp Interval",
   "text.autoconfig.roadarchitect.option.lampInterval.@Tooltip": "Distance in blocks along the path between lamp posts.",
+  "text.autoconfig.roadarchitect.option.roadWidth": "Road Width",
+  "text.autoconfig.roadarchitect.option.roadWidth.@Tooltip": "Width of generated road segments in blocks (odd values recommended).",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled": "Enable Custom Lamp Posts",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Toggle to apply the editable entries below; disable to restore the built-in presets.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides": "Lamp Post Entries",

@@ -70,6 +70,8 @@
   "text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip": "Radius in Chunks zum Suchen nach Strukturen beim ersten Laden der Welt.",
   "text.autoconfig.roadarchitect.option.lampInterval": "Laternenintervall",
   "text.autoconfig.roadarchitect.option.lampInterval.@Tooltip": "Abstand in Blöcken entlang des Pfads zwischen Laternen.",
+  "text.autoconfig.roadarchitect.option.roadWidth": "Straßenbreite",
+  "text.autoconfig.roadarchitect.option.roadWidth.@Tooltip": "Breite der erzeugten Straßenabschnitte in Blöcken (ungerade Werte empfohlen).",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled": "Benutzerdefinierte Lampen aktivieren",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Aktiviere, um die bearbeitbaren Einträge unten zu verwenden; deaktiviere für die eingebauten Presets.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides": "Laternen-Einträge",

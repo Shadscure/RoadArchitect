@@ -63,6 +63,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Lamp Interval");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
                         "Distance in blocks along the path between lamp posts.");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth", "Road Width");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth.@Tooltip",
+                        "Width of generated road segments in blocks (odd values recommended).");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval", "Side Decoration Interval");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval.@Tooltip",
                         "Distance in blocks between side decorations along the path.");
@@ -257,6 +260,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Интервал фонарей");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
                         "Расстояние в блоках вдоль пути между фонарями.");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth", "Ширина дороги");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth.@Tooltip",
+                        "Ширина генерируемой дороги в блоках (предпочтительны нечётные значения).");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval", "Интервал боковых украшений");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval.@Tooltip",
                         "Расстояние в блоках между боковыми украшениями вдоль пути.");
@@ -490,6 +496,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Intervalo de farolas");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
                         "Distancia en bloques a lo largo del camino entre farolas.");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth", "Ancho de la carretera");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth.@Tooltip",
+                        "Anchura de los tramos generados en bloques (se recomiendan valores impares).");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval", "Intervalo de decoraciones laterales");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval.@Tooltip",
                         "Distancia en bloques entre decoraciones laterales a lo largo del camino.");
@@ -684,6 +693,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Intervalle des lampadaires");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
                         "Distance en blocs le long de la route entre les lampadaires.");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth", "Largeur de la route");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth.@Tooltip",
+                        "Largeur des segments de route générés en blocs (valeurs impaires recommandées).");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval", "Intervalle des décorations latérales");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval.@Tooltip",
                         "Distance en blocs entre les décorations latérales le long de la route.");
@@ -839,6 +851,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Laternenintervall");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
                         "Abstand in Blöcken entlang des Pfads zwischen Laternen.");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth", "Straßenbreite");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth.@Tooltip",
+                        "Breite der erzeugten Straßenabschnitte in Blöcken (ungerade Werte empfohlen).");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval", "Seiten-Dekor-Intervall");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval.@Tooltip",
                         "Abstand in Blöcken zwischen seitlichen Dekorationen entlang des Pfads.");
@@ -1023,6 +1038,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "灯间距");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
                         "沿路径的灯之间的方块距离。");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth", "道路宽度");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth.@Tooltip",
+                        "生成道路的宽度（以方块计，建议使用奇数）。");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval", "侧边装饰间距");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval.@Tooltip",
                         "沿路径的侧边装饰之间的方块距离。");
@@ -1207,6 +1225,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval", "Інтервал ліхтарів");
                 add.accept("text.autoconfig.roadarchitect.option.lampInterval.@Tooltip",
                         "Відстань у блоках уздовж дороги між ліхтарними стовпами.");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth", "Ширина дороги");
+                add.accept("text.autoconfig.roadarchitect.option.roadWidth.@Tooltip",
+                        "Ширина згенерованих відрізків дороги в блоках (рекомендовано непарні значення).");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval", "Інтервал декорацій парканів");
                 add.accept("text.autoconfig.roadarchitect.option.sideDecorationInterval.@Tooltip",
                         "Відстань у блоках між прикрасами парканів вздовж дороги.");

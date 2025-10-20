@@ -70,6 +70,8 @@
   "text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip": "Радіус у чанках для пошуку структур під час першого завантаження світу.",
   "text.autoconfig.roadarchitect.option.lampInterval": "Інтервал ліхтарів",
   "text.autoconfig.roadarchitect.option.lampInterval.@Tooltip": "Відстань у блоках уздовж дороги між ліхтарними стовпами.",
+  "text.autoconfig.roadarchitect.option.roadWidth": "Ширина дороги",
+  "text.autoconfig.roadarchitect.option.roadWidth.@Tooltip": "Ширина згенерованих відрізків дороги в блоках (рекомендовано непарні значення).",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled": "Увімкнути користувацькі ліхтарі",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Увімкніть, щоб застосувати записи, які можна редагувати нижче; вимкніть, щоб повернути вбудовані пресети.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides": "Записи ліхтарів",

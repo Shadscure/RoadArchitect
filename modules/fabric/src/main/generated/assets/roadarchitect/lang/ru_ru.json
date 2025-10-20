@@ -70,6 +70,8 @@
   "text.autoconfig.roadarchitect.option.initScanRadius.@Tooltip": "Радиус в чанках для поиска структур при первом запуске мира.",
   "text.autoconfig.roadarchitect.option.lampInterval": "Интервал фонарей",
   "text.autoconfig.roadarchitect.option.lampInterval.@Tooltip": "Расстояние в блоках вдоль пути между фонарями.",
+  "text.autoconfig.roadarchitect.option.roadWidth": "Ширина дороги",
+  "text.autoconfig.roadarchitect.option.roadWidth.@Tooltip": "Ширина генерируемой дороги в блоках (предпочтительны нечётные значения).",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled": "Включить пользовательские фонари",
   "text.autoconfig.roadarchitect.option.lampPosts.enabled.@Tooltip": "Включите, чтобы применять настраиваемые записи ниже; отключите, чтобы вернуть встроенные пресеты.",
   "text.autoconfig.roadarchitect.option.lampPosts.overrides": "Записи фонарей",

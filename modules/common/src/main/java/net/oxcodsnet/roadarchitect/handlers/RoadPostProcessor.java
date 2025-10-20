@@ -4,6 +4,9 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.world.gen.noise.NoiseConfig;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.PathStorage;
 import net.oxcodsnet.roadarchitect.util.AsyncExecutor;
@@ -89,27 +92,74 @@ public final class RoadPostProcessor {
     private static List<BlockPos> refine(ServerWorld world, List<BlockPos> verts) {
         if (verts.isEmpty()) return List.of();
 
+        ChunkGenerator generator = world.getChunkManager().getChunkGenerator();
+        NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
+        Map<Long, Integer> resolvedHeights = new HashMap<>();
         List<BlockPos> out = new ArrayList<>(verts.size() * PathFinder.GRID_STEP);
         for (int i = 0; i < verts.size() - 1; i++) {
             BlockPos a = verts.get(i);
             BlockPos b = verts.get(i + 1);
-            out.add(a.down());
-            interpolate(world, a, b, out);
+            out.add(adjustToGround(world, generator, noiseConfig, resolvedHeights, a));
+            interpolate(world, generator, noiseConfig, a, b, resolvedHeights, out);
         }
-        out.add(verts.getLast().down());
+        out.add(adjustToGround(world, generator, noiseConfig, resolvedHeights, verts.getLast()));
         return out;
     }
 
-    private static void interpolate(ServerWorld world, BlockPos a, BlockPos b, List<BlockPos> out) {
+    private static void interpolate(ServerWorld world,
+                                    ChunkGenerator generator,
+                                    NoiseConfig noiseConfig,
+                                    BlockPos a,
+                                    BlockPos b,
+                                    Map<Long, Integer> resolvedHeights,
+                                    List<BlockPos> out) {
         int dx = Integer.signum(b.getX() - a.getX());
         int dz = Integer.signum(b.getZ() - a.getZ());
         int steps = Math.max(Math.abs(b.getX() - a.getX()), Math.abs(b.getZ() - a.getZ()));
         for (int i = 1; i < steps; i++) {
             int nx = a.getX() + dx * i;
             int nz = a.getZ() + dz * i;
-            int ny = CacheManager.getHeight(world, nx, nz) - 1;
+            int ny = resolveSurfaceHeight(world, generator, noiseConfig, resolvedHeights, nx, nz) - 1;
             out.add(new BlockPos(nx, ny, nz));
         }
+    }
+
+    private static BlockPos adjustToGround(ServerWorld world,
+                                           ChunkGenerator generator,
+                                           NoiseConfig noiseConfig,
+                                           Map<Long, Integer> resolvedHeights,
+                                           BlockPos pos) {
+        int surface = resolveSurfaceHeight(world, generator, noiseConfig, resolvedHeights, pos.getX(), pos.getZ());
+        return new BlockPos(pos.getX(), surface - 1, pos.getZ());
+    }
+
+    private static int resolveSurfaceHeight(ServerWorld world,
+                                            ChunkGenerator generator,
+                                            NoiseConfig noiseConfig,
+                                            Map<Long, Integer> resolvedHeights,
+                                            int x,
+                                            int z) {
+        long key = CacheManager.hash(x, z);
+        Integer cached = resolvedHeights.get(key);
+        if (cached != null) {
+            return cached;
+        }
+
+        int resolved = CacheManager.getHeight(world, x, z);
+        int bottomGuard = world.getBottomY() + 1;
+        if (resolved < bottomGuard) {
+            resolved = bottomGuard;
+        }
+
+        if (generator != null && noiseConfig != null) {
+            int generated = generator.getHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG, world, noiseConfig);
+            if (generated > resolved) {
+                resolved = generated;
+            }
+        }
+
+        resolvedHeights.put(key, resolved);
+        return resolved;
     }
 
     private static NormalizeResult normalizeHeights(List<BlockPos> refined) {
@@ -454,7 +504,10 @@ public final class RoadPostProcessor {
 
         int jx = (int) Math.round((pa.getX() + pb.getX()) / 2.0);
         int jz = (int) Math.round((pa.getZ() + pb.getZ()) / 2.0);
-        int jy = CacheManager.getHeight(world, jx, jz); // refine потом даст .down()
+        ChunkGenerator generator = world.getChunkManager().getChunkGenerator();
+        NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
+        Map<Long, Integer> resolvedHeights = new HashMap<>();
+        int jy = resolveSurfaceHeight(world, generator, noiseConfig, resolvedHeights, jx, jz); // refine потом даст .down()
         BlockPos J = new BlockPos(jx, jy, jz);
 
         List<BlockPos> legA = new ArrayList<>(a.subList(0, conv.i + 1));

@@ -507,8 +507,7 @@ public final class RoadPostProcessor {
         ChunkGenerator generator = world.getChunkManager().getChunkGenerator();
         NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
         Map<Long, Integer> resolvedHeights = new HashMap<>();
-        int jy = resolveSurfaceHeight(world, generator, noiseConfig, resolvedHeights, jx, jz); // refine потом даст .down()
-        BlockPos J = new BlockPos(jx, jy, jz);
+        BlockPos J = adjustToGround(world, generator, noiseConfig, resolvedHeights, new BlockPos(jx, pa.getY(), jz));
 
         List<BlockPos> legA = new ArrayList<>(a.subList(0, conv.i + 1));
         legA.set(legA.size() - 1, J);

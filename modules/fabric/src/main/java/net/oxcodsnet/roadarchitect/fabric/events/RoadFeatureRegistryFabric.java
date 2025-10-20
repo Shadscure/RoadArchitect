@@ -21,11 +21,18 @@ public final class RoadFeatureRegistryFabric {
                 RoadFeatureRegistry.ROAD_FEATURE
         );
 
-        // 2) Втыкаем наш placed feature во все биомы на LOCAL_MODIFICATIONS
+        // 2) Втыкаем подготовительную фазу на LOCAL_MODIFICATIONS
         BiomeModifications.addFeature(
                 BiomeSelectors.all(),
                 GenerationStep.Feature.LOCAL_MODIFICATIONS,
-                RoadFeatureRegistry.ROAD_PLACED_FEATURE_KEY
+                RoadFeatureRegistry.ROAD_PREP_PLACED_FEATURE_KEY
+        );
+
+        // 3) Финишный проход на TOP_LAYER_MODIFICATION
+        BiomeModifications.addFeature(
+                BiomeSelectors.all(),
+                GenerationStep.Feature.TOP_LAYER_MODIFICATION,
+                RoadFeatureRegistry.ROAD_FINAL_PLACED_FEATURE_KEY
         );
     }
 }

@@ -6,6 +6,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.LeavesBlock;
 import net.minecraft.block.PlantBlock;
 import net.minecraft.block.VineBlock;
+import net.minecraft.block.Blocks;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -39,6 +40,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.oxcodsnet.roadarchitect.worldgen.RoadFeatureConfig.GenerationPhase;
+
 /**
  * Feature that places road segments stored in {@link RoadBuilderStorage}.
  * <p>
@@ -50,15 +53,16 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/" + RoadFeature.class.getSimpleName());
 
     private static final BuoyDecoration BUOY = new BuoyDecoration();
-    private static final int MAX_CLEAR_HEIGHT = 12;
+    private static final BlockState PREPARATION_BLOCK = Blocks.STONE.getDefaultState();
 
     public RoadFeature(Codec<RoadFeatureConfig> codec) {
         super(codec);
     }
 
 
-    private static void buildRoadStripe(StructureWorldAccess world, List<BlockPos> pts, int halfWidth, Random random) {
-        Registry<Biome> biomeRegistry = world.getRegistryManager().get(RegistryKeys.BIOME);
+    private static void buildRoadStripe(StructureWorldAccess world, List<BlockPos> pts, int halfWidth, Random random, GenerationPhase phase) {
+        boolean finalizePhase = phase == GenerationPhase.FINALIZE;
+        Registry<Biome> biomeRegistry = finalizePhase ? world.getRegistryManager().get(RegistryKeys.BIOME) : null;
         for (int i = 0; i < pts.size(); i++) {
             BlockPos p = pts.get(i);
             int prevIdx = Math.max(0, i - 2);
@@ -81,11 +85,20 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                     BlockPos roadPos = p.add(dx, 0, dz);
 
                     if (!isNotWaterBlock(world, p)) {continue;}
-                    RegistryEntry<Biome> biome = world.getBiome(roadPos);
-                    RoadStyle style = RoadStyles.forBiome(biomeRegistry, biome);
-                    BlockState roadState = style.palette().pick(random);
+                    BlockState roadState;
+                    if (finalizePhase) {
+                        RegistryEntry<Biome> biome = world.getBiome(roadPos);
+                        RoadStyle style = RoadStyles.forBiome(biomeRegistry, biome);
+                        roadState = style.palette().pick(random);
+                    } else {
+                        roadState = PREPARATION_BLOCK;
+                    }
                     placeRoad(world, roadPos, roadState);
                 }
+            }
+
+            if (!finalizePhase) {
+                continue;
             }
 
             RoadStyle style = RoadStyles.forBiome(biomeRegistry, world.getBiome(p));
@@ -278,6 +291,8 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         }
         int halfWidth = Math.max(0, orthWidth / 2);
         Random random = world.getRandom();
+        GenerationPhase phase = ctx.getConfig().phase();
+        boolean finalizePhase = phase == GenerationPhase.FINALIZE;
         Registry<Biome> biomeRegistry = world.getRegistryManager().get(RegistryKeys.BIOME);
         boolean placedAny = false;
 
@@ -313,9 +328,9 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
             PathDecorUtil.fillWaterInteriorMask(decor, pathKey, world, pts, from, to);
 
             /* ---------- ФАЗА 1: вода / буйки (детерминированно) ---------- */
-            if (det && buoyInterval > 0) {
-                int phase = PathDecorUtil.phaseFor(pathKey, buoyInterval);
-                List<PathDecorUtil.Marker> marks = PathDecorUtil.markersInWindow(S, from, to, buoyInterval, phase);
+            if (finalizePhase && det && buoyInterval > 0) {
+                int markerPhase = PathDecorUtil.phaseFor(pathKey, buoyInterval);
+                List<PathDecorUtil.Marker> marks = PathDecorUtil.markersInWindow(S, from, to, buoyInterval, markerPhase);
                 byte[] waterMask = decor.getWaterInteriorMask(pathKey);
                 for (PathDecorUtil.Marker m : marks) {
                     int idx = m.index();
@@ -327,11 +342,17 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
             /* ---------- ФАЗА 2: суша (дорога + фонари детерминированно) ---------- */
             List<BlockPos> landPts = collectLandPoints(world, pts, from, to);
-            buildRoadStripe(world, landPts, halfWidth, random);
+            buildRoadStripe(world, landPts, halfWidth, random, phase);
+
+            placedAny = true;
+
+            if (!finalizePhase) {
+                continue;
+            }
 
             if (det && lampInterval > 0) {
-                int phase = PathDecorUtil.phaseFor(pathKey, lampInterval);
-                List<PathDecorUtil.Marker> marks = PathDecorUtil.markersInWindow(S, from, to, lampInterval, phase);
+                int markerPhase = PathDecorUtil.phaseFor(pathKey, lampInterval);
+                List<PathDecorUtil.Marker> marks = PathDecorUtil.markersInWindow(S, from, to, lampInterval, markerPhase);
                 byte[] landMask = decor.getGroundMask(pathKey);
 
                 for (PathDecorUtil.Marker m : marks) {
@@ -361,8 +382,8 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
             /* ---------- ФАЗА 3: суша / боковые украшения (детерминированно) ---------- */
             if (det && sideInterval > 0) {
-                int phase = PathDecorUtil.phaseFor(pathKey, sideInterval);
-                List<PathDecorUtil.Marker> marks = PathDecorUtil.markersInWindow(S, from, to, sideInterval, phase);
+                int markerPhase = PathDecorUtil.phaseFor(pathKey, sideInterval);
+                List<PathDecorUtil.Marker> marks = PathDecorUtil.markersInWindow(S, from, to, sideInterval, markerPhase);
                 byte[] landMask = decor.getGroundMask(pathKey);
 
                 for (PathDecorUtil.Marker m : marks) {
@@ -395,7 +416,6 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                     placeSideDet(world, p, nx, nz, halfWidth, chosen, leftSide, length, net.minecraft.util.math.random.Random.create(m.k() ^ pathKey.hashCode()));
                 }
             }
-            placedAny = true;
         }
         return placedAny;
     }

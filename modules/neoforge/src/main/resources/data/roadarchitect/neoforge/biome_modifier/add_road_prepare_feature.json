@@ -1,6 +1,6 @@
 {
   "type": "neoforge:add_features",
   "biomes": "#minecraft:is_overworld",
-  "features": "roadarchitect:road",
+  "features": "roadarchitect:road_prepare",
   "step": "local_modifications"
 }

@@ -2,6 +2,7 @@
   "type": "roadarchitect:road",
   "config": {
     "forward_length": 1,
-    "orth_width": 3
+    "orth_width": 3,
+    "phase": "finalize"
   }
 }

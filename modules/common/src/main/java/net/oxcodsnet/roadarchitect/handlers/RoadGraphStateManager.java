@@ -4,6 +4,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.RoadGraphState;
+import net.oxcodsnet.roadarchitect.util.DebugLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,7 @@ public final class RoadGraphStateManager {
     public static void onWorldLoad(ServerWorld world) {
         // Гарантируем, что стейт создан/поднят
         RoadGraphState.get(world);
-        LOGGER.debug("RoadGraphState loaded for world {}", world.getRegistryKey().getValue());
+        DebugLog.info(LOGGER, "RoadGraphState loaded for world {}", world.getRegistryKey().getValue());
     }
 
     /**
@@ -33,7 +34,7 @@ public final class RoadGraphStateManager {
     public static void onWorldUnload(ServerWorld world) {
         RoadGraphState state = RoadGraphState.get(world);
         state.markDirty();
-        LOGGER.debug("Saved RoadGraphState for world {} on unload", world.getRegistryKey().getValue());
+        DebugLog.info(LOGGER, "Saved RoadGraphState for world {} on unload", world.getRegistryKey().getValue());
     }
 
     /**
@@ -43,6 +44,6 @@ public final class RoadGraphStateManager {
         for (ServerWorld world : server.getWorlds()) {
             RoadGraphState.get(world).markDirty();
         }
-        LOGGER.debug("Server stopping, all RoadGraphStates marked dirty");
+        DebugLog.info(LOGGER, "Server stopping, all RoadGraphStates marked dirty");
     }
 }

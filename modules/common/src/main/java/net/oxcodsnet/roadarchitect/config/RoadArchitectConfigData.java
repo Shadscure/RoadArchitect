@@ -3,6 +3,10 @@ package net.oxcodsnet.roadarchitect.config;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
+import net.oxcodsnet.roadarchitect.config.defaults.BopRoadStyleDefaults;
+import net.oxcodsnet.roadarchitect.config.defaults.LampPostDefaults;
+import net.oxcodsnet.roadarchitect.config.defaults.RoadStyleDefaults;
+
 import java.util.List;
 
 /**
@@ -26,6 +30,9 @@ public final class RoadArchitectConfigData implements ConfigData {
     public int lampInterval = 30; // numeric field (blocks)
 
     @ConfigEntry.Gui.Tooltip
+    public int roadWidth = 3; // numeric field (blocks across)
+
+    @ConfigEntry.Gui.Tooltip
     public int sideDecorationInterval = 12; // numeric field (blocks)
 
     @ConfigEntry.Gui.Tooltip
@@ -40,8 +47,23 @@ public final class RoadArchitectConfigData implements ConfigData {
     @ConfigEntry.Gui.Tooltip
     public boolean deterministicDecorations = true;
 
+    @ConfigEntry.Category("roadStyles")
+    @ConfigEntry.Gui.TransitiveObject
+    public RoadStyleSettings roadStyles = new RoadStyleSettings();
+
+    @ConfigEntry.Category("bopRoadStyles")
+    @ConfigEntry.Gui.TransitiveObject
+    public BopRoadStyleSettings bopRoadStyles = new BopRoadStyleSettings();
+
+    @ConfigEntry.Category("lampPosts")
+    @ConfigEntry.Gui.TransitiveObject
+    public LampPostSettings lampPosts = new LampPostSettings();
+
     @ConfigEntry.Gui.Tooltip
     public List<String> structureSelectors = List.of("#minecraft:village");
+
+    @ConfigEntry.Gui.Tooltip
+    public List<String> dimensionSelectors = List.of("minecraft:overworld");
 
     // Terrain Analyzer category (separate tab)
     @ConfigEntry.Category("terrainAnalyzer")
@@ -95,6 +117,72 @@ public final class RoadArchitectConfigData implements ConfigData {
         public int partialProgressPercent = 80;
     }
 
+    public static final class LampPostSettings {
+        @ConfigEntry.Gui.Tooltip
+        public boolean enabled = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public java.util.List<LampPostDefinition> overrides = LampPostDefaults.createDefinitionCopies();
+    }
+
+    public static final class RoadStyleSettings {
+        @ConfigEntry.Gui.Tooltip
+        public boolean enabled = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public java.util.List<RoadStyleDefinition> overrides = RoadStyleDefaults.createDefinitionCopies();
+    }
+
+    public static final class BopRoadStyleSettings {
+        @ConfigEntry.Gui.Tooltip
+        public boolean enabled = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public java.util.List<RoadStyleDefinition> overrides = BopRoadStyleDefaults.createDefinitionCopies();
+    }
+
+    public static final class RoadStyleDefinition {
+        @ConfigEntry.Gui.Tooltip
+        public List<String> biomeSelectors = new java.util.ArrayList<>();
+
+        @ConfigEntry.Gui.Tooltip
+        public java.util.List<RoadPaletteEntry> palette = new java.util.ArrayList<>();
+
+        @ConfigEntry.Gui.Tooltip
+        public java.util.List<RoadDecorationEntry> decorations = new java.util.ArrayList<>();
+    }
+
+    public static final class RoadPaletteEntry {
+        @ConfigEntry.Gui.Tooltip
+        public String block = "";
+
+        @ConfigEntry.Gui.Tooltip
+        public int weight = 1;
+    }
+
+    public static final class RoadDecorationEntry {
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public RoadDecorationType type = RoadDecorationType.FENCE;
+
+        @ConfigEntry.Gui.Tooltip
+        public String block = "";
+    }
+
+    public static final class LampPostDefinition {
+        @ConfigEntry.Gui.Tooltip
+        public List<String> biomeSelectors = new java.util.ArrayList<>();
+
+        @ConfigEntry.Gui.Tooltip
+        public String baseBlock = "minecraft:cobblestone_wall";
+
+        @ConfigEntry.Gui.Tooltip
+        public String postBlock = "minecraft:oak_fence";
+
+        @ConfigEntry.Gui.Tooltip
+        public String lampBlock = "minecraft:lantern";
+    }
+
     // Forbidden biome rules (separate tab)
     @ConfigEntry.Category("forbiddenBiomes")
     @ConfigEntry.Gui.TransitiveObject
@@ -113,5 +201,18 @@ public final class RoadArchitectConfigData implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public double proximityPenalty = 500.0;
+    }
+
+    // Debug & diagnostics (placed last intentionally)
+    @ConfigEntry.Category("debug")
+    @ConfigEntry.Gui.TransitiveObject
+    public DebugSettings debug = new DebugSettings();
+
+    public static final class DebugSettings {
+        @ConfigEntry.Gui.Tooltip
+        public boolean enableVerboseLogs = false;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean enablePipelineProfiler = false;
     }
 }

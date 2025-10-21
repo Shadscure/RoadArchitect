@@ -1,5 +1,9 @@
 package net.oxcodsnet.roadarchitect.config;
 
+import net.oxcodsnet.roadarchitect.config.defaults.BopRoadStyleDefaults;
+import net.oxcodsnet.roadarchitect.config.defaults.LampPostDefaults;
+import net.oxcodsnet.roadarchitect.config.defaults.RoadStyleDefaults;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -66,6 +70,11 @@ public final class RAConfigHolder {
         }
 
         @Override
+        public int roadWidth() {
+            return 3;
+        }
+
+        @Override
         public int buoyInterval() {
             return 18;
         }
@@ -88,6 +97,11 @@ public final class RAConfigHolder {
         @Override
         public List<String> structureSelectors() {
             return List.of("#minecraft:village");
+        }
+
+        @Override
+        public List<String> dimensionSelectors() {
+            return List.of("minecraft:overworld");
         }
 
         // Terrain Analyzer defaults
@@ -162,6 +176,31 @@ public final class RAConfigHolder {
         @Override
         public double partialProgressThreshold() {
             return 0.80; // 80%
+        }
+
+        @Override
+        public List<LampPostConfigEntry> lampPostOverrides() {
+            return LampPostDefaults.entries();
+        }
+
+        @Override
+        public List<RoadStyleConfigEntry> roadStyleOverrides() {
+            return RoadStyleDefaults.entries();
+        }
+
+        @Override
+        public List<RoadStyleConfigEntry> bopRoadStyleOverrides() {
+            return BopRoadStyleDefaults.entries();
+        }
+
+        @Override
+        public boolean debugVerboseLogs() {
+            return false;
+        }
+
+        @Override
+        public boolean debugPipelineProfiler() {
+            return false;
         }
     }
 }

@@ -40,7 +40,7 @@
 **RoadArchitect** is a **Fabric / Quilt / NeoForge** mod for **Minecraft 1.21–1.21.8** that automatically scans the world for villages and other structures and connects them with roads to form a persistent travel network.  
 Roads adapt their style to the biome, and the network is saved between game sessions.
 
-> **Current version:** `v1.5.0`
+> **Current version:** `v1.6.0`
 
 > **Wiki:** <a href="https://github.com/0xCoDSnet/RoadArchitect/wiki">RoadArchitect Wiki</a>
 
@@ -146,6 +146,25 @@ Roads adapt their style to the biome, and the network is saved between game sess
 ---
 
 ## 🗒️ Recent changes
+
+<details>
+<summary><strong>v1.6.0</strong> — <em>performance improvements, biome styles, more flexible configuration</em></summary>
+
+### Highlights
+
+- ⚡ **Performance**: significant speedup (up to ~2×) in structure scanning and pathfinding;
+- 🌲 **Route clearing**: automatic removal of trees from the road corridor;
+- 🎨 **Biome styles**: more default presets for vanilla biomes; broad coverage for <code>Biomes O' Plenty</code>;
+- 🧰 **Configuration**:
+  - works across dimensions;
+  - road style customization;
+  - lamppost customization;
+  - road width customization;
+- 🔧 **Debugging**: new “Debug & Diagnostics (Advanced)” tab in the config; outputs debug messages and pipeline profiler results;
+- 🐞 **Fixes**: corrected translation keys for NeoForge.
+
+**Compatibility:** no world reset required. Save format unchanged. Existing settings are preserved. <code>Biomes O' Plenty</code> support is optional and activates when the mod is present. The “Detailed debug logging” flag is off by default.
+</details>
 
 <details>
 <summary><strong>v1.5.0</strong> — <em>Smarter pathfinding, Terrain Analyzer (beta)</em></summary>

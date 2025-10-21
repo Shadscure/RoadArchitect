@@ -16,6 +16,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.structure.Structure;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
+import net.oxcodsnet.roadarchitect.util.DebugLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,7 @@ public final class RoadPipelineController {
      */
     private static final Set<Identifier> TARGET_IDS = new HashSet<>();
     private static final Set<TagKey<Structure>> TARGET_TAGS = new HashSet<>();
+    private static final Set<Identifier> TARGET_DIMENSION_IDS = new HashSet<>();
 
     /**
      * Счётчик тиков для периодического триггера.
@@ -57,7 +59,7 @@ public final class RoadPipelineController {
     public static void init() {
         cacheStructureSelectors();
         tickCounter = 0;
-        LOGGER.debug("RoadPipelineController initialized (selectors cached)");
+        DebugLog.info(LOGGER, "RoadPipelineController initialized (selectors cached)");
     }
 
     /**
@@ -65,7 +67,7 @@ public final class RoadPipelineController {
      */
     public static void refreshStructureSelectorCache() {
         cacheStructureSelectors();
-        LOGGER.debug("RoadPipelineController reloaded selectors from config");
+        DebugLog.info(LOGGER, "RoadPipelineController reloaded selectors from config");
     }
 
     /* ───────────────────────── Точные кейсы из исходного register() ───────────────────────── */
@@ -74,13 +76,13 @@ public final class RoadPipelineController {
      * 1) Генерация спавн-чанка ВПЕРВЫЕ → INIT.
      */
     public static void onSpawnChunkGenerated(ServerWorld world, Chunk chunk) {
-        if (world.getRegistryKey() != World.OVERWORLD) return;
+        if (!isDimensionEnabled(world.getRegistryKey())) return;
 
         ChunkPos spawnChunk = new ChunkPos(world.getSpawnPos());
         if (!chunk.getPos().equals(spawnChunk)) return;
 
         if (INITIALIZED.add(world.getRegistryKey())) {
-            LOGGER.debug("Spawn chunk {} generated in {}, starting INIT pipeline",
+            DebugLog.info(LOGGER, "Spawn chunk {} generated in {}, starting INIT pipeline",
                     chunk.getPos(), world.getRegistryKey().getValue());
             PipelineRunner.runPipeline(world, world.getSpawnPos(), PipelineRunner.PipelineMode.INIT);
         }
@@ -90,11 +92,11 @@ public final class RoadPipelineController {
      * 2) Генерация ЛЮБОГО чанка; если внутри есть целевая структура → CHUNK.
      */
     public static void onChunkGenerated(ServerWorld world, Chunk chunk) {
-        if (world.getRegistryKey() != World.OVERWORLD) return;
+        if (!isDimensionEnabled(world.getRegistryKey())) return;
         if (!containsTargetStructure(world, chunk)) return;
 
         BlockPos center = chunk.getPos().getCenterAtY(0);
-        LOGGER.debug("Chunk {} generated with target structure, starting CHUNK pipeline", chunk.getPos());
+        DebugLog.info(LOGGER, "Chunk {} generated with target structure, starting CHUNK pipeline", chunk.getPos());
         PipelineRunner.runPipeline(world, center, PipelineRunner.PipelineMode.CHUNK);
     }
 
@@ -103,10 +105,10 @@ public final class RoadPipelineController {
      */
     public static void onPlayerJoin(ServerPlayerEntity player) {
         ServerWorld world = (ServerWorld) player.getWorld();
-        if (world.getRegistryKey() != World.OVERWORLD) return;
+        if (!isDimensionEnabled(world.getRegistryKey())) return;
 
         BlockPos pos = player.getBlockPos();
-        LOGGER.debug("Player {} joined at {}, starting PERIODIC pipeline",
+        DebugLog.info(LOGGER, "Player {} joined at {}, starting PERIODIC pipeline",
                 player.getName().getString(), pos);
         PipelineRunner.runPipeline(world, pos, PipelineRunner.PipelineMode.PERIODIC);
     }
@@ -122,10 +124,10 @@ public final class RoadPipelineController {
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             World w = player.getWorld();
-            if (w.getRegistryKey() != World.OVERWORLD) continue;
+            if (!isDimensionEnabled(w.getRegistryKey())) continue;
 
             BlockPos pos = player.getBlockPos();
-            LOGGER.debug("Periodic trigger at player {} pos {}, starting PERIODIC pipeline",
+            DebugLog.info(LOGGER, "Periodic trigger at player {} pos {}, starting PERIODIC pipeline",
                     player.getName().getString(), pos);
             PipelineRunner.runPipeline((ServerWorld) w, pos, PipelineRunner.PipelineMode.PERIODIC);
         }
@@ -137,7 +139,7 @@ public final class RoadPipelineController {
     public static void onServerStopping() {
         INITIALIZED.clear();
         tickCounter = 0;
-        LOGGER.debug("Server stopping, state cleared");
+        DebugLog.info(LOGGER, "Server stopping, state cleared");
     }
 
     /* ─────────────────────────── Вспомогательное ─────────────────────────── */
@@ -148,21 +150,39 @@ public final class RoadPipelineController {
         List<String> selectors = RoadArchitect.CONFIG.structureSelectors();
         for (String sel : selectors) {
             if (sel.startsWith("#")) {
-                Identifier id = Identifier.tryParse(sel.substring(1));
-                if (id != null) {
-                    TARGET_TAGS.add(TagKey.of(RegistryKeys.STRUCTURE, id));
-                } else {
-                    LOGGER.warn("Ignoring invalid structure tag selector '{}'", sel);
-                }
+                TARGET_TAGS.add(TagKey.of(RegistryKeys.STRUCTURE, Identifier.of(sel.substring(1))));
             } else {
-                Identifier id = Identifier.tryParse(sel);
-                if (id != null) {
-                    TARGET_IDS.add(id);
-                } else {
-                    LOGGER.warn("Ignoring invalid structure id selector '{}'", sel);
-                }
+                TARGET_IDS.add(Identifier.of(sel));
             }
         }
+
+        TARGET_DIMENSION_IDS.clear();
+        List<String> dimensionSelectors = RoadArchitect.CONFIG.dimensionSelectors();
+        if (dimensionSelectors == null || dimensionSelectors.isEmpty()) {
+            TARGET_DIMENSION_IDS.add(World.OVERWORLD.getValue());
+        } else {
+            for (String selector : dimensionSelectors) {
+                if (selector.startsWith("#")) {
+                    LOGGER.warn("Dimension selector tags are not supported (skipping '{}')", selector);
+                    continue;
+                }
+                try {
+                    TARGET_DIMENSION_IDS.add(Identifier.of(selector));
+                } catch (IllegalArgumentException ex) {
+                    LOGGER.warn("Skipping invalid dimension selector '{}': {}", selector, ex.getMessage());
+                }
+            }
+            if (TARGET_DIMENSION_IDS.isEmpty()) {
+                TARGET_DIMENSION_IDS.add(World.OVERWORLD.getValue());
+            }
+        }
+    }
+
+    static boolean isDimensionEnabled(RegistryKey<World> key) {
+        if (TARGET_DIMENSION_IDS.isEmpty()) {
+            return key == World.OVERWORLD;
+        }
+        return TARGET_DIMENSION_IDS.contains(key.getValue());
     }
 
     private static boolean containsTargetStructure(ServerWorld world, Chunk chunk) {

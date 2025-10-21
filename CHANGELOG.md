@@ -1,14 +1,16 @@
-v1.5.0 — <em>Smarter pathfinding, Terrain Analyzer (beta)</em>
+v1.6.0 — <em>performance improvements, biome styles, more flexible configuration</em>
 
 ### Highlights
 
-- 🧭 Terrain Analyzer (beta): clearer recognition of mountainous terrain, with new config options and full translations
-- 🧠 Pathfinding controls: configurable land preference and water behavior (acceptable water level, coastal buffer, max coastal speed)
-- 🛣️ Partial paths: when a full route can’t be completed, high-progress searches can return the best partial path instead
-- 🌊 Safer defaults: oceans are no longer hard-blocked; default “prohibited biomes” now include <code>#minecraft:is_ocean</code> and <code>#minecraft:is_deep_ocean</code>
-- 🔒 Stability: thread-safe biome selector cache (eliminates race conditions in concurrent scans)
-- 🔧 Fixes: correct player direction on the debug map and reliable point teleportation packet handling; RA config tweaks
-- 🧩 Compatibility: improved boot behavior when Distant Horizons is installed
-- 🌐 Localization & data: updated category labels, new keys for fresh options, translations split and refreshed (EN/RU/ES/FR/DE/ZH/UK)
+- ⚡ **Performance**: significant speedup (up to ~2×) in structure scanning and pathfinding;
+- 🌲 **Route clearing**: automatic removal of trees from the road corridor;
+- 🎨 **Biome styles**: more default presets for vanilla biomes; broad coverage for `Biomes O' Plenty`;
+- 🧰 **Configuration**:
+    - works across dimensions;
+    - road style customization;
+    - lamppost customization;
+    - road width customization;
+- 🔧 **Debugging**: new `Debug & Diagnostics (Advanced)` tab in the config; outputs debug messages and pipeline profiler results;
+- 🐞 **Fixes**: corrected translation keys for NeoForge.
 
-**Compatibility:** No world resets needed. Defaults for water/ocean behavior changed — review new pathfinding options if you rely on custom configs.
+**Compatibility:** no world reset required. Save format unchanged. Existing settings are preserved. `Biomes O' Plenty` support is optional and activates when the mod is present. The “Detailed debug logging” flag is off by default.

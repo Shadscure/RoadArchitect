@@ -25,5 +25,8 @@ public final class FabricEventBridge {
         ServerWorldEvents.LOAD.register((server, world) -> CacheManager.onWorldLoad(world));
         ServerWorldEvents.UNLOAD.register((server, world) -> CacheManager.onWorldUnload(world));
         ServerLifecycleEvents.SERVER_STOPPING.register(CacheManager::onServerStopping);
+
+        ServerWorldEvents.LOAD.register((world, chunk) -> CacheManager.onChunkLoad(world, chunk));
+        ServerWorldEvents.UNLOAD.register((world, chunk) -> CacheManager.onChunkUnload(world, chunk.getPos()));
     }
 }

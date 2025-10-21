@@ -39,3 +39,4 @@ class PathStorageTest {
         assertEquals(s.allStatuses(), restored.allStatuses());
     }
 }
+

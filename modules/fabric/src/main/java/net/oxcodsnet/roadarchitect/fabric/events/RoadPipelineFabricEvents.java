@@ -9,6 +9,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.chunk.WorldChunk;
 import net.oxcodsnet.roadarchitect.handlers.RoadPipelineController;
 import net.oxcodsnet.roadarchitect.handlers.compat.DhCompat;
+import net.oxcodsnet.roadarchitect.util.DebugLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,7 @@ public final class RoadPipelineFabricEvents {
 
         final boolean dhPresent = FabricLoader.getInstance().isModLoaded(DhCompat.DH_MOD_ID);
         if (dhPresent) {
-            LOGGER.debug("Distant Horizons detected: skipping INIT pregen; pipeline will start on player join");
+            DebugLog.info(LOGGER, "Distant Horizons detected: skipping INIT pregen; pipeline will start on player join");
         }
 
         ServerChunkEvents.CHUNK_LOAD.register((ServerWorld world, WorldChunk chunk) -> {

@@ -19,6 +19,11 @@ public interface RAConfig {
     int lampInterval();
 
     /**
+     * Road width (in blocks across) when placing generated segments.
+     */
+    int roadWidth();
+
+    /**
      * Interval (in blocks along the path metric) for placing buoys on water segments.
      */
     int buoyInterval();
@@ -40,6 +45,11 @@ public interface RAConfig {
     boolean deterministicDecorations();
 
     List<String> structureSelectors();
+
+    /**
+     * Dimensions (world identifiers) where the mod should operate.
+     */
+    List<String> dimensionSelectors();
 
     // Terrain Analyzer (mountain/roughness avoidance)
     boolean terrainAnalyzerEnabled();
@@ -70,4 +80,31 @@ public interface RAConfig {
      * For example, 0.8 means 80% progress towards the L1 goal distance.
      */
     double partialProgressThreshold();
+
+    /**
+     * Custom lamp post definitions loaded from the configuration. The list can be empty when
+     * overrides are disabled on the current platform implementation.
+     */
+    List<LampPostConfigEntry> lampPostOverrides();
+
+    /**
+     * Custom road surface styles loaded from the configuration. The list can be empty to fall back
+     * to the built-in defaults.
+     */
+    List<RoadStyleConfigEntry> roadStyleOverrides();
+
+    /**
+     * Biomes O' Plenty specific road surface styles pulled from configuration.
+     */
+    List<RoadStyleConfigEntry> bopRoadStyleOverrides();
+
+    /**
+     * Whether verbose diagnostic logging should be emitted.
+     */
+    boolean debugVerboseLogs();
+
+    /**
+     * Whether the pipeline profiler is enabled.
+     */
+    boolean debugPipelineProfiler();
 }

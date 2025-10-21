@@ -1,5 +1,5 @@
 {
-  "feature": "roadarchitect:road",
+  "feature": "roadarchitect:road_finalize",
   "placement": [
     {
       "type": "minecraft:in_square"

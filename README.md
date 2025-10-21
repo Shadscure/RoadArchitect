@@ -37,12 +37,14 @@
 
 # RoadArchitect
 
-**RoadArchitect** is a **Fabric / Quilt / NeoForge** mod for **Minecraft 1.21–1.21.8** that automatically scans the world for villages and other structures and connects them with roads to form a persistent travel network.  
+**RoadArchitect** is a **Fabric / Quilt / NeoForge** mod for **Minecraft1.20.1, 1.21–1.21.8** that automatically scans the world for villages and other structures and connects them with roads to form a persistent travel network.  
 Roads adapt their style to the biome, and the network is saved between game sessions.
 
 > **Current version:** `v1.6.0`
 
 > **Wiki:** <a href="https://github.com/0xCoDSnet/RoadArchitect/wiki">RoadArchitect Wiki</a>
+
+> _For **Forge 1.20.1**, it works correctly through_ [**Sinytra Connector**](https://modrinth.com/mod/connector)
 
 ## ✨ Features
 
@@ -55,6 +57,9 @@ Roads adapt their style to the biome, and the network is saved between game sess
 - 🌐 **Localization** included: English, Russian, Ukrainian, Spanish, French, German, Chinese  
 - 🛰 **Visual road-graph debugger** with pan/zoom, tooltips, and a color legend; in singleplayer, clicking a node teleports to it (default hotkey **H**)
 - 🗺 **Terralith-ready** — works out of the box with the <a href="https://modrinth.com/datapack/terralith">Terralith</a> world-generation datapack
+
+## 🧩 Add-ons
+- RoadArchitect Encounters:  [Modrinth](https://modrinth.com/mod/roadarchitect-encounters) / [Curseforge](https://www.curseforge.com/minecraft/mc-mods/roadarchitect-encounters) / [Github](https://github.com/Shadscure/RoadArchitect-Encounters)
 
 ---
 

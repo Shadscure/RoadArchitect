@@ -99,8 +99,13 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                 for (int dz = -clearanceHalfWidth; dz <= clearanceHalfWidth; dz++) {
                     double dist = Math.abs(dx * nz - dz * nx);
                     int maxAbs = Math.max(Math.abs(dx), Math.abs(dz));
-                    boolean insideRoad = dist <= halfWidth + 0.01 || (diagonal && maxAbs <= halfWidth);
-                    boolean insideClearance = dist <= clearanceHalfWidth + 0.01 || (diagonal && maxAbs <= clearanceHalfWidth);
+                    //boolean insideRoad = dist <= halfWidth + 0.01 || (diagonal && maxAbs <= halfWidth);
+                    //boolean insideClearance = dist <= clearanceHalfWidth + 0.01 || (diagonal && maxAbs <= clearanceHalfWidth);
+
+                    double pad = 0.70710678; // sqrt(0.5^2 + 0.5^2)
+                    boolean insideRoad      = dist <= (halfWidth + pad);
+                    boolean insideClearance = dist <= (clearanceHalfWidth + pad);
+
                     if (!insideClearance) continue;
 
                     BlockPos roadPos = p.add(dx, 0, dz);

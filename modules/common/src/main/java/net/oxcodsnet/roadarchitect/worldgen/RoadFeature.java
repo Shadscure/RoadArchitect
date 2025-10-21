@@ -93,12 +93,12 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
             ).normalize();
             double nx = dir.x;
             double nz = dir.z;
-            boolean diagonal = Math.abs(nx) > 0.001 && Math.abs(nz) > 0.001;
+            //boolean diagonal = Math.abs(nx) > 0.001 && Math.abs(nz) > 0.001;
 
             for (int dx = -clearanceHalfWidth; dx <= clearanceHalfWidth; dx++) {
                 for (int dz = -clearanceHalfWidth; dz <= clearanceHalfWidth; dz++) {
                     double dist = Math.abs(dx * nz - dz * nx);
-                    int maxAbs = Math.max(Math.abs(dx), Math.abs(dz));
+                    //int maxAbs = Math.max(Math.abs(dx), Math.abs(dz));
                     //boolean insideRoad = dist <= halfWidth + 0.01 || (diagonal && maxAbs <= halfWidth);
                     //boolean insideClearance = dist <= clearanceHalfWidth + 0.01 || (diagonal && maxAbs <= clearanceHalfWidth);
 

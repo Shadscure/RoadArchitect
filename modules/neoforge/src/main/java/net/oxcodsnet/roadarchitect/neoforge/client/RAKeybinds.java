@@ -2,6 +2,7 @@ package net.oxcodsnet.roadarchitect.neoforge.client;
 
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.util.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -21,7 +22,7 @@ public final class RAKeybinds {
     public static void registerKeys(RegisterKeyMappingsEvent e) {
         OPEN = new KeyBinding("key.roadarchitect.debug",
                 InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H,
-                "category.roadarchitect");
+                KeyBinding.Category.create(Identifier.of("category.roadarchitect")));
         e.register(OPEN);
     }
 }

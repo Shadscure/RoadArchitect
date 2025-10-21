@@ -78,13 +78,13 @@ public final class RoadPipelineController {
     public static void onSpawnChunkGenerated(ServerWorld world, Chunk chunk) {
         if (!isDimensionEnabled(world.getRegistryKey())) return;
 
-        ChunkPos spawnChunk = new ChunkPos(world.getSpawnPos());
+        ChunkPos spawnChunk = new ChunkPos(world.getSpawnPoint().getPos());
         if (!chunk.getPos().equals(spawnChunk)) return;
 
         if (INITIALIZED.add(world.getRegistryKey())) {
             DebugLog.info(LOGGER, "Spawn chunk {} generated in {}, starting INIT pipeline",
                     chunk.getPos(), world.getRegistryKey().getValue());
-            PipelineRunner.runPipeline(world, world.getSpawnPos(), PipelineRunner.PipelineMode.INIT);
+            PipelineRunner.runPipeline(world, world.getSpawnPoint().getPos(), PipelineRunner.PipelineMode.INIT);
         }
     }
 
@@ -104,7 +104,7 @@ public final class RoadPipelineController {
      * 3) Игрок вошёл на сервер → PERIODIC (как в исходнике).
      */
     public static void onPlayerJoin(ServerPlayerEntity player) {
-        ServerWorld world = (ServerWorld) player.getWorld();
+        ServerWorld world = player.getEntityWorld();
         if (!isDimensionEnabled(world.getRegistryKey())) return;
 
         BlockPos pos = player.getBlockPos();
@@ -123,13 +123,13 @@ public final class RoadPipelineController {
         tickCounter = 0;
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            World w = player.getWorld();
+            ServerWorld w = player.getEntityWorld();
             if (!isDimensionEnabled(w.getRegistryKey())) continue;
 
             BlockPos pos = player.getBlockPos();
             DebugLog.info(LOGGER, "Periodic trigger at player {} pos {}, starting PERIODIC pipeline",
                     player.getName().getString(), pos);
-            PipelineRunner.runPipeline((ServerWorld) w, pos, PipelineRunner.PipelineMode.PERIODIC);
+            PipelineRunner.runPipeline(w, pos, PipelineRunner.PipelineMode.PERIODIC);
         }
     }
 

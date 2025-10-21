@@ -2,6 +2,7 @@ package net.oxcodsnet.roadarchitect.client.gui;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -101,7 +102,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         computeLayout();
 
         ctx.fill(PADDING, PADDING, width - PADDING, height - PADDING, 0xA0101010);
-        ctx.drawBorder(PADDING, PADDING, width - 2 * PADDING, height - 2 * PADDING, 0xFFFFFFFF);
+        ctx.drawStrokedRectangle(PADDING, PADDING, width - 2 * PADDING, height - 2 * PADDING, 0xFFFFFFFF);
 
         drawGrid(ctx);
 
@@ -158,8 +159,12 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button != 0) return super.mouseClicked(mouseX, mouseY, button);
+    public boolean mouseClicked(Click click, boolean simulated) {
+        double mouseX = click.x();
+        double mouseY = click.y();
+        int button = click.button();
+
+        if (button != 0) return super.mouseClicked(click, simulated);
 
         Node clicked = findClickedNode(mouseX, mouseY);
         if (clicked != null) {
@@ -170,23 +175,31 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+    public boolean mouseDragged(Click click, double deltaX, double deltaY) {
+        double mouseX = click.x();
+        double mouseY = click.y();
+        int button = click.button();
+
         if (dragging && button == 0) {
             offsetX += deltaX;
             offsetY += deltaY;
             firstLayout = false;
             return true;
         }
-        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+        return super.mouseDragged(click, deltaX, deltaY);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(Click click) {
+        double mouseX = click.x();
+        double mouseY = click.y();
+        int button = click.button();
+
         if (button == 0 && dragging) {
             dragging = false;
             return true;
         }
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(click);
     }
 
     @Override
@@ -261,7 +274,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         for (String type : currentTypes) {
             int color = typeColors.getOrDefault(type, 0xFFFFFFFF);
             ctx.fill(x, y, x + 8, y + 8, color);
-            ctx.drawBorder(x, y, 8, 8, 0xFFFFFFFF);
+            ctx.drawStrokedRectangle(x, y, 8, 8, 0xFFFFFFFF);
             drawSmallLabel(ctx, type, x + 10, y);
             y += 12;
         }

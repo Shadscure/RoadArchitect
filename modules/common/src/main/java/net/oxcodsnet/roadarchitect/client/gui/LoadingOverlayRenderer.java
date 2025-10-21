@@ -28,7 +28,7 @@ public final class LoadingOverlayRenderer {
 
         // трек
         ctx.fill(x, y, x + BAR_W, y + BAR_H, 0xFF20242A);
-        ctx.drawBorder(x, y, BAR_W, BAR_H, 0xFFB0B8C0); // тонкая рамка (в DrawContext есть drawBorder) :contentReference[oaicite:0]{index=0}
+        ctx.drawStrokedRectangle(x, y, BAR_W, BAR_H, 0xFFB0B8C0); // тонкая рамка (в DrawContext есть drawBorder)
 
         // "бегущий" сегмент (индетерминированный)
         long now = System.currentTimeMillis();

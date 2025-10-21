@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.util.Identifier;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.client.gui.RoadGraphDebugScreenVanilla;
 import net.oxcodsnet.roadarchitect.storage.EdgeStorage;
@@ -29,7 +30,7 @@ public final class DebugGraphScreenHook {
                 "key.roadarchitect.debug",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_H,
-                "category.roadarchitect"
+                KeyBinding.Category.create(Identifier.of("category.roadarchitect"))
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {

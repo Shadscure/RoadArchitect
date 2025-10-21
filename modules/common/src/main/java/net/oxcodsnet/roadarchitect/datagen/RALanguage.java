@@ -16,6 +16,7 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "Dimension");
                 add.accept("screen.roadarchitect.debug.dimension_label", "Dimension: %s");
                 add.accept("category.roadarchitect", "Road Architect");
+                add.accept("key.category.minecraft.category.roadarchitect", "Road Architect");
                 add.accept("text.autoconfig.roadarchitect.category.default", "General Settings");
                 add.accept("roadarchitect.stage.initialisation", "Initialising");
                 add.accept("roadarchitect.stage.scanning", "Scanning Structures");
@@ -203,6 +204,7 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "Измерение");
                 add.accept("screen.roadarchitect.debug.dimension_label", "Измерение: %s");
                 add.accept("category.roadarchitect", "Архитектор дорог");
+                add.accept("key.category.minecraft.category.roadarchitect", "Архитектор дорог");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Основные настройки");
                 add.accept("roadarchitect.stage.initialisation", "Инициализация");
                 add.accept("roadarchitect.stage.scanning", "Сканирование структур");
@@ -400,6 +402,7 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "Dimensión");
                 add.accept("screen.roadarchitect.debug.dimension_label", "Dimensión: %s");
                 add.accept("category.roadarchitect", "Arquitecto de Carreteras");
+                add.accept("key.category.minecraft.category.roadarchitect", "Arquitecto de Carreteras");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Configuración general");
                 add.accept("roadarchitect.stage.initialisation", "Inicialización");
                 add.accept("roadarchitect.stage.scanning", "Escaneando estructuras");
@@ -597,6 +600,7 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "Dimension");
                 add.accept("screen.roadarchitect.debug.dimension_label", "Dimension : %s");
                 add.accept("category.roadarchitect", "Architecte routier");
+                add.accept("key.category.minecraft.category.roadarchitect", "Architecte routier");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Paramètres généraux");
                 add.accept("roadarchitect.stage.initialisation", "Initialisation");
                 add.accept("roadarchitect.stage.scanning", "Analyse des structures");
@@ -794,6 +798,7 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "Dimension");
                 add.accept("screen.roadarchitect.debug.dimension_label", "Dimension: %s");
                 add.accept("category.roadarchitect", "Straßenarchitekt");
+                add.accept("key.category.minecraft.category.roadarchitect", "Straßenarchitekt");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Allgemeine Einstellungen");
                 add.accept("roadarchitect.stage.initialisation", "Initialisierung");
                 add.accept("roadarchitect.stage.scanning", "Strukturen scannen");
@@ -991,6 +996,7 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "维度");
                 add.accept("screen.roadarchitect.debug.dimension_label", "维度：%s");
                 add.accept("category.roadarchitect", "道路架构师");
+                add.accept("key.category.minecraft.category.roadarchitect", "道路架构师");
                 add.accept("text.autoconfig.roadarchitect.category.default", "常规设置");
                 add.accept("roadarchitect.stage.initialisation", "初始化");
                 add.accept("roadarchitect.stage.scanning", "扫描结构");
@@ -1178,6 +1184,7 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "Вимір");
                 add.accept("screen.roadarchitect.debug.dimension_label", "Вимір: %s");
                 add.accept("category.roadarchitect", "Road Architect");
+                add.accept("key.category.minecraft.category.roadarchitect", "Road Architect");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Загальні налаштування");
                 add.accept("roadarchitect.stage.initialisation", "Ініціалізація…");
                 add.accept("roadarchitect.stage.scanning", "Сканування структур…");

@@ -150,9 +150,19 @@ public final class RoadPipelineController {
         List<String> selectors = RoadArchitect.CONFIG.structureSelectors();
         for (String sel : selectors) {
             if (sel.startsWith("#")) {
-                TARGET_TAGS.add(TagKey.of(RegistryKeys.STRUCTURE, Identifier.of(sel.substring(1))));
+                Identifier tagId = Identifier.tryParse(sel.substring(1));
+                if (tagId == null) {
+                    LOGGER.warn("Skipping invalid structure tag selector '{}'", sel);
+                    continue;
+                }
+                TARGET_TAGS.add(TagKey.of(RegistryKeys.STRUCTURE, tagId));
             } else {
-                TARGET_IDS.add(Identifier.of(sel));
+                Identifier id = Identifier.tryParse(sel);
+                if (id == null) {
+                    LOGGER.warn("Skipping invalid structure selector '{}'", sel);
+                    continue;
+                }
+                TARGET_IDS.add(id);
             }
         }
 
@@ -166,11 +176,12 @@ public final class RoadPipelineController {
                     LOGGER.warn("Dimension selector tags are not supported (skipping '{}')", selector);
                     continue;
                 }
-                try {
-                    TARGET_DIMENSION_IDS.add(Identifier.of(selector));
-                } catch (IllegalArgumentException ex) {
-                    LOGGER.warn("Skipping invalid dimension selector '{}': {}", selector, ex.getMessage());
+                Identifier id = Identifier.tryParse(selector);
+                if (id == null) {
+                    LOGGER.warn("Skipping invalid dimension selector '{}'", selector);
+                    continue;
                 }
+                TARGET_DIMENSION_IDS.add(id);
             }
             if (TARGET_DIMENSION_IDS.isEmpty()) {
                 TARGET_DIMENSION_IDS.add(World.OVERWORLD.getValue());

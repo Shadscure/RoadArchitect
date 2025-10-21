@@ -47,6 +47,14 @@ public final class RoadPostProcessor {
     private RoadPostProcessor() {
     }
 
+    private static <T> T first(List<T> list) {
+        return list.get(0);
+    }
+
+    private static <T> T last(List<T> list) {
+        return list.get(list.size() - 1);
+    }
+
     // ====== Регистрация хуков ======
     public static void onStartWorldTick(ServerWorld world) {
         if (world.isClient()) return;
@@ -69,8 +77,8 @@ public final class RoadPostProcessor {
     private static List<BlockPos> trimByManhattan(List<BlockPos> path) {
         if (path == null || path.size() < 2) return path;
 
-        BlockPos start0 = path.getFirst();
-        BlockPos end0 = path.getLast();
+        BlockPos start0 = first(path);
+        BlockPos end0 = last(path);
 
         int i = 0;
         while (i < path.size() && manhattanXZ(path.get(i), start0) <= TRIM_RADIUS_L1) i++;
@@ -105,7 +113,7 @@ public final class RoadPostProcessor {
             out.add(adjustToGround(world, generator, noiseConfig, resolvedHeights, a));
             interpolate(world, generator, noiseConfig, a, b, resolvedHeights, out);
         }
-        out.add(adjustToGround(world, generator, noiseConfig, resolvedHeights, verts.getLast()));
+        out.add(adjustToGround(world, generator, noiseConfig, resolvedHeights, last(verts)));
         return out;
     }
 
@@ -342,8 +350,8 @@ public final class RoadPostProcessor {
                         toBuild.put(leg.getKey(), nr.path());
 
                         if (!nr.path().isEmpty()) {
-                            BlockPos s = nr.path().getFirst();
-                            BlockPos t = nr.path().getLast();
+                            BlockPos s = first(nr.path());
+                            BlockPos t = last(nr.path());
                             DebugLog.info(
                                     LOGGER,
                                     "[PostProcess] READY (leg) key={} points={}, spikesCut={}, gradClamped={}, start={}, end={}",
@@ -361,8 +369,8 @@ public final class RoadPostProcessor {
                     toBuild.put(br.trunkRaw.key, trunkNR.path());
 
                     if (!trunkNR.path().isEmpty()) {
-                        BlockPos s = trunkNR.path().getFirst();
-                        BlockPos t = trunkNR.path().getLast();
+                        BlockPos s = first(trunkNR.path());
+                        BlockPos t = last(trunkNR.path());
                         DebugLog.info(
                                 LOGGER,
                                 "[PostProcess] READY (trunk) key={} points={}, spikesCut={}, gradClamped={}, start={}, end={}",
@@ -387,8 +395,8 @@ public final class RoadPostProcessor {
                     toBuild.put(activeKey, nr.path());
 
                     if (!nr.path().isEmpty()) {
-                        BlockPos s = nr.path().getFirst();
-                        BlockPos t = nr.path().getLast();
+                        BlockPos s = first(nr.path());
+                        BlockPos t = last(nr.path());
                         DebugLog.info(
                                 LOGGER,
                                 "[PostProcess] READY (single) key={} points={}, spikesCut={}, gradClamped={}, start={}, end={}",
@@ -558,7 +566,7 @@ public final class RoadPostProcessor {
     }
 
     private static int[] dir(List<BlockPos> pts) {
-        BlockPos s = pts.getFirst(), e = pts.getLast();
+        BlockPos s = first(pts), e = last(pts);
         return new int[]{e.getX() - s.getX(), e.getZ() - s.getZ()};
     }
 

@@ -127,7 +127,11 @@ public final class RoadStyles {
     }
 
     private static RoadStyle buildFallbackFromDefaults() {
-        RoadStyleConfigEntry defaultEntry = RoadStyleDefaults.entries().getFirst();
+        List<RoadStyleConfigEntry> defaults = RoadStyleDefaults.entries();
+        if (defaults.isEmpty()) {
+            throw new IllegalStateException("RoadStyleDefaults.entries() returned an empty list");
+        }
+        RoadStyleConfigEntry defaultEntry = defaults.get(0);
         RoadStyle style = buildStyle(defaultEntry);
         if (style != null) {
             return style;

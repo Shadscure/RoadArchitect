@@ -295,7 +295,7 @@ public final class StructureLocator {
                 PipelineProfiler.increment("structure_locator.presence_checks");
                 try (PipelineProfiler.Section presenceTimer = PipelineProfiler.openSection(
                         "structure_locator.presence_check")) {
-                    presence = accessor.getStructurePresence(c.pos, s.value(), c.placement, true);
+                    presence = accessor.getStructurePresence(c.pos, s.value(), true);
                 }
                 if (presence == StructurePresence.START_PRESENT) {
                     PipelineProfiler.increment("structure_locator.presence_positive");

@@ -268,7 +268,7 @@ public class PathFinder {
         Node startNode = nodes.all().get(fromId);
         Node endNode = nodes.all().get(toId);
         if (startNode == null || endNode == null) {
-            LOGGER.debug("Missing node(s) {} or {}", fromId, toId);
+            DebugLog.info(LOGGER, "Missing node(s) {} or {}", fromId, toId);
             return List.of();
         }
         return aStarPositions(snap(startNode.pos()), snap(endNode.pos()));
@@ -436,16 +436,18 @@ public class PathFinder {
                     ps.pathFound = true; // считаем частичный как полезный путь для подсказок
                     ps.bestL1 = Math.min(ps.bestL1, bestMd);
                 }
-                LOGGER.debug("Accept partial path (progress={}%, len={}, threshold={}%) {} -> {}",
-                        String.format(Locale.ROOT, "%.1f", progress * 100.0),
-                        partial.size(),
-                        String.format(Locale.ROOT, "%.1f", RAConfigHolder.get().partialProgressThreshold() * 100.0),
-                        startPos.toShortString(), endPos.toShortString());
+                if (DebugLog.isEnabled()) {
+                    DebugLog.info(LOGGER, "Accept partial path (progress={}%, len={}, threshold={}%) {} -> {}",
+                            String.format(Locale.ROOT, "%.1f", progress * 100.0),
+                            partial.size(),
+                            String.format(Locale.ROOT, "%.1f", RAConfigHolder.get().partialProgressThreshold() * 100.0),
+                            startPos.toShortString(), endPos.toShortString());
+                }
                 return partial;
             }
         }
 
-        LOGGER.debug("Path not found between {} and {} after {} iterations (cap={})",
+        DebugLog.info(LOGGER, "Path not found between {} and {} after {} iterations (cap={})",
                 startPos, endPos, Math.min(iterations, localStepCap), localStepCap);
         return List.of();
     }
@@ -565,7 +567,11 @@ public class PathFinder {
                 ? (double) (ps.initialL1 - Math.min(ps.bestL1, ps.initialL1)) / (double) ps.initialL1
                 : 0.0;
 
-        LOGGER.debug(
+        if (!DebugLog.isEnabled()) {
+            return;
+        }
+        DebugLog.info(
+                LOGGER,
                 """
                         [A* profiler] {} -> {}
                           iterations={}  neighbors={}  relaxations={}

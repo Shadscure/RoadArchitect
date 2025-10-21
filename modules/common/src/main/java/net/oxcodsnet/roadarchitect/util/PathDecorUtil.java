@@ -63,7 +63,7 @@ public final class PathDecorUtil {
             storage.setPrefix(pathKey, S);
             storage.updateChecksum(pathKey, sum);
             storage.clearMasks(pathKey); // path changed — mask values invalid
-            LOGGER.debug("Refreshed prefix S for {} ({} points)", pathKey, pts.size());
+            DebugLog.info(LOGGER, "Refreshed prefix S for {} ({} points)", pathKey, pts.size());
         }
         return S;
     }

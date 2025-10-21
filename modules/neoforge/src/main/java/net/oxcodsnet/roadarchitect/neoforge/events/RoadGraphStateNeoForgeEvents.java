@@ -7,6 +7,7 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.RoadGraphState;
+import net.oxcodsnet.roadarchitect.util.DebugLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,7 @@ public final class RoadGraphStateNeoForgeEvents {
     public static void onLevelLoad(LevelEvent.Load event) {
         if (event.getLevel() instanceof ServerWorld world) {
             RoadGraphState.get(world);
-            LOGGER.debug("RoadGraphState loaded for world {}", world.getRegistryKey().getValue());
+            DebugLog.info(LOGGER, "RoadGraphState loaded for world {}", world.getRegistryKey().getValue());
         }
     }
 
@@ -36,7 +37,7 @@ public final class RoadGraphStateNeoForgeEvents {
         if (event.getLevel() instanceof ServerWorld world) {
             RoadGraphState state = RoadGraphState.get(world);
             state.markDirty();
-            LOGGER.debug("Saved RoadGraphState for world {} on unload", world.getRegistryKey().getValue());
+            DebugLog.info(LOGGER, "Saved RoadGraphState for world {} on unload", world.getRegistryKey().getValue());
         }
     }
 
@@ -46,6 +47,6 @@ public final class RoadGraphStateNeoForgeEvents {
             RoadGraphState state = RoadGraphState.get(world);
             state.markDirty();
         }
-        LOGGER.debug("Server stopping, all RoadGraphStates marked dirty");
+        DebugLog.info(LOGGER, "Server stopping, all RoadGraphStates marked dirty");
     }
 }

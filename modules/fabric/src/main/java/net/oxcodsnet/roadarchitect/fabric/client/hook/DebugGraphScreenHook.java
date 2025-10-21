@@ -5,7 +5,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.server.world.ServerWorld;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.client.gui.RoadGraphDebugScreenVanilla;
 import net.oxcodsnet.roadarchitect.storage.EdgeStorage;
@@ -14,8 +13,13 @@ import net.oxcodsnet.roadarchitect.storage.components.Node;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.World;
 
 public final class DebugGraphScreenHook {
     private DebugGraphScreenHook() {}
@@ -35,14 +39,40 @@ public final class DebugGraphScreenHook {
                     continue;
                 }
 
-                ServerWorld world = mc.getServer() == null ? null : mc.getServer().getOverworld();
-                if (world == null) continue;
+                if (mc.getServer() == null || mc.world == null) {
+                    continue;
+                }
 
-                RoadGraphState state = RoadGraphState.get(world);
+                List<RoadGraphDebugScreenVanilla.DimensionLayer> layers = new ArrayList<>();
+                for (RegistryKey<World> key : mc.getServer().getWorldRegistryKeys()) {
+                    ServerWorld serverWorld = mc.getServer().getWorld(key);
+                    if (serverWorld == null) {
+                        continue;
+                    }
+                    RoadGraphState state = RoadGraphState.get(serverWorld);
+                    List<Node> nodes = new ArrayList<>(state.nodes().all().values());
+                    List<EdgeStorage.Edge> edges = new ArrayList<>(state.edges().all().values());
+                    layers.add(new RoadGraphDebugScreenVanilla.DimensionLayer(key, nodes, edges));
+                }
 
-                List<Node> nodes  = new ArrayList<>(state.nodes().all().values());
-                Collection<EdgeStorage.Edge> edges = state.edges().all().values();
-                MinecraftClient.getInstance().setScreen(new RoadGraphDebugScreenVanilla(nodes, edges));
+                if (layers.isEmpty()) {
+                    continue;
+                }
+
+                layers.sort(Comparator.comparing(layer -> layer.dimension().getValue().toString()));
+                RegistryKey<World> currentDim = mc.world.getRegistryKey();
+                int idx = -1;
+                for (int i = 0; i < layers.size(); i++) {
+                    if (layers.get(i).dimension().equals(currentDim)) {
+                        idx = i;
+                        break;
+                    }
+                }
+                if (idx > 0) {
+                    Collections.swap(layers, 0, idx);
+                }
+
+                MinecraftClient.getInstance().setScreen(new RoadGraphDebugScreenVanilla(layers));
             }
         });
     }

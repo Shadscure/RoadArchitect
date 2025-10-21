@@ -1,28 +1,34 @@
 package net.oxcodsnet.roadarchitect.util;
 
-//import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-//import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
-
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.source.BiomeCoords;
 import net.minecraft.world.biome.source.BiomeSource;
 import net.minecraft.world.biome.source.util.MultiNoiseUtil;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.noise.NoiseConfig;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.CacheStorage;
+import net.oxcodsnet.roadarchitect.util.cache.ChunkHeightGenerator;
+import net.oxcodsnet.roadarchitect.util.cache.ChunkHeightSnapshot;
+import net.oxcodsnet.roadarchitect.util.cache.WorldCacheState;
+import net.oxcodsnet.roadarchitect.util.profiler.PipelineProfiler;
+import net.oxcodsnet.roadarchitect.worldgen.RoadFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.OptionalInt;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
@@ -34,7 +40,9 @@ import java.util.function.Supplier;
 public final class CacheManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/" + CacheManager.class.getSimpleName());
 
-    private static final Map<RegistryKey<World>, CacheStorage> STATES = new ConcurrentHashMap<>();
+    private static final Map<RegistryKey<World>, WorldCacheState> STATES = new ConcurrentHashMap<>();
+    private static final int CHUNK_SIDE = 16;
+    private static final int COLUMNS_PER_CHUNK = CHUNK_SIDE * CHUNK_SIDE;
 
     private CacheManager() {
         // no-op
@@ -74,21 +82,22 @@ public final class CacheManager {
         }
     }
 
-    private static CacheStorage state(ServerWorld world) {
-        return STATES.computeIfAbsent(world.getRegistryKey(), k -> CacheStorage.get(world));
+    private static WorldCacheState state(ServerWorld world) {
+        return STATES.computeIfAbsent(world.getRegistryKey(), k -> new WorldCacheState(world, CacheStorage.get(world)));
     }
 
     private static void load(ServerWorld world) {
         CacheStorage storage = CacheStorage.get(world);
-        STATES.put(world.getRegistryKey(), storage);
-        LOGGER.debug("Cache loaded for world {}", world.getRegistryKey().getValue());
+        STATES.put(world.getRegistryKey(), new WorldCacheState(world, storage));
+        DebugLog.info(LOGGER, "Cache loaded for world {}", world.getRegistryKey().getValue());
     }
 
     private static void save(ServerWorld world) {
-        CacheStorage storage = STATES.remove(world.getRegistryKey());
-        if (storage != null) {
-            storage.markDirty();
-            LOGGER.debug("Cache saved for world {}", world.getRegistryKey().getValue());
+        WorldCacheState state = STATES.remove(world.getRegistryKey());
+        if (state != null) {
+            state.chunkHeights().clear();
+            state.storage().markDirty();
+            DebugLog.info(LOGGER, "Cache saved for world {}", world.getRegistryKey().getValue());
         }
     }
 
@@ -103,7 +112,8 @@ public final class CacheManager {
      */
     public static void prefill(ServerWorld world, int minX, int minZ, int maxX, int maxZ) {
         int step = PathFinder.GRID_STEP;
-        CacheStorage storage = state(world);
+        WorldCacheState state = state(world);
+        CacheStorage storage = state.storage();
         AsyncExecutor.execute(() -> {
             ChunkGenerator gen = world.getChunkManager().getChunkGenerator();
             NoiseConfig cfg = world.getChunkManager().getNoiseConfig();
@@ -125,7 +135,7 @@ public final class CacheManager {
                     });
                 }
             }
-            LOGGER.debug("Prefill complete [{}..{}]×[{}..{}]",
+            DebugLog.info(LOGGER, "Prefill complete [{}..{}]×[{}..{}]",
                     minX, maxX, minZ, maxZ);
         });
     }
@@ -138,31 +148,103 @@ public final class CacheManager {
      * @param loader fallback loader if value missing
      */
     public static int getHeight(ServerWorld world, long key, IntSupplier loader) {
-        return state(world).heights().computeIfAbsent(key, k -> loader.getAsInt());
+        PipelineProfiler.increment("cache.height.requests");
+        WorldCacheState state = state(world);
+        CacheStorage storage = state.storage();
+        Integer cached = storage.heights().get(key);
+        if (cached != null) {
+            PipelineProfiler.increment("cache.height.hits");
+            return cached;
+        }
+        Integer chunkCached = state.lookupHeight(key, CHUNK_SIDE);
+        if (chunkCached != null) {
+            storage.heights().put(key, chunkCached);
+            PipelineProfiler.increment("cache.height.hits");
+            return chunkCached;
+        }
+        ChunkHeightSnapshot snapshot = ensureChunkSnapshot(world, state, storage, key);
+        if (snapshot != null) {
+            int x = (int) (key >> 32);
+            int z = (int) key;
+            int localX = x & (CHUNK_SIDE - 1);
+            int localZ = z & (CHUNK_SIDE - 1);
+            int value = snapshot.get(localX, localZ);
+            storage.heights().putIfAbsent(key, value);
+            PipelineProfiler.increment("cache.height.hits");
+            return value;
+        }
+        // Fast path for unloaded chunks: avoid generating full chunk snapshot.
+        // Compute just this column via generator and cache it.
+        return storage.heights().computeIfAbsent(key, k -> {
+            PipelineProfiler.increment("cache.height.loads");
+            try (PipelineProfiler.Section section = PipelineProfiler.openSection("cache.height.load_time")) {
+                int value = loader.getAsInt();
+                PipelineProfiler.recordValue("cache.height.loaded_value", value);
+                return value;
+            }
+        });
     }
 
     /**
      * Gets or computes world surface height at block coordinates.
      */
     public static int getHeight(ServerWorld world, int x, int z) {
-        ChunkGenerator gen = world.getChunkManager().getChunkGenerator();
-        NoiseConfig cfg = world.getChunkManager().getNoiseConfig();
         long key = hash(x, z);
-        return getHeight(world, key, () -> gen.getHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG, world, cfg));
+        OptionalInt prepared = RoadFeature.lookupPreparedSurface(x, z);
+        if (prepared.isPresent()) {
+            int value = prepared.getAsInt();
+            WorldCacheState state = state(world);
+            state.storage().heights().putIfAbsent(key, value);
+            return value;
+        }
+        return getHeight(world, key, () -> {
+            ChunkGenerator gen = world.getChunkManager().getChunkGenerator();
+            NoiseConfig cfg = world.getChunkManager().getNoiseConfig();
+            return gen.getHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG, world, cfg);
+        });
     }
 
     /**
      * Gets or computes terrain stability metric for the key.
      */
     public static double getStability(ServerWorld world, long key, DoubleSupplier loader) {
-        return state(world).stabilities().computeIfAbsent(key, k -> loader.getAsDouble());
+        PipelineProfiler.increment("cache.stability.requests");
+        WorldCacheState state = state(world);
+        CacheStorage storage = state.storage();
+        Double cached = storage.stabilities().get(key);
+        if (cached != null) {
+            PipelineProfiler.increment("cache.stability.hits");
+            return cached;
+        }
+        return storage.stabilities().computeIfAbsent(key, k -> {
+            PipelineProfiler.increment("cache.stability.loads");
+            try (PipelineProfiler.Section section = PipelineProfiler.openSection("cache.stability.load_time")) {
+                double value = loader.getAsDouble();
+                PipelineProfiler.recordValue("cache.stability.loaded_value", value);
+                return value;
+            }
+        });
     }
 
     /**
      * Gets or computes biome entry for the key.
      */
     public static RegistryEntry<Biome> getBiome(ServerWorld world, long key, Supplier<RegistryEntry<Biome>> loader) {
-        return state(world).biomes().computeIfAbsent(key, k -> loader.get());
+        PipelineProfiler.increment("cache.biome.requests");
+        WorldCacheState state = state(world);
+        CacheStorage storage = state.storage();
+        RegistryEntry<Biome> cached = storage.biomes().get(key);
+        if (cached != null) {
+            PipelineProfiler.increment("cache.biome.hits");
+            return cached;
+        }
+        return storage.biomes().computeIfAbsent(key, k -> {
+            PipelineProfiler.increment("cache.biome.loads");
+            try (PipelineProfiler.Section section = PipelineProfiler.openSection("cache.biome.load_time")) {
+                RegistryEntry<Biome> value = loader.get();
+                return value;
+            }
+        });
     }
 
     /**
@@ -178,4 +260,118 @@ public final class CacheManager {
     public static BlockPos keyToPos(long k) {
         return new BlockPos((int) (k >> 32), 0, (int) k);
     }
+
+    /**
+     * Populates the runtime cache with the latest heightmap snapshot for a chunk when it becomes available.
+     */
+    public static void onChunkLoad(ServerWorld world, Chunk chunk) {
+        if (world.isClient()) {
+            return;
+        }
+        WorldCacheState state = STATES.get(world.getRegistryKey());
+        if (state == null) {
+            return;
+        }
+        ChunkPos pos = chunk.getPos();
+        int startX = pos.getStartX();
+        int startZ = pos.getStartZ();
+        int minY = state.minWorldY();
+
+        Heightmap wg = chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE_WG);
+        Heightmap surface = chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE);
+        if (wg == null && surface == null) {
+            return;
+        }
+        if (wg == null) {
+            wg = surface;
+        }
+        if (surface == null) {
+            surface = wg;
+        }
+        int[] snapshot = new int[COLUMNS_PER_CHUNK];
+        boolean dirty = false;
+
+        CacheStorage storage = state.storage();
+        for (int localZ = 0; localZ < CHUNK_SIDE; localZ++) {
+            for (int localX = 0; localX < CHUNK_SIDE; localX++) {
+                int idx = localZ * CHUNK_SIDE + localX;
+                int height = wg.get(localX, localZ);
+                if (height <= minY) {
+                    height = surface.get(localX, localZ);
+                }
+                snapshot[idx] = height;
+                long key = hash(startX + localX, startZ + localZ);
+                Integer previous = storage.heights().put(key, height);
+                if (previous == null || previous.intValue() != height) {
+                    dirty = true;
+                }
+            }
+        }
+
+        state.putChunkSnapshot(pos.toLong(), new ChunkHeightSnapshot(snapshot, CHUNK_SIDE));
+        if (dirty) {
+            storage.markDirty();
+        }
+    }
+
+    /**
+     * Removes cached heightmap data when a chunk is unloaded to free memory.
+     */
+    public static void onChunkUnload(ServerWorld world, ChunkPos pos) {
+        if (world.isClient()) {
+            return;
+        }
+        WorldCacheState state = STATES.get(world.getRegistryKey());
+        if (state != null) {
+            state.removeChunkSnapshot(pos.toLong());
+        }
+    }
+
+    private static ChunkHeightSnapshot ensureChunkSnapshot(ServerWorld world,
+                                                           WorldCacheState state,
+                                                           CacheStorage storage,
+                                                           long key) {
+        int x = (int) (key >> 32);
+        int z = (int) key;
+        ChunkPos chunkPos = new ChunkPos(x >> 4, z >> 4);
+        long chunkKey = chunkPos.toLong();
+        ChunkHeightSnapshot cached = state.chunkHeights().get(chunkKey);
+        if (cached != null) {
+            return cached;
+        }
+
+        CompletableFuture<ChunkHeightSnapshot> future = new CompletableFuture<>();
+        CompletableFuture<ChunkHeightSnapshot> existing = state.chunkComputations().putIfAbsent(chunkKey, future);
+        if (existing != null) {
+            try {
+                return existing.join();
+            } catch (RuntimeException e) {
+                DebugLog.info(LOGGER, "Height snapshot future failed for chunk {}", chunkPos, e);
+                return null;
+            }
+        }
+
+        try {
+            ChunkHeightSnapshot generated = ChunkHeightGenerator.generate(
+                    world,
+                    state,
+                    storage,
+                    chunkPos,
+                    CHUNK_SIDE,
+                    COLUMNS_PER_CHUNK
+            );
+            if (generated != null) {
+                state.putChunkSnapshot(chunkKey, generated);
+            }
+            future.complete(generated);
+            return generated;
+        } catch (RuntimeException e) {
+            future.completeExceptionally(e);
+            LOGGER.error("Failed to compute height snapshot for chunk {}", chunkPos, e);
+            return null;
+        } finally {
+            state.chunkComputations().remove(chunkKey);
+        }
+    }
+
 }

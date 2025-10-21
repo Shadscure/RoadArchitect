@@ -101,7 +101,4 @@ public final class AddonPersistentStorage extends PersistentState {
     }
 
     public Set<Identifier> keys() { return Collections.unmodifiableSet(data.keySet()); }
-
-    /** Exposes dirty mark for helpers. */
-    public void touch() { markDirty(); }
 }

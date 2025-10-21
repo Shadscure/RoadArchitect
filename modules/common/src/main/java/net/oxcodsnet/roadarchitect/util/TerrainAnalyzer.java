@@ -53,7 +53,13 @@ public final class TerrainAnalyzer {
 
         // Add broader roughness penalty so mountainous regions appear wider.
         IntBinaryOperator H = (ix, iz) -> CacheManager.getHeight(world, ix, iz);
-        int range = heightRange(H, x, z, radius, stride);
+
+        int coarseStride = Math.min(radius, stride * 2);
+        int coarseRange = heightRange(H, x, z, radius, coarseStride, threshold);
+        int range = coarseRange;
+        if (coarseRange > threshold && coarseStride != stride) {
+            range = heightRange(H, x, z, radius, stride, threshold);
+        }
         double roughPenalty = roughnessPenalty(range, threshold, scale);
 
         return baseCost + roughPenalty;
@@ -64,13 +70,21 @@ public final class TerrainAnalyzer {
      * This method is pure and suitable for unit-testing with synthetic height functions.
      */
     public static int heightRange(IntBinaryOperator heightFn, int x, int z, int radius, int stride) {
+        return heightRange(heightFn, x, z, radius, stride, Integer.MAX_VALUE);
+    }
+
+    public static int heightRange(IntBinaryOperator heightFn, int x, int z, int radius, int stride, int earlyExitThreshold) {
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
+        int exitDelta = earlyExitThreshold < 0 ? Integer.MAX_VALUE : earlyExitThreshold;
         for (int dx = -radius; dx <= radius; dx += stride) {
             for (int dz = -radius; dz <= radius; dz += stride) {
                 int h = heightFn.applyAsInt(x + dx, z + dz);
                 if (h < min) min = h;
                 if (h > max) max = h;
+                if (max - min > exitDelta) {
+                    return max - min;
+                }
             }
         }
         return max - min;

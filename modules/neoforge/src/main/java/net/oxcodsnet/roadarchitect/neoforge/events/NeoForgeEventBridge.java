@@ -3,6 +3,7 @@ package net.oxcodsnet.roadarchitect.neoforge.events;
 import net.minecraft.server.world.ServerWorld;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
@@ -32,6 +33,20 @@ public final class NeoForgeEventBridge {
         if (event.getLevel() instanceof ServerWorld world) {
             RoadGraphStateManager.onWorldUnload(world);
             CacheManager.onWorldUnload(world);
+        }
+    }
+
+    @SubscribeEvent
+    private static void onChunkLoad(ChunkEvent.Load event) {
+        if (event.getLevel() instanceof ServerWorld world) {
+            CacheManager.onChunkLoad(world, event.getChunk());
+        }
+    }
+
+    @SubscribeEvent
+    private static void onChunkUnload(ChunkEvent.Unload event) {
+        if (event.getLevel() instanceof ServerWorld world) {
+            CacheManager.onChunkUnload(world, event.getChunk().getPos());
         }
     }
 

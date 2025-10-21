@@ -21,12 +21,14 @@ import net.oxcodsnet.roadarchitect.util.cache.ChunkHeightGenerator;
 import net.oxcodsnet.roadarchitect.util.cache.ChunkHeightSnapshot;
 import net.oxcodsnet.roadarchitect.util.cache.WorldCacheState;
 import net.oxcodsnet.roadarchitect.util.profiler.PipelineProfiler;
+import net.oxcodsnet.roadarchitect.worldgen.RoadFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.OptionalInt;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
@@ -188,6 +190,13 @@ public final class CacheManager {
      */
     public static int getHeight(ServerWorld world, int x, int z) {
         long key = hash(x, z);
+        OptionalInt prepared = RoadFeature.lookupPreparedSurface(x, z);
+        if (prepared.isPresent()) {
+            int value = prepared.getAsInt();
+            WorldCacheState state = state(world);
+            state.storage().heights().putIfAbsent(key, value);
+            return value;
+        }
         return getHeight(world, key, () -> {
             ChunkGenerator gen = world.getChunkManager().getChunkGenerator();
             NoiseConfig cfg = world.getChunkManager().getNoiseConfig();

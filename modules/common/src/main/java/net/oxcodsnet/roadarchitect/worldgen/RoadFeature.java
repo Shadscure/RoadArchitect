@@ -11,6 +11,7 @@ import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.StructureWorldAccess;
@@ -36,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.oxcodsnet.roadarchitect.worldgen.RoadFeatureConfig.GenerationPhase;
@@ -54,6 +56,8 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
     private static final BlockState PREPARATION_BLOCK = Blocks.BEDROCK.getDefaultState();
     private static final int PREPARATION_CLEARANCE_EXTRA = 2;
     private static final Map<Long, PreparationEntry> PREPARATION_BACKUP = new ConcurrentHashMap<>();
+    private static final Map<Long, ColumnSnapshot> PREPARATION_COLUMNS = new ConcurrentHashMap<>();
+    private static final double PIXEL_PADDING = Math.sqrt(0.5D);
 
     private enum PreparationRole {
         CLEARANCE(0),
@@ -73,6 +77,16 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
     private record PreparationEntry(BlockState originalState, PreparationRole role) { }
 
+    private static final class ColumnSnapshot {
+        int height;
+        int count;
+
+        ColumnSnapshot(int height, int count) {
+            this.height = height;
+            this.count = count;
+        }
+    }
+
     public RoadFeature(Codec<RoadFeatureConfig> codec) {
         super(codec);
     }
@@ -86,29 +100,27 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
             BlockPos p = pts.get(i);
             int prevIdx = Math.max(0, i - 2);
             int nextIdx = Math.min(pts.size() - 1, i + 2);
-            Vec3d dir = new Vec3d(
-                    pts.get(nextIdx).getX() - pts.get(prevIdx).getX(),
-                    0.0D,
-                    pts.get(nextIdx).getZ() - pts.get(prevIdx).getZ()
-            ).normalize();
+            Vec3d prevPoint = Vec3d.ofCenter(pts.get(prevIdx));
+            Vec3d nextPoint = Vec3d.ofCenter(pts.get(nextIdx));
+            Vec3d segmentVec = nextPoint.subtract(prevPoint);
+            double segmentLengthSq = segmentVec.lengthSquared();
+            if (segmentLengthSq < 1.0E-6) {
+                segmentLengthSq = 1.0D;
+                segmentVec = new Vec3d(1.0D, 0.0D, 0.0D);
+            }
+            Vec3d dir = segmentVec.normalize();
             double nx = dir.x;
             double nz = dir.z;
-            //boolean diagonal = Math.abs(nx) > 0.001 && Math.abs(nz) > 0.001;
 
             for (int dx = -clearanceHalfWidth; dx <= clearanceHalfWidth; dx++) {
                 for (int dz = -clearanceHalfWidth; dz <= clearanceHalfWidth; dz++) {
-                    double dist = Math.abs(dx * nz - dz * nx);
-                    //int maxAbs = Math.max(Math.abs(dx), Math.abs(dz));
-                    //boolean insideRoad = dist <= halfWidth + 0.01 || (diagonal && maxAbs <= halfWidth);
-                    //boolean insideClearance = dist <= clearanceHalfWidth + 0.01 || (diagonal && maxAbs <= clearanceHalfWidth);
-
-                    double pad = 0.70710678; // sqrt(0.5^2 + 0.5^2)
-                    boolean insideRoad      = dist <= (halfWidth + pad);
-                    boolean insideClearance = dist <= (clearanceHalfWidth + pad);
+                    BlockPos roadPos = p.add(dx, 0, dz);
+                    Vec3d cellCenter = Vec3d.ofCenter(roadPos);
+                    double dist = distanceToSegment(cellCenter, prevPoint, nextPoint, segmentLengthSq);
+                    boolean insideRoad = dist <= (halfWidth + PIXEL_PADDING);
+                    boolean insideClearance = dist <= (clearanceHalfWidth + PIXEL_PADDING);
 
                     if (!insideClearance) continue;
-
-                    BlockPos roadPos = p.add(dx, 0, dz);
 
                     long packedPos = roadPos.asLong();
 
@@ -134,7 +146,10 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                         RoadStyle style = RoadStyles.forBiome(biomeRegistry, biome);
                         BlockState roadState = style.palette().pick(random);
                         placeRoad(world, roadPos, roadState);
-                        PREPARATION_BACKUP.remove(packedPos);
+                        PreparationEntry groundEntry = PREPARATION_BACKUP.remove(packedPos);
+                        if (groundEntry != null) {
+                            releaseColumn(roadPos);
+                        }
                         BlockPos topPos = roadPos.up();
                         long packedTop = topPos.asLong();
                         PreparationEntry topEntry = PREPARATION_BACKUP.remove(packedTop);
@@ -257,10 +272,14 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
     private static void prepareCell(StructureWorldAccess world, BlockPos pos, PreparationRole role) {
         long key = pos.asLong();
+        BlockState currentState = world.getBlockState(pos);
         PREPARATION_BACKUP.compute(key, (k, existing) -> {
-            BlockState currentState = world.getBlockState(pos);
-            BlockState original = existing != null ? existing.originalState() : currentState;
-            PreparationRole mergedRole = existing != null ? PreparationRole.merge(existing.role(), role) : role;
+            boolean first = existing == null;
+            BlockState original = first ? currentState : existing.originalState();
+            PreparationRole mergedRole = first ? role : PreparationRole.merge(existing.role(), role);
+            if (first) {
+                retainColumn(world, pos, mergedRole, original);
+            }
             if (!currentState.isOf(PREPARATION_BLOCK.getBlock())) {
                 world.setBlockState(pos, PREPARATION_BLOCK, Block.NOTIFY_NEIGHBORS);
             }
@@ -278,12 +297,78 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         } else {
             world.setBlockState(pos, original, Block.NOTIFY_NEIGHBORS);
         }
+        releaseColumn(pos);
+    }
+
+    private static void retainColumn(StructureWorldAccess world, BlockPos pos, PreparationRole role, BlockState originalState) {
+        long key = columnKey(pos.getX(), pos.getZ());
+        PREPARATION_COLUMNS.compute(key, (k, snapshot) -> {
+            int measuredHeight = measureSurfaceHeight(world, pos, originalState);
+            if (snapshot == null) {
+                snapshot = new ColumnSnapshot(measuredHeight, 0);
+            }
+            if (role != PreparationRole.CAP) {
+                snapshot.height = Math.max(snapshot.height, measuredHeight);
+            }
+            snapshot.count += 1;
+            return snapshot;
+        });
+    }
+
+    private static void releaseColumn(BlockPos pos) {
+        long key = columnKey(pos.getX(), pos.getZ());
+        PREPARATION_COLUMNS.computeIfPresent(key, (k, snapshot) -> {
+            snapshot.count -= 1;
+            if (snapshot.count <= 0) {
+                return null;
+            }
+            return snapshot;
+        });
+    }
+
+    private static int measureSurfaceHeight(StructureWorldAccess world, BlockPos pos, BlockState originalState) {
+        if (originalState != null && !originalState.isAir()) {
+            return pos.getY();
+        }
+        BlockPos.Mutable mutable = pos.mutableCopy();
+        int bottom = world.getBottomY();
+        while (mutable.getY() >= bottom) {
+            BlockState state = world.getBlockState(mutable);
+            if (!state.isAir()) {
+                return mutable.getY();
+            }
+            mutable.move(Direction.DOWN);
+        }
+        return pos.getY();
+    }
+
+    private static long columnKey(int x, int z) {
+        return ((long) x << 32) | (z & 0xFFFF_FFFFL);
+    }
+
+    public static OptionalInt lookupPreparedSurface(int x, int z) {
+        ColumnSnapshot snapshot = PREPARATION_COLUMNS.get(columnKey(x, z));
+        if (snapshot == null) {
+            return OptionalInt.empty();
+        }
+        return OptionalInt.of(snapshot.height);
+    }
+
+    private static double distanceToSegment(Vec3d point, Vec3d a, Vec3d b, double segmentLengthSq) {
+        if (segmentLengthSq <= 1.0E-6) {
+            return point.distanceTo(a);
+        }
+        Vec3d ap = point.subtract(a);
+        Vec3d ab = b.subtract(a);
+        double t = MathHelper.clamp(ap.dotProduct(ab) / segmentLengthSq, 0.0D, 1.0D);
+        Vec3d closest = a.add(ab.multiply(t));
+        return point.distanceTo(closest);
     }
 
     private static void placeRoad(StructureWorldAccess world, BlockPos pos, BlockState stateRoad) {
         if (!isNotWaterBlock(world, pos)) {return;}
         world.setBlockState(pos, stateRoad, Block.NOTIFY_NEIGHBORS);
-        world.setBlockState(pos.up(), Blocks.AIR.getDefaultState(), Block.NOTIFY_NEIGHBORS);
+        //world.setBlockState(pos.up(), Blocks.AIR.getDefaultState(), Block.NOTIFY_NEIGHBORS);
     }
 
 

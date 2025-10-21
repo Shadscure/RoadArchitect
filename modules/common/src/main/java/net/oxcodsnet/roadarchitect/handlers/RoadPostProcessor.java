@@ -14,11 +14,13 @@ import net.oxcodsnet.roadarchitect.util.CacheManager;
 import net.oxcodsnet.roadarchitect.util.PathFinder;
 import net.oxcodsnet.roadarchitect.util.DebugLog;
 import net.oxcodsnet.roadarchitect.util.profiler.PipelineProfiler;
+import net.oxcodsnet.roadarchitect.worldgen.RoadFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.OptionalInt;
 
 /**
  * Post-processes raw A* paths into detailed block sequences
@@ -146,7 +148,8 @@ public final class RoadPostProcessor {
             return cached;
         }
 
-        int resolved = CacheManager.getHeight(world, x, z);
+        OptionalInt prepared = RoadFeature.lookupPreparedSurface(x, z);
+        int resolved = prepared.isPresent() ? prepared.getAsInt() : CacheManager.getHeight(world, x, z);
         int bottomGuard = world.getBottomY() + 1;
         if (resolved < bottomGuard) {
             resolved = bottomGuard;

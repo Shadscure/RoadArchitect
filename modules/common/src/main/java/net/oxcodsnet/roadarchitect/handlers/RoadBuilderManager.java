@@ -30,6 +30,10 @@ public class RoadBuilderManager {
         for (Map.Entry<String, List<BlockPos>> entry : paths.entrySet()) {
             String key = entry.getKey();
             List<BlockPos> path = entry.getValue();
+            if (path == null || path.size() < 2) {
+                DebugLog.info(LOGGER, "Skipped road construction {} ({} steps) because path too short", key, path == null ? 0 : path.size());
+                continue;
+            }
             int i = 0;
             while (i < path.size()) {
                 ChunkPos chunk = new ChunkPos(path.get(i));

@@ -102,13 +102,16 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
             int nextIdx = Math.min(pts.size() - 1, i + 2);
             Vec3d prevPoint = Vec3d.ofCenter(pts.get(prevIdx));
             Vec3d nextPoint = Vec3d.ofCenter(pts.get(nextIdx));
-            Vec3d segmentVec = nextPoint.subtract(prevPoint);
-            double segmentLengthSq = segmentVec.lengthSquared();
+            double segDx = nextPoint.x - prevPoint.x;
+            double segDz = nextPoint.z - prevPoint.z;
+            double segmentLengthSq = segDx * segDx + segDz * segDz;
             if (segmentLengthSq < 1.0E-6) {
                 segmentLengthSq = 1.0D;
-                segmentVec = new Vec3d(1.0D, 0.0D, 0.0D);
+                segDx = 1.0D;
+                segDz = 0.0D;
             }
-            Vec3d dir = segmentVec.normalize();
+            double invLen = 1.0D / Math.sqrt(segmentLengthSq);
+            Vec3d dir = new Vec3d(segDx * invLen, 0.0D, segDz * invLen);
             double nx = dir.x;
             double nz = dir.z;
 
@@ -116,7 +119,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                 for (int dz = -clearanceHalfWidth; dz <= clearanceHalfWidth; dz++) {
                     BlockPos roadPos = p.add(dx, 0, dz);
                     Vec3d cellCenter = Vec3d.ofCenter(roadPos);
-                    double dist = distanceToSegment(cellCenter, prevPoint, nextPoint, segmentLengthSq);
+                    double dist = horizontalDistanceToSegment(cellCenter, prevPoint, segDx, segDz, segmentLengthSq);
                     boolean insideRoad = dist <= (halfWidth + PIXEL_PADDING);
                     boolean insideClearance = dist <= (clearanceHalfWidth + PIXEL_PADDING);
 
@@ -354,15 +357,22 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         return OptionalInt.of(snapshot.height);
     }
 
-    private static double distanceToSegment(Vec3d point, Vec3d a, Vec3d b, double segmentLengthSq) {
+    private static double horizontalDistanceToSegment(Vec3d point, Vec3d start, double segDx, double segDz, double segmentLengthSq) {
+        double px = point.x;
+        double pz = point.z;
+        double ax = start.x;
+        double az = start.z;
         if (segmentLengthSq <= 1.0E-6) {
-            return point.distanceTo(a);
+            double dx = px - ax;
+            double dz = pz - az;
+            return Math.sqrt(dx * dx + dz * dz);
         }
-        Vec3d ap = point.subtract(a);
-        Vec3d ab = b.subtract(a);
-        double t = MathHelper.clamp(ap.dotProduct(ab) / segmentLengthSq, 0.0D, 1.0D);
-        Vec3d closest = a.add(ab.multiply(t));
-        return point.distanceTo(closest);
+        double t = MathHelper.clamp(((px - ax) * segDx + (pz - az) * segDz) / segmentLengthSq, 0.0D, 1.0D);
+        double closestX = ax + segDx * t;
+        double closestZ = az + segDz * t;
+        double dx = px - closestX;
+        double dz = pz - closestZ;
+        return Math.sqrt(dx * dx + dz * dz);
     }
 
     private static void placeRoad(StructureWorldAccess world, BlockPos pos, BlockState stateRoad) {

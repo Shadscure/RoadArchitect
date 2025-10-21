@@ -4,6 +4,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -177,7 +178,7 @@ public final class RoadStyles {
                     continue;
                 }
                 TagKey<Block> tag = TagKey.of(RegistryKeys.BLOCK, id);
-                Optional<RegistryEntryList.Named<Block>> optional = Registries.BLOCK.getEntryList(tag);
+                Optional<RegistryEntryList.Named<Block>> optional = Registries.BLOCK.getOptional(tag);
                 if (optional.isEmpty()) {
                     LOGGER.warn("Road style palette tag '{}' resolved to nothing", raw);
                     continue;
@@ -198,7 +199,7 @@ public final class RoadStyles {
                     LOGGER.warn("Road style palette block '{}' is invalid", raw);
                     continue;
                 }
-                Optional<Block> optional = Registries.BLOCK.getOrEmpty(id);
+                Optional<Block> optional = getBlock(id);
                 if (optional.isEmpty()) {
                     LOGGER.warn("Road style palette block '{}' is not registered", raw);
                     continue;
@@ -255,7 +256,7 @@ public final class RoadStyles {
                 return null;
             }
             TagKey<Block> tag = TagKey.of(RegistryKeys.BLOCK, id);
-            Optional<RegistryEntryList.Named<Block>> optional = Registries.BLOCK.getEntryList(tag);
+            Optional<RegistryEntryList.Named<Block>> optional = Registries.BLOCK.getOptional(tag);
             if (optional.isEmpty()) {
                 LOGGER.warn("Road style {} tag '{}' resolved to nothing", role, raw);
                 return null;
@@ -272,7 +273,7 @@ public final class RoadStyles {
             LOGGER.warn("Road style {} '{}' is invalid", role, raw);
             return null;
         }
-        Optional<Block> optional = Registries.BLOCK.getOrEmpty(id);
+        Optional<Block> optional = getBlock(id);
         if (optional.isEmpty()) {
             LOGGER.warn("Road style {} '{}' is not registered", role, raw);
             return null;
@@ -287,5 +288,10 @@ public final class RoadStyles {
     }
 
     private record CacheEntry(int version, List<CompiledStyle> styles) {
+    }
+
+    private static Optional<Block> getBlock(Identifier id) {
+        return Registries.BLOCK.getOptional(RegistryKey.of(RegistryKeys.BLOCK, id))
+                .map(RegistryEntry.Reference::value);
     }
 }

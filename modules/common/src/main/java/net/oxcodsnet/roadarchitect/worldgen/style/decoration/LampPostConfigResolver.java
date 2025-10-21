@@ -3,6 +3,7 @@ package net.oxcodsnet.roadarchitect.worldgen.style.decoration;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -125,12 +127,17 @@ public final class LampPostConfigResolver {
             LOGGER.warn("Lamp post override {} '{}' is not a valid identifier", role, raw);
             return null;
         }
-        return Registries.BLOCK.getOrEmpty(id)
+        return getBlock(id)
                 .map(Block::getDefaultState)
                 .orElseGet(() -> {
                     LOGGER.warn("Lamp post override {} '{}' is not registered", role, raw);
                     return null;
                 });
+    }
+
+    private static Optional<Block> getBlock(Identifier id) {
+        return Registries.BLOCK.getOptional(RegistryKey.of(RegistryKeys.BLOCK, id))
+                .map(RegistryEntry.Reference::value);
     }
 
     private record Override(List<String> selectors, LampPostDecoration decoration) {

@@ -33,9 +33,9 @@ public final class RoadBiomeModifierProvider extends JsonCodecProvider<BiomeModi
     @Override
     protected void gather() {
         WrapperLookup lookup = registries.join();
-        RegistryEntryList.Named<Biome> overworldBiomes = lookup.getWrapperOrThrow(RegistryKeys.BIOME).getOrThrow(BiomeTags.IS_OVERWORLD);
-        RegistryEntryList.Direct<PlacedFeature> prepFeature = RegistryEntryList.of(lookup.getWrapperOrThrow(RegistryKeys.PLACED_FEATURE).getOrThrow(RoadFeatureRegistry.ROAD_PREP_PLACED_FEATURE_KEY));
-        RegistryEntryList.Direct<PlacedFeature> finalFeature = RegistryEntryList.of(lookup.getWrapperOrThrow(RegistryKeys.PLACED_FEATURE).getOrThrow(RoadFeatureRegistry.ROAD_FINAL_PLACED_FEATURE_KEY));
+        RegistryEntryList.Named<Biome> overworldBiomes = lookup.getOrThrow(RegistryKeys.BIOME).getOrThrow(BiomeTags.IS_OVERWORLD);
+        RegistryEntryList.Direct<PlacedFeature> prepFeature = RegistryEntryList.of(lookup.getOrThrow(RegistryKeys.PLACED_FEATURE).getOrThrow(RoadFeatureRegistry.ROAD_PREP_PLACED_FEATURE_KEY));
+        RegistryEntryList.Direct<PlacedFeature> finalFeature = RegistryEntryList.of(lookup.getOrThrow(RegistryKeys.PLACED_FEATURE).getOrThrow(RoadFeatureRegistry.ROAD_FINAL_PLACED_FEATURE_KEY));
 
         BiomeModifier prepModifier = new BiomeModifiers.AddFeaturesBiomeModifier(overworldBiomes, prepFeature, GenerationStep.Feature.LOCAL_MODIFICATIONS);
         BiomeModifier finalModifier = new BiomeModifiers.AddFeaturesBiomeModifier(overworldBiomes, finalFeature, GenerationStep.Feature.VEGETAL_DECORATION);

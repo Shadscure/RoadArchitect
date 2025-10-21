@@ -28,6 +28,7 @@ import net.minecraft.world.gen.structure.Structure;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.RoadGraphState;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
+import net.oxcodsnet.roadarchitect.util.profiler.PipelineProfiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,45 +104,67 @@ public final class StructureLocator {
     /**
      * Сканирует область сеткой с опцией запрета загрузки чанков при разрешении кандидатов.
      */
-    public static List<Pair<BlockPos, String>> scanGridAsync(ServerWorld world, BlockPos origin, int overallRadius, int scanRadius, List<String> structureSelectors, boolean allowChunkLoads) {
-        final Registry<Structure> registry = world.getRegistryManager().get(RegistryKeys.STRUCTURE);
-        final List<RegistryEntryList<Structure>> compiledSelectors = compileSelectors(registry, structureSelectors);
-        if (compiledSelectors.isEmpty()) return Collections.emptyList();
+    public static List<Pair<BlockPos, String>> scanGridAsync(ServerWorld world, BlockPos origin, int overallRadius,
+                                                             int scanRadius, List<String> structureSelectors,
+                                                             boolean allowChunkLoads) {
+        PipelineProfiler.increment("structure_locator.invocations");
+        PipelineProfiler.recordValue("structure_locator.selector_input", structureSelectors.size());
+        PipelineProfiler.recordValue("structure_locator.overall_radius", overallRadius);
+        PipelineProfiler.recordValue("structure_locator.scan_radius", scanRadius);
+        PipelineProfiler.increment("structure_locator.allow_chunk_loads." + (allowChunkLoads ? "enabled" : "disabled"));
 
-        // Индексация placement’ов и предвычисление кольцевых позиций — строго на главном треде
-        final PlacementIndex index = buildPlacementIndex(world, compiledSelectors);
-
-        // Подбор шага сетки
-        final int baseStep = scanRadius * 2 + 1; // чанки
-        final int step = computeGridStepChunks(index, baseStep);
-
-        final int originChunkX = origin.getX() >> 4;
-        final int originChunkZ = origin.getZ() >> 4;
-
-        // Соберём список ячеек сетки
-        ArrayList<Cell> cells = new ArrayList<>();
-        for (int dx = -overallRadius; dx <= overallRadius; dx += step) {
-            for (int dz = -overallRadius; dz <= overallRadius; dz += step) {
-                int cx = originChunkX + dx;
-                int cz = originChunkZ + dz;
-                BlockPos cellCenter = new BlockPos((cx << 4) + 8, origin.getY(), (cz << 4) + 8);
-                cells.add(new Cell(cx, cz, cellCenter));
+        try (PipelineProfiler.Section total = PipelineProfiler.openSection("structure_locator.total")) {
+            final Registry<Structure> registry = world.getRegistryManager().get(RegistryKeys.STRUCTURE);
+            final List<RegistryEntryList<Structure>> compiledSelectors;
+            try (PipelineProfiler.Section compile = PipelineProfiler.openSection("structure_locator.compile_selectors")) {
+                compiledSelectors = compileSelectors(registry, structureSelectors);
             }
+            PipelineProfiler.recordValue("structure_locator.compiled_selector_groups", compiledSelectors.size());
+            if (compiledSelectors.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            final PlacementIndex index;
+            try (PipelineProfiler.Section indexSection = PipelineProfiler.openSection("structure_locator.build_index")) {
+                index = buildPlacementIndex(world, compiledSelectors);
+            }
+
+            final int baseStep = scanRadius * 2 + 1; // чанки
+            final int step = computeGridStepChunks(index, baseStep);
+
+            final int originChunkX = origin.getX() >> 4;
+            final int originChunkZ = origin.getZ() >> 4;
+
+            ArrayList<Cell> cells = new ArrayList<>();
+            for (int dx = -overallRadius; dx <= overallRadius; dx += step) {
+                for (int dz = -overallRadius; dz <= overallRadius; dz += step) {
+                    int cx = originChunkX + dx;
+                    int cz = originChunkZ + dz;
+                    BlockPos cellCenter = new BlockPos((cx << 4) + 8, origin.getY(), (cz << 4) + 8);
+                    cells.add(new Cell(cx, cz, cellCenter));
+                }
+            }
+            PipelineProfiler.recordValue("structure_locator.grid_cells", cells.size());
+
+            List<Candidate> planned;
+            try (PipelineProfiler.Section planning = PipelineProfiler.openSection("structure_locator.plan_candidates")) {
+                planned = ForkJoinPool.commonPool().submit(() ->
+                        cells.parallelStream()
+                                .flatMap(cell -> planCandidatesForCell(index, cell, scanRadius))
+                                .collect(Collectors.toCollection(ArrayList::new))
+                ).join();
+            }
+            PipelineProfiler.recordValue("structure_locator.planned_candidates", planned.size());
+
+            List<Pair<BlockPos, String>> found;
+            try (PipelineProfiler.Section resolve = PipelineProfiler.openSection("structure_locator.resolve_candidates")) {
+                found = resolveCandidatesOnMainThread(world, registry, index, planned, allowChunkLoads);
+            }
+            PipelineProfiler.recordValue("structure_locator.resolved_structures", found.size());
+
+            schedulePersistence(world, found);
+            return found;
         }
-
-        // Фаза A: планирование кандидатов по всем ячейкам — off-thread (parallel stream)
-        List<Candidate> planned = ForkJoinPool.commonPool().submit(() ->
-                cells.parallelStream()
-                        .flatMap(cell -> planCandidatesForCell(index, cell, scanRadius))
-                        .collect(Collectors.toCollection(ArrayList::new))
-        ).join();
-
-        // Фаза B: разрешение кандидатов (presence + опциональная загрузка чанка) — строго на главном треде
-        List<Pair<BlockPos, String>> found = resolveCandidatesOnMainThread(world, registry, index, planned, allowChunkLoads);
-
-        // Сохранение графа — также на главном треде
-        schedulePersistence(world, found);
-        return found;
     }
 
     /* ───────────────────────────── Placement index & planning ───────────────────────────── */
@@ -254,21 +277,35 @@ public final class StructureLocator {
 
         final StructureAccessor accessor = world.getStructureAccessor();
 
+        PipelineProfiler.recordValue("structure_locator.resolve_candidates_input", candidates.size());
+
         for (Candidate c : candidates) {
+            PipelineProfiler.increment("structure_locator.candidate_examined");
             long negKey = packNegKey(c.pos, c.placement);
-            if (neg.contains(negKey)) continue;
+            if (neg.contains(negKey)) {
+                PipelineProfiler.increment("structure_locator.negative_cache_hit");
+                continue;
+            }
 
             boolean needChunk = false;
+            PipelineProfiler.recordValue("structure_locator.structures_per_candidate", c.structs.size());
             // Быстрый проход по presence
             for (RegistryEntry<Structure> s : c.structs) {
-                StructurePresence presence = accessor.getStructurePresence(c.pos, s.value(), true);
+                StructurePresence presence;
+                PipelineProfiler.increment("structure_locator.presence_checks");
+                try (PipelineProfiler.Section presenceTimer = PipelineProfiler.openSection(
+                        "structure_locator.presence_check")) {
+                    presence = accessor.getStructurePresence(c.pos, s.value(), true);
+                }
                 if (presence == StructurePresence.START_PRESENT) {
+                    PipelineProfiler.increment("structure_locator.presence_positive");
                     BlockPos hit = c.placement.getLocatePos(c.pos);
                     long keyXZ = BlockPos.asLong(hit.getX(), 0, hit.getZ());
                     if (seenXZ.add(keyXZ)) {
                         Identifier id = registry.getId(s.value());
                         found.add(Pair.of(new BlockPos(hit.getX(), CacheManager.getHeight(world, hit.getX(), hit.getZ()), hit.getZ()),
                                 id == null ? "unknown" : id.toString()));
+                        PipelineProfiler.increment("structure_locator.found_structures");
                     }
                     // Не добавляем в негативный кэш — тут как раз что-то есть
                     needChunk = false; // на всякий случай
@@ -285,15 +322,20 @@ public final class StructureLocator {
             }
 
             if (!allowChunkLoads) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Skipping chunk load for candidate {} due to allowChunkLoads=false", c.pos);
-                }
+                DebugLog.info(LOGGER, "Skipping chunk load for candidate {} due to allowChunkLoads=false", c.pos);
+                PipelineProfiler.increment("structure_locator.chunk_loads_skipped");
                 // Не трогаем негативный кэш, чтобы кандидат мог быть проверен позже
                 continue;
             }
 
             // Единоразовая загрузка чанка до STRUCTURE_STARTS для всей группы
-            var chunk = world.getChunk(c.pos.x, c.pos.z, net.minecraft.world.chunk.ChunkStatus.STRUCTURE_STARTS);
+            PipelineProfiler.increment("structure_locator.chunk_load_requests");
+            net.minecraft.world.chunk.Chunk chunk;
+            try (PipelineProfiler.Section chunkTimer = PipelineProfiler.openSection("structure_locator.chunk_load")) {
+                chunk = world.getChunk(c.pos.x, c.pos.z,
+                        net.minecraft.world.chunk.ChunkStatus.STRUCTURE_STARTS);
+            }
+            PipelineProfiler.increment("structure_locator.chunk_loads_completed");
             var secPos = ChunkSectionPos.from(chunk);
 
             boolean any = false;
@@ -310,7 +352,10 @@ public final class StructureLocator {
                     any = true;
                 }
             }
-            if (!any) neg.add(negKey);
+            if (!any) {
+                neg.add(negKey);
+                PipelineProfiler.increment("structure_locator.negative_cache_store");
+            }
         }
 
         return found;
@@ -351,12 +396,8 @@ public final class StructureLocator {
         server.execute(() -> {
             RoadGraphState graph = RoadGraphState.get(world);
             for (Pair<BlockPos, String> pair : found) {
-                Node node = graph.addNode(pair.getFirst(), pair.getSecond());
-                if (LOGGER.isDebugEnabled()) {
-                    if (node != null) {
-                        LOGGER.debug("Added node {} at {} ({})", node.id(), node.pos(), pair.getSecond());
-                    }
-                }
+                Node node = graph.addNodeWithEdges(pair.getFirst(), pair.getSecond());
+                DebugLog.info(LOGGER, "Added node {} at {} ({})", node.id(), node.pos(), pair.getSecond());
             }
             graph.markDirty();
         });
@@ -381,9 +422,7 @@ public final class StructureLocator {
         }
         if (minSpacing != Integer.MAX_VALUE) {
             int step = Math.max(fallbackStep, minSpacing);
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Grid step optimization: fallbackStep={}, minSpacing={}, chosenStep={}", fallbackStep, minSpacing, step);
-            }
+            DebugLog.info(LOGGER, "Grid step optimization: fallbackStep={}, minSpacing={}, chosenStep={}", fallbackStep, minSpacing, step);
             return step;
         }
         return fallbackStep;

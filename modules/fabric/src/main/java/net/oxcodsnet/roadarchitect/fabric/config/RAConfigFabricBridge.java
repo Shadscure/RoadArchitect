@@ -3,12 +3,20 @@ package net.oxcodsnet.roadarchitect.fabric.config;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
+import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
+import net.oxcodsnet.roadarchitect.config.defaults.BopRoadStyleDefaults;
+import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.config.RoadArchitectConfigData;
+import net.oxcodsnet.roadarchitect.config.defaults.LampPostDefaults;
+import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
+import net.oxcodsnet.roadarchitect.config.defaults.RoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.handlers.RoadPipelineController;
+import net.oxcodsnet.roadarchitect.handlers.compat.BopCompat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +32,17 @@ public final class RAConfigFabricBridge {
 
     public static void bootstrap() {
         holder = AutoConfig.register(RoadArchitectConfigData.class, GsonConfigSerializer::new);
+        if (!BopCompat.isPresent()) {
+            AutoConfig.getGuiRegistry(RoadArchitectConfigData.class)
+                    .registerPredicateProvider(
+                            (name, field, config, defaults, registry) -> java.util.List.of(
+                                    ConfigEntryBuilder.create()
+                                            .startTextDescription(Text.translatable("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint"))
+                                            .build()
+                            ),
+                            field -> field.getDeclaringClass() == RoadArchitectConfigData.class
+                                    && field.getType() == RoadArchitectConfigData.BopRoadStyleSettings.class);
+        }
         RAConfigHolder.set(new RAConfig() {
             @Override
             public int initScanRadius() {
@@ -51,6 +70,11 @@ public final class RAConfigFabricBridge {
             }
 
             @Override
+            public int roadWidth() {
+                return holder.getConfig().roadWidth;
+            }
+
+            @Override
             public int sideDecorationInterval() {
                 return holder.getConfig().sideDecorationInterval;
             }
@@ -73,6 +97,11 @@ public final class RAConfigFabricBridge {
             @Override
             public java.util.List<String> structureSelectors() {
                 return holder.getConfig().structureSelectors;
+            }
+
+            @Override
+            public java.util.List<String> dimensionSelectors() {
+                return holder.getConfig().dimensionSelectors;
             }
 
             // Terrain Analyzer
@@ -155,6 +184,60 @@ public final class RAConfigFabricBridge {
             public int cacheMaxSize() {
                 return holder.getConfig().cacheMaxSize;
             }
+
+            @Override
+            public java.util.List<LampPostConfigEntry> lampPostOverrides() {
+                RoadArchitectConfigData.LampPostSettings settings = holder.getConfig().lampPosts;
+                if (settings == null) {
+                    return LampPostDefaults.entries();
+                }
+                if (!settings.enabled) {
+                    return LampPostDefaults.entries();
+                }
+                java.util.List<RoadArchitectConfigData.LampPostDefinition> defs = settings.overrides;
+                if (defs == null || defs.isEmpty()) {
+                    return LampPostDefaults.entries();
+                }
+                java.util.ArrayList<LampPostConfigEntry> out = new java.util.ArrayList<>(defs.size());
+                for (RoadArchitectConfigData.LampPostDefinition def : defs) {
+                    if (def == null) continue;
+                    out.add(new LampPostConfigEntry(def.biomeSelectors, def.baseBlock, def.postBlock, def.lampBlock));
+                }
+                return java.util.List.copyOf(out);
+            }
+
+            @Override
+            public java.util.List<RoadStyleConfigEntry> roadStyleOverrides() {
+                RoadArchitectConfigData.RoadStyleSettings settings = holder.getConfig().roadStyles;
+                if (settings == null || !settings.enabled) {
+                    return RoadStyleDefaults.entries();
+                }
+                return compileRoadStyles(settings.overrides, RoadStyleDefaults.entries());
+            }
+
+            @Override
+            public java.util.List<RoadStyleConfigEntry> bopRoadStyleOverrides() {
+                if (!BopCompat.isPresent()) {
+                    return java.util.List.of();
+                }
+                RoadArchitectConfigData.BopRoadStyleSettings settings = holder.getConfig().bopRoadStyles;
+                if (settings == null || !settings.enabled) {
+                    return BopRoadStyleDefaults.entries();
+                }
+                return compileRoadStyles(settings.overrides, BopRoadStyleDefaults.entries());
+            }
+
+            @Override
+            public boolean debugVerboseLogs() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings != null && settings.enableVerboseLogs;
+            }
+
+            @Override
+            public boolean debugPipelineProfiler() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings != null && settings.enablePipelineProfiler;
+            }
         });
 
         holder.registerSaveListener((h, cfg) -> {
@@ -164,6 +247,48 @@ public final class RAConfigFabricBridge {
         });
 
         LOG.info("[RoadArchitect] cloth-config bridge initialized");
+    }
+
+    private static java.util.List<RoadStyleConfigEntry> compileRoadStyles(
+            java.util.List<RoadArchitectConfigData.RoadStyleDefinition> definitions,
+            java.util.List<RoadStyleConfigEntry> defaults) {
+        if (definitions == null || definitions.isEmpty()) {
+            return defaults;
+        }
+        java.util.ArrayList<RoadStyleConfigEntry> out = new java.util.ArrayList<>(definitions.size());
+        for (RoadArchitectConfigData.RoadStyleDefinition def : definitions) {
+            if (def == null) {
+                continue;
+            }
+            java.util.ArrayList<RoadStyleConfigEntry.SurfaceBlockEntry> palette = new java.util.ArrayList<>();
+            if (def.palette != null) {
+                for (RoadArchitectConfigData.RoadPaletteEntry entry : def.palette) {
+                    if (entry == null) {
+                        continue;
+                    }
+                    palette.add(new RoadStyleConfigEntry.SurfaceBlockEntry(entry.block, entry.weight));
+                }
+            }
+            java.util.ArrayList<RoadStyleConfigEntry.DecorationEntry> decorations = new java.util.ArrayList<>();
+            if (def.decorations != null) {
+                for (RoadArchitectConfigData.RoadDecorationEntry entry : def.decorations) {
+                    if (entry == null) {
+                        continue;
+                    }
+                    decorations.add(new RoadStyleConfigEntry.DecorationEntry(entry.type, entry.block));
+                }
+            }
+            RoadStyleConfigEntry compiled = new RoadStyleConfigEntry(def.biomeSelectors, palette, decorations);
+            if (compiled.palette().isEmpty()) {
+                LOG.warn("Skipping road style override with empty palette for selectors {}", def.biomeSelectors);
+                continue;
+            }
+            out.add(compiled);
+        }
+        if (out.isEmpty()) {
+            return defaults;
+        }
+        return java.util.List.copyOf(out);
     }
 
     public static Screen createScreen(Screen parent) {

@@ -5,6 +5,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.RoadBuilderStorage;
+import net.oxcodsnet.roadarchitect.util.DebugLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,10 @@ public class RoadBuilderManager {
         for (Map.Entry<String, List<BlockPos>> entry : paths.entrySet()) {
             String key = entry.getKey();
             List<BlockPos> path = entry.getValue();
+            if (path == null || path.size() < 2) {
+                DebugLog.info(LOGGER, "Skipped road construction {} ({} steps) because path too short", key, path == null ? 0 : path.size());
+                continue;
+            }
             int i = 0;
             while (i < path.size()) {
                 ChunkPos chunk = new ChunkPos(path.get(i));
@@ -38,7 +43,7 @@ public class RoadBuilderManager {
                 } while (i < path.size() && new ChunkPos(path.get(i)).equals(chunk));
                 storage.addSegment(chunk, key, start, i);
             }
-            LOGGER.debug("Queued road construction {} ({} steps)", key, path.size());
+            DebugLog.info(LOGGER, "Queued road construction {} ({} steps)", key, path.size());
         }
     }
 }

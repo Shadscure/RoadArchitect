@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.server.world.ServerWorld;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.RoadGraphState;
+import net.oxcodsnet.roadarchitect.util.DebugLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,7 @@ public final class RoadGraphStateFabricEvents {
         ServerWorldEvents.LOAD.register((server, world) -> {
             if (!world.isClient()) {
                 RoadGraphState.get(world);
-                LOGGER.debug("RoadGraphState loaded for world {}", world.getRegistryKey().getValue());
+                DebugLog.info(LOGGER, "RoadGraphState loaded for world {}", world.getRegistryKey().getValue());
             }
         });
 
@@ -27,7 +28,7 @@ public final class RoadGraphStateFabricEvents {
             if (!world.isClient()) {
                 RoadGraphState state = RoadGraphState.get(world);
                 state.markDirty();
-                LOGGER.debug("Saved RoadGraphState for world {} on unload", world.getRegistryKey().getValue());
+                DebugLog.info(LOGGER, "Saved RoadGraphState for world {} on unload", world.getRegistryKey().getValue());
             }
         });
 
@@ -37,7 +38,7 @@ public final class RoadGraphStateFabricEvents {
                 RoadGraphState state = RoadGraphState.get(world);
                 state.markDirty();
             }
-            LOGGER.debug("Server stopping, all RoadGraphStates marked dirty");
+            DebugLog.info(LOGGER, "Server stopping, all RoadGraphStates marked dirty");
         });
     }
 }

@@ -2,6 +2,7 @@ package net.oxcodsnet.roadarchitect;
 
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
+import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
 
 import java.util.List;
 
@@ -36,6 +37,11 @@ public final class RoadArchitect {
         }
 
         @Override
+        public int roadWidth() {
+            return RAConfigHolder.get().roadWidth();
+        }
+
+        @Override
         public int buoyInterval() {
             return RAConfigHolder.get().buoyInterval();
         }
@@ -58,6 +64,11 @@ public final class RoadArchitect {
         @Override
         public java.util.List<String> structureSelectors() {
             return RAConfigHolder.get().structureSelectors();
+        }
+
+        @Override
+        public List<String> dimensionSelectors() {
+            return RAConfigHolder.get().dimensionSelectors();
         }
 
         @Override
@@ -128,6 +139,31 @@ public final class RoadArchitect {
         @Override
         public double partialProgressThreshold() {
             return RAConfigHolder.get().partialProgressThreshold();
+        }
+
+        @Override
+        public java.util.List<net.oxcodsnet.roadarchitect.config.LampPostConfigEntry> lampPostOverrides() {
+            return RAConfigHolder.get().lampPostOverrides();
+        }
+
+        @Override
+        public java.util.List<RoadStyleConfigEntry> roadStyleOverrides() {
+            return RAConfigHolder.get().roadStyleOverrides();
+        }
+
+        @Override
+        public java.util.List<RoadStyleConfigEntry> bopRoadStyleOverrides() {
+            return RAConfigHolder.get().bopRoadStyleOverrides();
+        }
+
+        @Override
+        public boolean debugVerboseLogs() {
+            return RAConfigHolder.get().debugVerboseLogs();
+        }
+
+        @Override
+        public boolean debugPipelineProfiler() {
+            return RAConfigHolder.get().debugPipelineProfiler();
         }
 
         @Override

@@ -23,15 +23,15 @@ public final class BlockPalette {
     }
 
     public BlockState pick(Random random) {
+        if (this.entries.isEmpty()) {
+            throw new IllegalStateException("BlockPalette is empty");
+        }
         int r = random.nextInt(this.totalWeight);
         for (Entry e : this.entries) {
             if (r < e.weight) {
                 return e.state;
             }
             r -= e.weight;
-        }
-        if (this.entries.isEmpty()) {
-            throw new IllegalStateException("Block palette is empty");
         }
         return this.entries.get(0).state;
     }

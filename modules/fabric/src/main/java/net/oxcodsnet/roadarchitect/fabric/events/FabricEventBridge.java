@@ -3,6 +3,7 @@ package net.oxcodsnet.roadarchitect.fabric.events;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.oxcodsnet.roadarchitect.handlers.RoadGraphStateManager;
 import net.oxcodsnet.roadarchitect.handlers.RoadPostProcessor;
 import net.oxcodsnet.roadarchitect.util.CacheManager;
@@ -25,5 +26,8 @@ public final class FabricEventBridge {
         ServerWorldEvents.LOAD.register((server, world) -> CacheManager.onWorldLoad(world));
         ServerWorldEvents.UNLOAD.register((server, world) -> CacheManager.onWorldUnload(world));
         ServerLifecycleEvents.SERVER_STOPPING.register(CacheManager::onServerStopping);
+
+        ServerChunkEvents.CHUNK_LOAD.register((world, chunk) -> CacheManager.onChunkLoad(world, chunk));
+        ServerChunkEvents.CHUNK_UNLOAD.register((world, chunk) -> CacheManager.onChunkUnload(world, chunk.getPos()));
     }
 }

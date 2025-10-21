@@ -3,6 +3,9 @@ package net.oxcodsnet.roadarchitect.handlers;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.world.gen.noise.NoiseConfig;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.PathStorage;
 import net.oxcodsnet.roadarchitect.util.AsyncExecutor;
@@ -10,6 +13,9 @@ import net.oxcodsnet.roadarchitect.util.CacheManager;
 import net.oxcodsnet.roadarchitect.util.PathFinder;
 import net.oxcodsnet.roadarchitect.util.PathSpatialIndex;
 import net.oxcodsnet.roadarchitect.util.model.AABB;
+import net.oxcodsnet.roadarchitect.util.DebugLog;
+import net.oxcodsnet.roadarchitect.util.profiler.PipelineProfiler;
+import net.oxcodsnet.roadarchitect.worldgen.RoadFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +23,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.OptionalInt;
 
 /**
  * Post-processes raw A* paths into detailed block sequences
@@ -46,10 +53,18 @@ public final class RoadPostProcessor {
     private RoadPostProcessor() {
     }
 
+    private static <T> T first(List<T> list) {
+        return list.get(0);
+    }
+
+    private static <T> T last(List<T> list) {
+        return list.get(list.size() - 1);
+    }
+
     // ====== Регистрация хуков ======
     public static void onStartWorldTick(ServerWorld world) {
         if (world.isClient()) return;
-        if (world.getRegistryKey() != World.OVERWORLD) return;
+        if (!RoadPipelineController.isDimensionEnabled(world.getRegistryKey())) return;
         processPending(world);
     }
 
@@ -68,8 +83,8 @@ public final class RoadPostProcessor {
     private static List<BlockPos> trimByManhattan(List<BlockPos> path) {
         if (path == null || path.size() < 2) return path;
 
-        BlockPos start0 = path.get(0);
-        BlockPos end0 = path.get(path.size() - 1);
+        BlockPos start0 = first(path);
+        BlockPos end0 = last(path);
 
         int i = 0;
         while (i < path.size() && manhattanXZ(path.get(i), start0) <= TRIM_RADIUS_L1) i++;
@@ -94,27 +109,75 @@ public final class RoadPostProcessor {
     private static List<BlockPos> refine(ServerWorld world, List<BlockPos> verts) {
         if (verts.isEmpty()) return List.of();
 
+        ChunkGenerator generator = world.getChunkManager().getChunkGenerator();
+        NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
+        Map<Long, Integer> resolvedHeights = new HashMap<>();
         List<BlockPos> out = new ArrayList<>(verts.size() * PathFinder.GRID_STEP);
         for (int i = 0; i < verts.size() - 1; i++) {
             BlockPos a = verts.get(i);
             BlockPos b = verts.get(i + 1);
-            out.add(a.down());
-            interpolate(world, a, b, out);
+            out.add(adjustToGround(world, generator, noiseConfig, resolvedHeights, a));
+            interpolate(world, generator, noiseConfig, a, b, resolvedHeights, out);
         }
-        out.add(verts.get(verts.size() - 1).down());
+        out.add(adjustToGround(world, generator, noiseConfig, resolvedHeights, last(verts)));
         return out;
     }
 
-    private static void interpolate(ServerWorld world, BlockPos a, BlockPos b, List<BlockPos> out) {
+    private static void interpolate(ServerWorld world,
+                                    ChunkGenerator generator,
+                                    NoiseConfig noiseConfig,
+                                    BlockPos a,
+                                    BlockPos b,
+                                    Map<Long, Integer> resolvedHeights,
+                                    List<BlockPos> out) {
         int dx = Integer.signum(b.getX() - a.getX());
         int dz = Integer.signum(b.getZ() - a.getZ());
         int steps = Math.max(Math.abs(b.getX() - a.getX()), Math.abs(b.getZ() - a.getZ()));
         for (int i = 1; i < steps; i++) {
             int nx = a.getX() + dx * i;
             int nz = a.getZ() + dz * i;
-            int ny = CacheManager.getHeight(world, nx, nz) - 1;
+            int ny = resolveSurfaceHeight(world, generator, noiseConfig, resolvedHeights, nx, nz) - 1;
             out.add(new BlockPos(nx, ny, nz));
         }
+    }
+
+    private static BlockPos adjustToGround(ServerWorld world,
+                                           ChunkGenerator generator,
+                                           NoiseConfig noiseConfig,
+                                           Map<Long, Integer> resolvedHeights,
+                                           BlockPos pos) {
+        int surface = resolveSurfaceHeight(world, generator, noiseConfig, resolvedHeights, pos.getX(), pos.getZ());
+        return new BlockPos(pos.getX(), surface - 1, pos.getZ());
+    }
+
+    private static int resolveSurfaceHeight(ServerWorld world,
+                                            ChunkGenerator generator,
+                                            NoiseConfig noiseConfig,
+                                            Map<Long, Integer> resolvedHeights,
+                                            int x,
+                                            int z) {
+        long key = CacheManager.hash(x, z);
+        Integer cached = resolvedHeights.get(key);
+        if (cached != null) {
+            return cached;
+        }
+
+        OptionalInt prepared = RoadFeature.lookupPreparedSurface(x, z);
+        int resolved = prepared.isPresent() ? prepared.getAsInt() : CacheManager.getHeight(world, x, z);
+        int bottomGuard = world.getBottomY() + 1;
+        if (resolved < bottomGuard) {
+            resolved = bottomGuard;
+        }
+
+        if (generator != null && noiseConfig != null) {
+            int generated = generator.getHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG, world, noiseConfig);
+            if (generated > resolved) {
+                resolved = generated;
+            }
+        }
+
+        resolvedHeights.put(key, resolved);
+        return resolved;
     }
 
     private static NormalizeResult normalizeHeights(List<BlockPos> refined) {
@@ -157,7 +220,7 @@ public final class RoadPostProcessor {
                     clamps++;
                     if (LOG_GRAD_CLAMP) {
                         BlockPos p = refined.get(i);
-                        LOGGER.debug("[PostProcess] Clamp↑ at {}: {} -> {} (ref={})", p, old, clamped, y[i - 1]);
+                        DebugLog.info(LOGGER, "[PostProcess] Clamp↑ at {}: {} -> {} (ref={})", p, old, clamped, y[i - 1]);
                     }
                     y[i] = clamped;
                 }
@@ -172,7 +235,7 @@ public final class RoadPostProcessor {
                     clamps++;
                     if (LOG_GRAD_CLAMP) {
                         BlockPos p = refined.get(i);
-                        LOGGER.debug("[PostProcess] Clamp↓ at {}: {} -> {} (ref={})", p, old, clamped, y[i + 1]);
+                        DebugLog.info(LOGGER, "[PostProcess] Clamp↓ at {}: {} -> {} (ref={})", p, old, clamped, y[i + 1]);
                     }
                     y[i] = clamped;
                 }
@@ -205,46 +268,73 @@ public final class RoadPostProcessor {
 
     public static void processPending(ServerWorld world) {
         PathStorage storage = PathStorage.get(world);
-        Map<String, PathStorage.Status> statuses = storage.allStatuses();
-        List<String> pendingKeys = statuses.entrySet().stream()
-                .filter(e -> e.getValue() == PathStorage.Status.PENDING)
-                .map(Entry::getKey)
-                .collect(Collectors.toList());
+        PipelineProfiler.increment("postprocess.invocations");
 
-        if (pendingKeys.isEmpty()) {
+        // собрать pending
+        List<String> pending = new ArrayList<>();
+        int examined = 0;
+        for (Map.Entry<String, PathStorage.Status> e : storage.allStatuses().entrySet()) {
+            examined++;
+            if (e.getValue() == PathStorage.Status.PENDING) pending.add(e.getKey());
+        }
+        if (pending.isEmpty()) {
+            PipelineProfiler.recordValue("postprocess.entries_examined", examined);
             return;
         }
 
-        // Build spatial index for all pending paths
-        PathSpatialIndex index = new PathSpatialIndex();
-        Map<String, List<BlockPos>> pendingPaths = new HashMap<>();
-        for (String key : pendingKeys) {
-            List<BlockPos> path = storage.getPath(key);
-            if (!path.isEmpty()) {
-                pendingPaths.put(key, path);
-                index.add(key, AABB.of(path));
-            }
+        // стратегия: маленький объём — инкрементально; большой — с пространственным индексом
+        int toSchedule = Math.min(pending.size(), MAX_PER_TICK);
+        Ctx ctx = pending.size() >= SPATIAL_THRESHOLD ? buildCtx(storage, pending) : null;
+
+        int scheduled = 0;
+        for (String key : pending) {
+            if (storage.getStatus(key) != PathStorage.Status.PENDING) continue;
+            schedule(world, storage, key, ctx);
+            PipelineProfiler.increment("postprocess.entries_scheduled");
+            if (++scheduled >= toSchedule) break; // распределить нагрузку по тикам
         }
 
-        // Process each pending path using the index
-        for (String key : pendingKeys) {
-            if (storage.getStatus(key) == PathStorage.Status.PENDING) {
-                schedule(world, storage, key, index, pendingPaths);
-            }
+        PipelineProfiler.recordValue("postprocess.entries_examined", examined);
+        PipelineProfiler.recordValue("postprocess.entries_pending", pending.size());
+        PipelineProfiler.recordValue("postprocess.entries_scheduled_this_tick", scheduled);
+    }
+
+    public static void processChunk(ServerWorld world, ChunkPos chunk) {
+        PathStorage storage = PathStorage.get(world);
+        List<String> keys = new ArrayList<>(storage.getPendingForChunk(chunk));
+        if (keys.isEmpty()) return;
+
+        int toSchedule = Math.min(keys.size(), MAX_PER_TICK);
+        Ctx ctx = keys.size() >= SPATIAL_THRESHOLD ? buildCtx(storage, keys) : null;
+
+        int scheduled = 0;
+        for (String key : keys) {
+            if (storage.getStatus(key) != PathStorage.Status.PENDING) continue;
+            schedule(world, storage, key, ctx);
+            if (++scheduled >= toSchedule) break;
         }
     }
 
-    private static void schedule(ServerWorld world, PathStorage storage, String baseKey, PathSpatialIndex index, Map<String, List<BlockPos>> pendingPaths) {
-        if (!storage.tryMarkProcessing(baseKey)) return; // already handled by another thread
+    /**
+     * ВАЖНО про статусы:
+     * - baseKey: tryMarkProcessing(baseKey) -> PROCESSING; дальше либо updatePath(..., READY), либо FAILED.
+     * - partnerKey: tryMarkProcessing(partner) -> PROCESSING; если отказались от слияния -> setStatus(partner, PENDING);
+     * если слили -> updatePath(..., READY).
+     * Никаких «скрытых» переводов статусов в finally.
+     */
+    private static void schedule(ServerWorld world, PathStorage storage, String baseKey) {
+        if (!storage.tryMarkProcessing(baseKey)) return;
         final List<BlockPos> baseRawInitial = pendingPaths.get(baseKey);
         if (baseRawInitial == null) {
             storage.setStatus(baseKey, PathStorage.Status.FAILED);
-            LOGGER.warn("Path key {} was pending but has no data, failing.", baseKey);
+            DebugLog.info("Path key {} was pending but has no data, failing.", baseKey);
             return;
         }
-
+        PipelineProfiler.increment("postprocess.jobs_scheduled");
 
         AsyncExecutor.execute(() -> {
+            PipelineProfiler.increment("postprocess.jobs_started");
+            try (PipelineProfiler.Section section = PipelineProfiler.openSection("postprocess.job")) {
             String activeKey = baseKey;
             List<BlockPos> activeRaw = new ArrayList<>(baseRawInitial);
             // Применяем обрезку по Манхэттену к активному пути до любой обработки
@@ -261,6 +351,8 @@ public final class RoadPostProcessor {
 
                 do {
                     changed = false;
+                    // Повторно применяем обрезку в начале итерации (после возможных обновлений activeRaw)
+                    //activeRaw = trimByManhattan(activeRaw, TRIM_RADIUS_L1);
                     iter++;
 
                     // 1) Ищем лучшего параллельного соседа среди PENDING
@@ -297,10 +389,10 @@ public final class RoadPostProcessor {
                         toBuild.put(leg.getKey(), nr.path());
 
                         if (!nr.path().isEmpty()) {
-                            List<BlockPos> nrPath = nr.path();
-                            BlockPos s = nrPath.get(0);
-                            BlockPos t = nrPath.get(nrPath.size() - 1);
-                            LOGGER.debug(
+                            BlockPos s = first(nr.path());
+                            BlockPos t = last(nr.path());
+                            DebugLog.info(
+                                    LOGGER,
                                     "[PostProcess] READY (leg) key={} points={}, spikesCut={}, gradClamped={}, start={}, end={}",
                                     leg.getKey(), nr.path().size(), nr.spikesCut(), nr.gradClamped(), s, t
                             );
@@ -316,10 +408,10 @@ public final class RoadPostProcessor {
                     toBuild.put(br.trunkRaw.key, trunkNR.path());
 
                     if (!trunkNR.path().isEmpty()) {
-                        List<BlockPos> trunkPath = trunkNR.path();
-                        BlockPos s = trunkPath.get(0);
-                        BlockPos t = trunkPath.get(trunkPath.size() - 1);
-                        LOGGER.debug(
+                        BlockPos s = first(trunkNR.path());
+                        BlockPos t = last(trunkNR.path());
+                        DebugLog.info(
+                                LOGGER,
                                 "[PostProcess] READY (trunk) key={} points={}, spikesCut={}, gradClamped={}, start={}, end={}",
                                 br.trunkRaw.key, trunkNR.path().size(), trunkNR.spikesCut(), trunkNR.gradClamped(), s, t
                         );
@@ -342,10 +434,10 @@ public final class RoadPostProcessor {
                     toBuild.put(activeKey, nr.path());
 
                     if (!nr.path().isEmpty()) {
-                        List<BlockPos> nrPath = nr.path();
-                        BlockPos s = nrPath.get(0);
-                        BlockPos t = nrPath.get(nrPath.size() - 1);
-                        LOGGER.debug(
+                        BlockPos s = first(nr.path());
+                        BlockPos t = last(nr.path());
+                        DebugLog.info(
+                                LOGGER,
                                 "[PostProcess] READY (single) key={} points={}, spikesCut={}, gradClamped={}, start={}, end={}",
                                 activeKey, nr.path().size(), nr.spikesCut(), nr.gradClamped(), s, t
                         );
@@ -355,6 +447,7 @@ public final class RoadPostProcessor {
 
                 // Разом ставим задачи строителю
                 RoadBuilderManager.queueSegments(world, toBuild);
+                PipelineProfiler.recordValue("postprocess.paths_completed", becameReady.size());
 
             } catch (Exception ex) {
                 LOGGER.error("Post-processing failed for {}", baseKey, ex);
@@ -364,6 +457,7 @@ public final class RoadPostProcessor {
                         storage.setStatus(p, PathStorage.Status.PENDING);
                     }
                 }
+                PipelineProfiler.increment("postprocess.jobs_failed");
                 return;
             }
 
@@ -373,7 +467,7 @@ public final class RoadPostProcessor {
                     storage.setStatus(p, PathStorage.Status.PENDING);
                 }
             }
-        });
+        }});
     }
 
     private static MergeCandidate findBestParallelPartner(PathStorage storage, String baseKey, List<BlockPos> baseRaw, PathSpatialIndex index, Map<String, List<BlockPos>> pendingPaths) {
@@ -462,8 +556,10 @@ public final class RoadPostProcessor {
 
         int jx = (int) Math.round((pa.getX() + pb.getX()) / 2.0);
         int jz = (int) Math.round((pa.getZ() + pb.getZ()) / 2.0);
-        int jy = CacheManager.getHeight(world, jx, jz); // refine потом даст .down()
-        BlockPos J = new BlockPos(jx, jy, jz);
+        ChunkGenerator generator = world.getChunkManager().getChunkGenerator();
+        NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
+        Map<Long, Integer> resolvedHeights = new HashMap<>();
+        BlockPos J = adjustToGround(world, generator, noiseConfig, resolvedHeights, new BlockPos(jx, pa.getY(), jz));
 
         List<BlockPos> legA = new ArrayList<>(a.subList(0, conv.i + 1));
         legA.set(legA.size() - 1, J);
@@ -535,7 +631,7 @@ public final class RoadPostProcessor {
     }
 
     private static int[] dir(List<BlockPos> pts) {
-        BlockPos s = pts.get(0), e = pts.get(pts.size() - 1);
+        BlockPos s = first(pts), e = last(pts);
         return new int[]{e.getX() - s.getX(), e.getZ() - s.getZ()};
     }
 

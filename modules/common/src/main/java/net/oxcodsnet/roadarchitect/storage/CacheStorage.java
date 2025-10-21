@@ -3,8 +3,14 @@ package net.oxcodsnet.roadarchitect.storage;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.PersistentState;
+import net.minecraft.world.biome.Biome;
 import net.oxcodsnet.roadarchitect.util.PersistentStateUtil;
 
 import java.util.Map;
@@ -27,20 +33,17 @@ public class CacheStorage extends PersistentState {
     private static final String HEIGHTS_KEY = "heights";
     private static final String STABILITIES_KEY = "stabilities";
     private static final String BIOMES_KEY = "biomes";
-    private static final String ENTRY_KEY = "k";
-    private static final String ENTRY_VALUE = "v";
-
     private final Map<Long, Integer> heights;
     private final Map<Long, Double> stabilities;
-    private final Map<Long, RegistryEntry<Biome>> cachedBiomes;
-    private final Map<Long, Identifier> biomeIds;
+    private final Map<Long, RegistryEntry<Biome>> biomes;
+    private final Map<Long, String> pendingBiomeIds;
 
     public CacheStorage() {
         int maxSize = RAConfigHolder.get().cacheMaxSize();
         this.heights = LRUCache.synchronizedOf(maxSize);
         this.stabilities = LRUCache.synchronizedOf(maxSize);
-        this.cachedBiomes = LRUCache.synchronizedOf(maxSize);
-        this.biomeIds = LRUCache.synchronizedOf(maxSize);
+        this.biomes = LRUCache.synchronizedOf(maxSize);
+        this.pendingBiomeIds = LRUCache.synchronizedOf(maxSize);
     }
 
     public static CacheStorage get(ServerWorld world) {
@@ -57,35 +60,24 @@ public class CacheStorage extends PersistentState {
         NbtList sList = tag.getList(STABILITIES_KEY, NbtElement.COMPOUND_TYPE);
         NbtUtils.fillLongDoubleMap(sList, storage.stabilities);
         NbtList bList = tag.getList(BIOMES_KEY, NbtElement.COMPOUND_TYPE);
-        Map<Long, String> stored = new java.util.HashMap<>(bList.size());
-        NbtUtils.fillLongStringMap(bList, stored);
-        for (Map.Entry<Long, String> entry : stored.entrySet()) {
-            Identifier id = Identifier.tryParse(entry.getValue());
-            if (id != null) {
-                storage.biomeIds.put(entry.getKey(), id);
-            }
-        }
+        NbtUtils.fillLongStringMap(bList, storage.pendingBiomeIds);
         return storage;
     }
 
-    @Override
     public NbtCompound writeNbt(NbtCompound tag) {
         tag.put(HEIGHTS_KEY, NbtUtils.toLongIntList(heights));
 
         tag.put(STABILITIES_KEY, NbtUtils.toLongDoubleList(stabilities));
 
-        java.util.HashMap<Long, String> toWrite = new java.util.HashMap<>(biomeIds.size());
-        for (Map.Entry<Long, Identifier> entry : biomeIds.entrySet()) {
-            toWrite.put(entry.getKey(), entry.getValue().toString());
-        }
-        // include any cached entries missing from biomeIds
-        for (Map.Entry<Long, RegistryEntry<Biome>> entry : cachedBiomes.entrySet()) {
+        java.util.HashMap<Long, String> biomeIds = new java.util.HashMap<>(biomes.size() + pendingBiomeIds.size());
+        for (Map.Entry<Long, RegistryEntry<Biome>> entry : biomes.entrySet()) {
             Identifier id = entry.getValue().getKey().map(RegistryKey::getValue).orElse(null);
             if (id != null) {
-                toWrite.put(entry.getKey(), id.toString());
+                biomeIds.put(entry.getKey(), id.toString());
             }
         }
-        tag.put(BIOMES_KEY, NbtUtils.toLongStringList(toWrite));
+        pendingBiomeIds.forEach(biomeIds::putIfAbsent);
+        tag.put(BIOMES_KEY, NbtUtils.toLongStringList(biomeIds));
         return tag;
     }
 
@@ -97,40 +89,27 @@ public class CacheStorage extends PersistentState {
         return stabilities;
     }
 
-    public void putBiome(long key, RegistryEntry<Biome> biome) {
-        cachedBiomes.put(key, biome);
-        biome.getKey().map(RegistryKey::getValue).ifPresent(id -> biomeIds.put(key, id));
-        markDirty();
+    public Map<Long, RegistryEntry<Biome>> biomes() {
+        return biomes;
     }
 
-    public RegistryEntry<Biome> getBiome(ServerWorld world, long key, Supplier<RegistryEntry<Biome>> loader) {
-        return cachedBiomes.computeIfAbsent(key, k -> {
-            RegistryEntry<Biome> resolved = resolveBiome(world.getRegistryManager(), biomeIds.get(k));
-            if (resolved == null) {
-                resolved = loader.get();
-            }
-            resolved.getKey().map(RegistryKey::getValue).ifPresentOrElse(
-                    id -> biomeIds.put(k, id),
-                    () -> biomeIds.remove(k)
-            );
-            markDirty();
-            return resolved;
-        });
-    }
-
-    private void attachWorld(DynamicRegistryManager registryManager) {
-        // attempt to hydrate cached biomes lazily so they are available immediately
-        biomeIds.forEach((key, id) -> {
-            cachedBiomes.computeIfAbsent(key, k -> resolveBiome(registryManager, id));
-        });
-    }
-
-    private RegistryEntry<Biome> resolveBiome(DynamicRegistryManager registryManager, Identifier id) {
-        if (id == null) {
-            return null;
+    public synchronized void attachWorld(DynamicRegistryManager manager) {
+        net.minecraft.registry.Registry<Biome> registry = manager.get(RegistryKeys.BIOME);
+        if (registry == null) {
+            return;
         }
-        return registryManager.get(RegistryKeys.BIOME)
-                .getEntry(RegistryKey.of(RegistryKeys.BIOME, id))
-                .orElse(null);
+        java.util.Iterator<Map.Entry<Long, String>> iterator = pendingBiomeIds.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Long, String> entry = iterator.next();
+            Identifier id = Identifier.tryParse(entry.getValue());
+            if (id == null) {
+                continue;
+            }
+            RegistryKey<Biome> key = RegistryKey.of(RegistryKeys.BIOME, id);
+            registry.getEntry(key).ifPresent(registryEntry -> biomes.put(entry.getKey(), registryEntry));
+            if (biomes.containsKey(entry.getKey())) {
+                iterator.remove();
+            }
+        }
     }
 }

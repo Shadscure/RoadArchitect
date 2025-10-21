@@ -53,7 +53,25 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
     private static final BuoyDecoration BUOY = new BuoyDecoration();
     private static final BlockState PREPARATION_BLOCK = Blocks.BEDROCK.getDefaultState();
     private static final int PREPARATION_CLEARANCE_EXTRA = 2;
-    private static final Map<Long, BlockState> PREPARATION_BACKUP = new ConcurrentHashMap<>();
+    private static final Map<Long, PreparationEntry> PREPARATION_BACKUP = new ConcurrentHashMap<>();
+
+    private enum PreparationRole {
+        CLEARANCE(0),
+        ROAD(1),
+        CAP(2);
+
+        private final int priority;
+
+        PreparationRole(int priority) {
+            this.priority = priority;
+        }
+
+        static PreparationRole merge(PreparationRole a, PreparationRole b) {
+            return a.priority >= b.priority ? a : b;
+        }
+    }
+
+    private record PreparationEntry(BlockState originalState, PreparationRole role) { }
 
     public RoadFeature(Codec<RoadFeatureConfig> codec) {
         super(codec);
@@ -93,19 +111,12 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                         if (!isNotWaterBlock(world, roadPos)) {
                             continue;
                         }
-                        BlockState previous = world.getBlockState(roadPos);
-                        if (!previous.isOf(PREPARATION_BLOCK.getBlock())) {
-                            PREPARATION_BACKUP.putIfAbsent(packedPos, previous);
-                        }
-                        placeRoad(world, roadPos, PREPARATION_BLOCK);
                         if (insideRoad) {
+                            prepareCell(world, roadPos, PreparationRole.ROAD);
                             BlockPos topPos = roadPos.up();
-                            long packedTop = topPos.asLong();
-                            BlockState topPrevious = world.getBlockState(topPos);
-                            if (!topPrevious.isOf(PREPARATION_BLOCK.getBlock())) {
-                                PREPARATION_BACKUP.putIfAbsent(packedTop, topPrevious);
-                            }
-                            world.setBlockState(topPos, PREPARATION_BLOCK, Block.NOTIFY_NEIGHBORS);
+                            prepareCell(world, topPos, PreparationRole.CAP);
+                        } else {
+                            prepareCell(world, roadPos, PreparationRole.CLEARANCE);
                         }
                         continue;
                     }
@@ -121,16 +132,16 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                         PREPARATION_BACKUP.remove(packedPos);
                         BlockPos topPos = roadPos.up();
                         long packedTop = topPos.asLong();
-                        BlockState topPrevious = PREPARATION_BACKUP.remove(packedTop);
-                        if (topPrevious != null) {
-                            world.setBlockState(topPos, topPrevious, Block.NOTIFY_NEIGHBORS);
+                        PreparationEntry topEntry = PREPARATION_BACKUP.remove(packedTop);
+                        if (topEntry != null) {
+                            restoreFromEntry(world, topPos, topEntry);
                         } else if (world.getBlockState(topPos).isOf(PREPARATION_BLOCK.getBlock())) {
                             world.removeBlock(topPos, false);
                         }
                     } else {
-                        BlockState previous = PREPARATION_BACKUP.remove(packedPos);
-                        if (previous != null) {
-                            world.setBlockState(roadPos, previous, Block.NOTIFY_NEIGHBORS);
+                        PreparationEntry entry = PREPARATION_BACKUP.remove(packedPos);
+                        if (entry != null) {
+                            restoreFromEntry(world, roadPos, entry);
                         } else if (world.getBlockState(roadPos).isOf(PREPARATION_BLOCK.getBlock())) {
                             world.removeBlock(roadPos, false);
                         }
@@ -239,10 +250,35 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         return Direction.NORTH;
     }
 
+    private static void prepareCell(StructureWorldAccess world, BlockPos pos, PreparationRole role) {
+        long key = pos.asLong();
+        PREPARATION_BACKUP.compute(key, (k, existing) -> {
+            BlockState currentState = world.getBlockState(pos);
+            BlockState original = existing != null ? existing.originalState() : currentState;
+            PreparationRole mergedRole = existing != null ? PreparationRole.merge(existing.role(), role) : role;
+            if (!currentState.isOf(PREPARATION_BLOCK.getBlock())) {
+                world.setBlockState(pos, PREPARATION_BLOCK, Block.NOTIFY_NEIGHBORS);
+            }
+            return new PreparationEntry(original, mergedRole);
+        });
+    }
+
+    private static void restoreFromEntry(StructureWorldAccess world, BlockPos pos, PreparationEntry entry) {
+        if (entry == null) {
+            return;
+        }
+        BlockState original = entry.originalState();
+        if (original == null || original.isAir()) {
+            world.removeBlock(pos, false);
+        } else {
+            world.setBlockState(pos, original, Block.NOTIFY_NEIGHBORS);
+        }
+    }
+
     private static void placeRoad(StructureWorldAccess world, BlockPos pos, BlockState stateRoad) {
         if (!isNotWaterBlock(world, pos)) {return;}
         world.setBlockState(pos, stateRoad, Block.NOTIFY_NEIGHBORS);
-        //world.setBlockState(pos.up(), Blocks.AIR.getDefaultState(), Block.NOTIFY_NEIGHBORS);
+        world.setBlockState(pos.up(), Blocks.AIR.getDefaultState(), Block.NOTIFY_NEIGHBORS);
     }
 
 

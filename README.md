@@ -37,14 +37,12 @@
 
 # RoadArchitect
 
-**RoadArchitect** is a **Fabric / Quilt / NeoForge** mod for **Minecraft1.20.1, 1.21–1.21.8** that automatically scans the world for villages and other structures and connects them with roads to form a persistent travel network.  
+**RoadArchitect** is a **Fabric / Quilt / NeoForge / Forge ** mod for **Minecraft 1.20.1, 1.21–1.21.10** that automatically scans the world for villages and other structures and connects them with roads to form a persistent travel network.  
 Roads adapt their style to the biome, and the network is saved between game sessions.
 
-> **Current version:** `v1.6.0`
+> **Current version:** `v1.6.1`
 
 > **Wiki:** <a href="https://github.com/0xCoDSnet/RoadArchitect/wiki">RoadArchitect Wiki</a>
-
-> _For **Forge 1.20.1**, it works correctly through_ [**Sinytra Connector**](https://modrinth.com/mod/connector)
 
 ## ✨ Features
 

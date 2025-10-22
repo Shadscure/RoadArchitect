@@ -1,5 +1,7 @@
 package net.oxcodsnet.roadarchitect.client.gui;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.font.TextRenderer;
@@ -9,6 +11,7 @@ import net.minecraft.text.Text;
 // Иначе пробрасывай Text stage параметром из «клея».
 import net.oxcodsnet.roadarchitect.handlers.PipelineRunner;
 
+@Environment(EnvType.CLIENT)
 public final class LoadingOverlayRenderer {
     private LoadingOverlayRenderer() {}
 

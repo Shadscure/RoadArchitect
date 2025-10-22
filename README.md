@@ -37,10 +37,10 @@
 
 # RoadArchitect
 
-**RoadArchitect** is a **Fabric / Quilt / NeoForge** mod for **Minecraft 1.20.1, 1.21–1.21.10** that automatically scans the world for villages and other structures and connects them with roads to form a persistent travel network.  
+**RoadArchitect** is a **Fabric / Quilt / NeoForge / Forge ** mod for **Minecraft 1.20.1, 1.21–1.21.10** that automatically scans the world for villages and other structures and connects them with roads to form a persistent travel network.  
 Roads adapt their style to the biome, and the network is saved between game sessions.
 
-> **Current version:** `v1.6.0`
+> **Current version:** `v1.6.1`
 
 > **Wiki:** <a href="https://github.com/0xCoDSnet/RoadArchitect/wiki">RoadArchitect Wiki</a>
 
@@ -148,29 +148,40 @@ Roads adapt their style to the biome, and the network is saved between game sess
 > **Note:** Starting with `v1.2.0`, **owo-lib is not required**.
 ---
 
-## 🕹 Usage
-
-- The mod automatically scans the world and builds roads between detected structures.  
-- Open the **road-graph debug** window with **H** (rebindable in Controls).  
-- In **singleplayer**, clicking a node in the debug view teleports you to it.
-
----
-
 ## 🗒️ Recent changes
+
+<details>
+<summary><strong>v1.6.0</strong> — <em>performance improvements, biome styles, more flexible configuration</em></summary>
+
+### Highlights
+
+- ⚡ **Performance**: significant speedup (up to ~2×) in structure scanning and pathfinding;
+- 🌲 **Route clearing**: automatic removal of trees from the road corridor;
+- 🎨 **Biome styles**: more default presets for vanilla biomes; broad coverage for <code>Biomes O' Plenty</code>;
+- 🧰 **Configuration**:
+  - works across dimensions;
+  - road style customization;
+  - lamppost customization;
+  - road width customization;
+- 🔧 **Debugging**: new “Debug & Diagnostics (Advanced)” tab in the config; outputs debug messages and pipeline profiler results;
+- 🐞 **Fixes**: corrected translation keys for NeoForge.
+
+**Compatibility:** no world reset required. Save format unchanged. Existing settings are preserved. <code>Biomes O' Plenty</code> support is optional and activates when the mod is present. The “Detailed debug logging” flag is off by default.
+</details>
 
 <details>
 <summary><strong>v1.5.0</strong> — <em>Smarter pathfinding, Terrain Analyzer (beta)</em></summary>
 
 ### Highlights
 
-- 🧭 Terrain Analyzer (beta): clearer recognition of mountainous terrain, with new config options and full translations
-- 🧠 Pathfinding controls: configurable land preference and water behavior (acceptable water level, coastal buffer, max coastal speed)
-- 🛣️ Partial paths: when a full route can’t be completed, high-progress searches can return the best partial path instead
-- 🌊 Safer defaults: oceans are no longer hard-blocked; default “prohibited biomes” now include <code>#minecraft:is_ocean</code> and <code>#minecraft:is_deep_ocean</code>
-- 🔒 Stability: thread-safe biome selector cache (eliminates race conditions in concurrent scans)
-- 🔧 Fixes: correct player direction on the debug map and reliable point teleportation packet handling; RA config tweaks
-- 🧩 Compatibility: improved boot behavior when Distant Horizons is installed
-- 🌐 Localization & data: updated category labels, new keys for fresh options, translations split and refreshed (EN/RU/ES/FR/DE/ZH/UK)
+- 🧭 **Terrain Analyzer (beta)**: clearer recognition of mountainous terrain, with new config options and full translations
+- 🧠 **Pathfinding controls**: configurable land preference and water behavior (acceptable water level, coastal buffer, max coastal speed)
+- 🛣️ **Partial paths**: when a full route can’t be completed, high-progress searches can return the best partial path instead
+- 🌊 **Safer defaults**: oceans are no longer hard-blocked; default “prohibited biomes” now include <code>#minecraft:is_ocean</code> and <code>#minecraft:is_deep_ocean</code>
+- 🔒  **Stability**: thread-safe biome selector cache (eliminates race conditions in concurrent scans)
+- 🔧 **Fixes**: correct player direction on the debug map and reliable point teleportation packet handling; RA config tweaks
+- 🧩 **Compatibility**: improved boot behavior when Distant Horizons is installed
+- 🌐 **Localization & data**: updated category labels, new keys for fresh options, translations split and refreshed (EN/RU/ES/FR/DE/ZH/UK)
 
 **Compatibility:** No world resets needed. Defaults for water/ocean behavior changed — review new pathfinding options if you rely on custom configs.
 </details>
@@ -180,8 +191,8 @@ Roads adapt their style to the biome, and the network is saved between game sess
 
 ### Highlights
 
-- 🧩 Add-ons support: official API so other mods can extend Road Architect (events, read-only core views, and per-world storage);
-- 📴 No changes out of the box: there are no built-in add-ons; gameplay stays the same unless you install one.;
+- 🧩 **Add-ons support**: official API so other mods can extend Road Architect (events, read-only core views, and per-world storage);
+- 📴 **No changes out of the box**: there are no built-in add-ons; gameplay stays the same unless you install one.;
 
 **Compatibility:** No visible gameplay changes by default; add-ons are optional.;
 </details>
@@ -191,18 +202,18 @@ Roads adapt their style to the biome, and the network is saved between game sess
 <summary><strong>v1.3.0</strong> — <em>Smarter scans & deterministic decorations</em></summary>
 
 ### Highlights
-- 🧠 Smarter scanning: major performance boost for large-area scans and many structure types—smoother gameplay, cleaner road graphs, and more reliable structure detection.
-- 🌲 Deterministic decorations: consistent, per-path placement of decorations (lamps, buoys, side pieces) across chunk loads—less pop-in and cleaner chunk borders. Also fixes common issues like floating fence posts or off-grid buoys.
-- 💡 New Lamp decorations: fresh styles and better fence integration where appropriate.
-- 🧭 Debug map: shows your position and direction (red dot + arrow).
-- ⚙️ New settings (all loaders):
+- 🧠 **Smarter scanning**: major performance boost for large-area scans and many structure types—smoother gameplay, cleaner road graphs, and more reliable structure detection.
+- 🌲 **Deterministic decorations**: consistent, per-path placement of decorations (lamps, buoys, side pieces) across chunk loads—less pop-in and cleaner chunk borders. Also fixes common issues like floating fence posts or off-grid buoys.
+- 💡 **New Lamp decorations**: fresh styles and better fence integration where appropriate.
+- 🧭 **Debug map**: shows your position and direction (red dot + arrow).
+- ⚙️ **New settings (*all loaders*)**:
     - Lamp interval
     - Side decoration interval
     - Buoy interval
     - Mask erosion near land/water transitions
     - Toggle for deterministic decorations
-- 🛤️ Smoother road profiles: post-processing reduces spikes and clamps extreme slopes for cleaner elevation transitions.
-- 🌐 Localization & UI: updated strings (EN/RU/ES/FR/DE/ZH) and a small progress-stage label fix (“initialisation”).
+- 🛤️ **Smoother road profiles**: post-processing reduces spikes and clamps extreme slopes for cleaner elevation transitions.
+- 🌐 **Localization & UI**: updated strings (EN/RU/ES/FR/DE/ZH) and a small progress-stage label fix (“initialisation”).
 
 **Compatibility:** No breaking changes; existing worlds remain compatible.
 </details>
@@ -223,11 +234,11 @@ Roads adapt their style to the biome, and the network is saved between game sess
 <summary><strong>v1.1.0</strong> — <em>Smoother paths, smarter junctions, cleaner buoys</em></summary>
 
 ### Highlights
-- ⚙️ Pathfinding (A* / ARA*): adjusted heuristic, removed early termination, expanded profiling.
-- 🏗️ Post-processing: trimming roads near nodes, improved junction merging and stabilization.
-- 🌊 Buoys: placed only on “clean” water, spaced by real distance, interval increased **12 → 18**.
-- 🔧 Fixed client ↔ server sync when registering command arguments.
-- 🐛 Fixed swamp style: uses `MOSSY_COBBLESTONE_WALL` instead of `MOSSY_COBBLESTONE`.
+- ⚙️ **Pathfinding ( A'star / ARA'star )**: adjusted heuristic, removed early termination, expanded profiling.
+- 🏗️ **Post-processing**: trimming roads near nodes, improved junction merging and stabilization.
+- 🌊 **Buoys**: placed only on “clean” water, spaced by real distance, interval increased **12 → 18**.
+- 🔧 **Fixed client ↔ server sync** when registering command arguments.
+- 🐛 **Fixed swamp style**: uses `MOSSY_COBBLESTONE_WALL` instead of `MOSSY_COBBLESTONE`.
 - 📦 Reduced mod size.
 
 **Compatibility:** No breaking changes; worlds from `1.0.1` remain fully compatible.
@@ -254,6 +265,16 @@ Roads adapt their style to the biome, and the network is saved between game sess
   
   Not only! RoadArchitect can connect any structure discoverable via `/locate structure`. Add the structure IDs or a `#tag` in the config, then reload/restart the world to rescan.
 </details>
+
+---
+
+## 🌉 Related mods & inspiration
+
+- [**Countered’s Settlement Roads**](https://modrinth.com/mod/countereds-settlement-roads) — generates roads between villages with curving paths and smart A* pathfinding.
+- [**All Roads**](https://modrinth.com/mod/all-roads) — automatically generates roads between villages and other structures; includes waypoints over water.
+
+*Thanks to the authors and the community for pushing this idea forward.*
+
 
 ---
 

@@ -2,9 +2,11 @@ package net.oxcodsnet.roadarchitect.forge.config;
 
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
+import me.shedaniel.autoconfig.gui.registry.GuiRegistry;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
+import net.minecraft.text.Text;
 import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
@@ -18,6 +20,9 @@ import net.oxcodsnet.roadarchitect.handlers.compat.BopCompat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 /**
  * Bridges Cloth Config with the common {@link RAConfigHolder} on Forge.
  */
@@ -30,14 +35,7 @@ public final class RAConfigForgeBridge {
     public static void bootstrap() {
         holder = AutoConfig.register(RoadArchitectConfigData.class, GsonConfigSerializer::new);
         if (!BopCompat.isPresent()) {
-            AutoConfig.getGuiRegistry(RoadArchitectConfigData.class)
-                    .registerPredicateProvider(
-                            (name, field, config, defaults, registry) -> {
-                                LOG.warn("Failed to create Cloth Config hint entry for missing Biomes O' Plenty");
-                                return java.util.List.of();
-                            },
-                            field -> field.getDeclaringClass() == RoadArchitectConfigData.class
-                                    && field.getType() == RoadArchitectConfigData.BopRoadStyleSettings.class);
+            registerBopInstallHint();
         }
 
         RAConfigHolder.set(new RAConfig() {
@@ -232,6 +230,21 @@ public final class RAConfigForgeBridge {
 
         RoadPipelineController.refreshStructureSelectorCache();
         LOG.info("[RoadArchitect] cloth-config bridge initialized");
+    }
+
+    private static void registerBopInstallHint() {
+        try {
+            AutoConfig.getGuiRegistry(RoadArchitectConfigData.class)
+                    .registerPredicateProvider(
+                            (name, field, config, defaults, registry) -> {
+                                LOG.warn("Failed to create Cloth Config hint entry for missing Biomes O' Plenty");
+                                return java.util.List.of();
+                            },
+                            field -> field.getDeclaringClass() == RoadArchitectConfigData.class
+                                    && field.getType() == RoadArchitectConfigData.BopRoadStyleSettings.class);
+        } catch (NoSuchMethodError missingGuiRegistry) {
+            LOG.warn("Cloth Config gui registry unavailable, skipping Biomes O' Plenty hint registration");
+        }
     }
 
     private static java.util.List<RoadStyleConfigEntry> compileRoadStyles(java.util.List<RoadArchitectConfigData.RoadStyleDefinition> definitions, java.util.List<RoadStyleConfigEntry> defaults) {

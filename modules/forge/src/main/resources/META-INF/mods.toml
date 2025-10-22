@@ -1,0 +1,42 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+issueTrackerURL="https://github.com/0xCoDSnet/RoadArchitect/issues"
+license = "${mod_license}"
+
+[[mods]]
+modId="${mod_id}"
+version="${version}"
+displayName="${mod_name}"
+description="${mod_description}"
+authors="${mod_authors}"
+homepage="${mod_homepage}"
+sources="${mod_sources}"
+license="${mod_license}"
+
+logoFile = "assets/roadarchitect/icon.png"
+displayURL="https://github.com/0xCoDSnet/RoadArchitect"
+
+[[dependencies.${mod_id}]]
+modId="forge"
+mandatory=true
+versionRange="[${forge_version},)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="cloth_config"
+mandatory=true
+versionRange="[${cloth_config_version},)"
+ordering="NONE"
+side="BOTH"
+
+# Optional catalogue integration
+[[dependencies.${mod_id}]]
+modId = "catalogue"
+type = "optional"
+versionRange = "*"
+ordering = "NONE"
+side = "CLIENT"
+
+[modproperties.roadarchitect]
+catalogueImageIcon = "assets/roadarchitect/icon.png"

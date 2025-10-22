@@ -163,7 +163,7 @@ subprojects {
 
     // ---- groupId: добавляем сегмент по лоадеру (common/fabric/neoforge/quilt)
     def baseGroup = rootProject.maven_group
-    def platforms = ["common", "fabric"]
+    def platforms = ["common", "fabric", "forge"]
     if (platforms.contains(project.name)) {
         group = "${baseGroup}.${project.name}"
     }

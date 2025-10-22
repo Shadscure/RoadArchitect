@@ -124,7 +124,7 @@ ext.resolveCurseforgeToken = {
 }
 
 tasks.register("publishCurseForgeAll") {
-    ["fabric"].each { plat ->
+    ["fabric","forge"].each { plat ->
         if (findProject(":modules:${plat}") != null) {
             dependsOn(":modules:${plat}:curseforge")
         }
@@ -149,7 +149,7 @@ ext.resolveModrinthToken = {
 }
 
 tasks.register("publishModrinthAll") {
-    ["fabric"].each { plat ->
+    ["fabric","forge"].each { plat ->
         if (findProject(":modules:${plat}") != null) {
             dependsOn(":modules:${plat}:modrinth")
         }
@@ -297,7 +297,7 @@ subprojects {
 
 // Aggregate task to publish all platform modules to Maven
 tasks.register("publishMavenAll") {
-    ["common", "fabric"].each { plat ->
+    ["common", "fabric","forge"].each { plat ->
         if (findProject(":modules:${plat}") != null) {
             dependsOn(":modules:${plat}:publish")
         }

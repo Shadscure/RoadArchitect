@@ -175,6 +175,12 @@ subprojects {
 
     repositories {
         mavenLocal()
+
+        exclusiveContent {
+            forRepository { maven { url = uri("https://maven.shedaniel.me/") } }
+            filter { includeGroup("me.shedaniel.cloth") }
+        }
+
         maven { url = uri('https://maven.wispforest.io')}
         maven { url = uri('https://maven.terraformersmc.com/') }
         maven { url = uri('https://maven.shedaniel.me/') }

@@ -2,6 +2,7 @@ package net.oxcodsnet.roadarchitect.fabric.config;
 
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
+import me.shedaniel.autoconfig.gui.registry.GuiRegistry;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.gui.screen.Screen;
@@ -20,6 +21,9 @@ import net.oxcodsnet.roadarchitect.handlers.compat.BopCompat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 /**
  * Bridges Cloth Config with the common {@link RAConfigHolder}.
  */
@@ -33,15 +37,7 @@ public final class RAConfigFabricBridge {
     public static void bootstrap() {
         holder = AutoConfig.register(RoadArchitectConfigData.class, GsonConfigSerializer::new);
         if (!BopCompat.isPresent()) {
-            AutoConfig.getGuiRegistry(RoadArchitectConfigData.class)
-                    .registerPredicateProvider(
-                            (name, field, config, defaults, registry) -> java.util.List.of(
-                                    ConfigEntryBuilder.create()
-                                            .startTextDescription(Text.translatable("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint"))
-                                            .build()
-                            ),
-                            field -> field.getDeclaringClass() == RoadArchitectConfigData.class
-                                    && field.getType() == RoadArchitectConfigData.BopRoadStyleSettings.class);
+            registerBopInstallHint();
         }
         RAConfigHolder.set(new RAConfig() {
             @Override
@@ -242,6 +238,29 @@ public final class RAConfigFabricBridge {
         });
 
         LOG.info("[RoadArchitect] cloth-config bridge initialized");
+    }
+
+    private static void registerBopInstallHint() {
+        try {
+            Method getGuiRegistry = AutoConfig.class.getMethod("getGuiRegistry", Class.class);
+            GuiRegistry registry = (GuiRegistry) getGuiRegistry.invoke(null, RoadArchitectConfigData.class);
+            if (registry == null) {
+                LOG.warn("AutoConfig#getGuiRegistry returned null; skipping BOP install hint registration.");
+                return;
+            }
+            registry.registerPredicateProvider(
+                    (name, field, config, defaults, guiRegistry) -> java.util.List.of(
+                            ConfigEntryBuilder.create()
+                                    .startTextDescription(Text.translatable("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint"))
+                                    .build()
+                    ),
+                    field -> field.getDeclaringClass() == RoadArchitectConfigData.class
+                            && field.getType() == RoadArchitectConfigData.BopRoadStyleSettings.class);
+        } catch (NoSuchMethodException e) {
+            LOG.warn("Cloth Config no longer exposes AutoConfig#getGuiRegistry; skipping BOP install hint.");
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            LOG.error("Failed to register BOP install hint with Cloth Config.", e);
+        }
     }
 
     private static java.util.List<RoadStyleConfigEntry> compileRoadStyles(

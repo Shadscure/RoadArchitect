@@ -1,7 +1,7 @@
 modLoader="javafml"
 loaderVersion="[47,)"
 issueTrackerURL="https://github.com/0xCoDSnet/RoadArchitect/issues"
-license = "${mod_license}"
+license="${mod_license}"
 
 [[mods]]
 modId="${mod_id}"
@@ -12,10 +12,18 @@ authors="${mod_authors}"
 homepage="${mod_homepage}"
 sources="${mod_sources}"
 license="${mod_license}"
-
 logoFile = "assets/roadarchitect/icon.png"
 displayURL="https://github.com/0xCoDSnet/RoadArchitect"
 
+# Minecraft
+[[dependencies.${mod_id}]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,)"
+ordering="NONE"
+side="BOTH"
+
+# Forge
 [[dependencies.${mod_id}]]
 modId="forge"
 mandatory=true
@@ -23,6 +31,7 @@ versionRange="[${forge_version},)"
 ordering="NONE"
 side="BOTH"
 
+# Cloth Config (Forge)
 [[dependencies.${mod_id}]]
 modId="cloth_config"
 mandatory=true
@@ -30,13 +39,13 @@ versionRange="[${cloth_config_version},)"
 ordering="NONE"
 side="BOTH"
 
-# Optional catalogue integration
+# Catalogue (опционально, клиент)
 [[dependencies.${mod_id}]]
-modId = "catalogue"
-type = "optional"
-versionRange = "*"
-ordering = "NONE"
-side = "CLIENT"
+modId="catalogue"
+mandatory=false
+versionRange="*"
+ordering="NONE"
+side="CLIENT"
 
-[modproperties.roadarchitect]
-catalogueImageIcon = "assets/roadarchitect/icon.png"
+[modproperties.${mod_id}]
+catalogueImageIcon="assets/${mod_id}/icon.png"

@@ -33,12 +33,8 @@ public final class RAConfigForgeBridge {
             AutoConfig.getGuiRegistry(RoadArchitectConfigData.class)
                     .registerPredicateProvider(
                             (name, field, config, defaults, registry) -> {
-                                try {
-                                    return java.util.List.of(createBopHintEntry());
-                                } catch (ReflectiveOperationException | RuntimeException e) {
-                                    LOG.warn("Failed to create Cloth Config hint entry for missing Biomes O' Plenty", e);
-                                    return java.util.List.of();
-                                }
+                                LOG.warn("Failed to create Cloth Config hint entry for missing Biomes O' Plenty");
+                                return java.util.List.of();
                             },
                             field -> field.getDeclaringClass() == RoadArchitectConfigData.class
                                     && field.getType() == RoadArchitectConfigData.BopRoadStyleSettings.class);
@@ -234,91 +230,11 @@ public final class RAConfigForgeBridge {
 
         });
 
-        registerSaveListenerReflective();
-
         RoadPipelineController.refreshStructureSelectorCache();
         LOG.info("[RoadArchitect] cloth-config bridge initialized");
     }
 
-    private static void registerSaveListenerReflective() {
-        try {
-            Class<?> actionResultClass = findActionResultClass();
-            Object pass = actionResultClass.getField("PASS").get(null);
-
-            java.lang.reflect.Method registerMethod = null;
-            for (java.lang.reflect.Method method : holder.getClass().getMethods()) {
-                if (method.getName().equals("registerSaveListener") && method.getParameterCount() == 1) {
-                    registerMethod = method;
-                    break;
-                }
-            }
-            if (registerMethod == null) {
-                LOG.warn("Failed to locate registerSaveListener on ConfigHolder; selectors will not auto-refresh");
-                return;
-            }
-
-            Class<?> listenerType = registerMethod.getParameterTypes()[0];
-            Object listenerProxy = java.lang.reflect.Proxy.newProxyInstance(
-                    listenerType.getClassLoader(),
-                    new Class[]{listenerType},
-                    (proxy, method, args) -> {
-                        String name = method.getName();
-                        if ("apply".equals(name) && args != null && args.length == 2) {
-                            RoadPipelineController.refreshStructureSelectorCache();
-                            LOG.info("[RoadArchitect] config reloaded");
-                            return pass;
-                        }
-                        if ("equals".equals(name) && args != null && args.length == 1) {
-                            return proxy == args[0];
-                        }
-                        if ("hashCode".equals(name) && (args == null || args.length == 0)) {
-                            return System.identityHashCode(proxy);
-                        }
-                        if ("toString".equals(name) && (args == null || args.length == 0)) {
-                            return listenerType.getName();
-                        }
-                        throw new UnsupportedOperationException("Unsupported method on SaveListener proxy: " + method);
-                    });
-
-            registerMethod.invoke(holder, listenerProxy);
-        } catch (ReflectiveOperationException e) {
-            LOG.warn("Failed to hook config save listener; selectors will not auto-refresh", e);
-        }
-    }
-
-    private static Class<?> findActionResultClass() throws ClassNotFoundException {
-        try {
-            return Class.forName("net.minecraft.util.ActionResult");
-        } catch (ClassNotFoundException ignored) {
-            return Class.forName("net.minecraft.world.InteractionResult");
-        }
-    }
-
-    private static AbstractConfigListEntry<?> createBopHintEntry() throws ReflectiveOperationException {
-        Object builder = ConfigEntryBuilder.create();
-        Class<?> componentClass;
-        Object component;
-        try {
-            componentClass = Class.forName("net.minecraft.network.chat.Component");
-            component = componentClass
-                    .getMethod("translatable", String.class, Object[].class)
-                    .invoke(null, "text.autoconfig.roadarchitect.option.bopRoadStyles.installHint", new Object[0]);
-        } catch (ClassNotFoundException ignored) {
-            componentClass = Class.forName("net.minecraft.text.Text");
-            component = componentClass
-                    .getMethod("translatable", String.class, Object[].class)
-                    .invoke(null, "text.autoconfig.roadarchitect.option.bopRoadStyles.installHint", new Object[0]);
-        }
-        Object descriptionBuilder = builder.getClass()
-                .getMethod("startTextDescription", componentClass)
-                .invoke(builder, component);
-        Object entry = descriptionBuilder.getClass().getMethod("build").invoke(descriptionBuilder);
-        return (AbstractConfigListEntry<?>) entry;
-    }
-
-    private static java.util.List<RoadStyleConfigEntry> compileRoadStyles(
-            java.util.List<RoadArchitectConfigData.RoadStyleDefinition> definitions,
-            java.util.List<RoadStyleConfigEntry> defaults) {
+    private static java.util.List<RoadStyleConfigEntry> compileRoadStyles(java.util.List<RoadArchitectConfigData.RoadStyleDefinition> definitions, java.util.List<RoadStyleConfigEntry> defaults) {
         if (definitions == null || definitions.isEmpty()) {
             return defaults;
         }
@@ -356,22 +272,5 @@ public final class RAConfigForgeBridge {
             return defaults;
         }
         return java.util.List.copyOf(out);
-    }
-
-    public static Object createScreen(Object parent) {
-        try {
-            Class<?> screenClass;
-            try {
-                screenClass = Class.forName("net.minecraft.client.gui.screens.Screen");
-            } catch (ClassNotFoundException ignored) {
-                screenClass = Class.forName("net.minecraft.client.gui.screen.Screen");
-            }
-            java.lang.reflect.Method method = AutoConfig.class
-                    .getMethod("getConfigScreen", Class.class, screenClass);
-            Object screen = method.invoke(null, RoadArchitectConfigData.class, parent);
-            return screen.getClass().getMethod("get").invoke(screen);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException("Failed to create config screen", e);
-        }
     }
 }

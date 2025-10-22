@@ -1,23 +1,23 @@
 package net.oxcodsnet.roadarchitect.util.cache;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.dynamic.CodecHolder;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.Heightmap;
-import net.minecraft.world.gen.chunk.AquiferSampler;
-import net.minecraft.world.gen.chunk.Blender;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
-import net.minecraft.world.gen.chunk.ChunkNoiseSampler;
-import net.minecraft.world.gen.chunk.GenerationShapeConfig;
-import net.minecraft.world.gen.chunk.NoiseChunkGenerator;
-import net.minecraft.world.gen.densityfunction.DensityFunction;
-import net.minecraft.world.gen.densityfunction.DensityFunctionTypes;
-import net.minecraft.world.gen.noise.NoiseConfig;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.KeyDispatchDataCodec;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.Aquifer;
+import net.minecraft.world.level.levelgen.DensityFunction;
+import net.minecraft.world.level.levelgen.DensityFunctions;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
+import net.minecraft.world.level.levelgen.NoiseChunk;
+import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
+import net.minecraft.world.level.levelgen.NoiseSettings;
+import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.blending.Blender;
 import net.oxcodsnet.roadarchitect.storage.CacheStorage;
 import net.oxcodsnet.roadarchitect.util.profiler.PipelineProfiler;
 
@@ -31,28 +31,28 @@ public final class ChunkHeightGenerator {
     private ChunkHeightGenerator() {
     }
 
-    public static ChunkHeightSnapshot generate(ServerWorld world,
+    public static ChunkHeightSnapshot generate(ServerLevel world,
                                                WorldCacheState state,
                                                CacheStorage storage,
                                                ChunkPos chunkPos,
                                                int chunkSide,
                                                int columnsPerChunk) {
-        ChunkGenerator generator = world.getChunkManager().getChunkGenerator();
-        if (!(generator instanceof NoiseChunkGenerator noiseGenerator)) {
+        ChunkGenerator generator = world.getChunkSource().getGenerator();
+        if (!(generator instanceof NoiseBasedChunkGenerator noiseGenerator)) {
             return null;
         }
 
-        NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
-        ChunkGeneratorSettings settings = noiseGenerator.getSettings().value();
-        GenerationShapeConfig shape = settings.generationShapeConfig().trimHeight(world);
-        int horizontalBlockSize = shape.horizontalCellBlockCount();
-        int verticalBlockSize = shape.verticalCellBlockCount();
+        RandomState noiseConfig = world.getChunkSource().randomState();
+        NoiseGeneratorSettings settings = noiseGenerator.generatorSettings().value();
+        NoiseSettings shape = settings.noiseSettings().clampToHeightAccessor(world);
+        int horizontalBlockSize = shape.getCellWidth();
+        int verticalBlockSize = shape.getCellHeight();
         if (horizontalBlockSize <= 0 || verticalBlockSize <= 0) {
             return null;
         }
 
         int horizontalCellCount = Math.max(1, chunkSide / horizontalBlockSize);
-        int verticalCellCount = MathHelper.floorDiv(shape.height(), verticalBlockSize);
+        int verticalCellCount = Mth.floorDiv(shape.height(), verticalBlockSize);
         if (verticalCellCount <= 0) {
             return null;
         }
@@ -61,12 +61,12 @@ public final class ChunkHeightGenerator {
         Arrays.fill(heights, state.minWorldY());
         boolean[] resolved = new boolean[columnsPerChunk];
         int remaining = columnsPerChunk;
-        Predicate<BlockState> predicate = Heightmap.Type.WORLD_SURFACE_WG.getBlockPredicate();
+        Predicate<BlockState> predicate = Heightmap.Types.WORLD_SURFACE_WG.isOpaque();
         BlockState defaultBlock = settings.defaultBlock();
 
-        int startX = chunkPos.getStartX();
-        int startZ = chunkPos.getStartZ();
-        int minCellY = MathHelper.floorDiv(shape.minimumY(), verticalBlockSize);
+        int startX = chunkPos.getMinBlockX();
+        int startZ = chunkPos.getMinBlockZ();
+        int minCellY = Mth.floorDiv(shape.minY(), verticalBlockSize);
 
         AccessibleChunkNoiseSampler sampler = new AccessibleChunkNoiseSampler(
                 horizontalCellCount,
@@ -77,31 +77,31 @@ public final class ChunkHeightGenerator {
                 noBeard(),
                 settings,
                 createFluidSampler(settings),
-                Blender.getNoBlending()
+                Blender.empty()
         );
 
-        sampler.sampleStartDensity();
+        sampler.initializeForFirstCellX();
         long startNanos = System.nanoTime();
         int noiseColumns;
 
         outer:
         for (int cellX = 0; cellX < horizontalCellCount; cellX++) {
-            sampler.sampleEndDensity(cellX);
+            sampler.advanceCellX(cellX);
             for (int cellZ = 0; cellZ < horizontalCellCount; cellZ++) {
                 for (int cellY = verticalCellCount - 1; cellY >= 0; cellY--) {
-                    sampler.onSampledCellCorners(cellY, cellZ);
+                    sampler.selectCellYZ(cellY, cellZ);
                     for (int voxelY = verticalBlockSize - 1; voxelY >= 0; voxelY--) {
                         int absoluteY = (minCellY + cellY) * verticalBlockSize + voxelY;
                         double fracY = (double) voxelY / verticalBlockSize;
-                        sampler.interpolateY(absoluteY, fracY);
+                        sampler.updateForY(absoluteY, fracY);
                         for (int voxelX = horizontalBlockSize - 1; voxelX >= 0; voxelX--) {
                             int globalX = startX + cellX * horizontalBlockSize + voxelX;
                             double fracX = (double) voxelX / horizontalBlockSize;
-                            sampler.interpolateX(globalX, fracX);
+                            sampler.updateForX(globalX, fracX);
                             for (int voxelZ = horizontalBlockSize - 1; voxelZ >= 0; voxelZ--) {
                                 int globalZ = startZ + cellZ * horizontalBlockSize + voxelZ;
                                 double fracZ = (double) voxelZ / horizontalBlockSize;
-                                sampler.interpolateZ(globalZ, fracZ);
+                                sampler.updateForZ(globalZ, fracZ);
                                 int localX = globalX & (chunkSide - 1);
                                 int localZ = globalZ & (chunkSide - 1);
                                 int index = localZ * chunkSide + localX;
@@ -146,7 +146,7 @@ public final class ChunkHeightGenerator {
                 int worldZ = startZ + localZ;
                 PipelineProfiler.increment("cache.height.loads");
                 try (PipelineProfiler.Section section = PipelineProfiler.openSection("cache.height.load_time")) {
-                    int value = generator.getHeight(worldX, worldZ, Heightmap.Type.WORLD_SURFACE_WG, world, noiseConfig);
+                    int value = generator.getBaseHeight(worldX, worldZ, Heightmap.Types.WORLD_SURFACE_WG, world, noiseConfig);
                     heights[index] = value;
                 }
             }
@@ -171,16 +171,16 @@ public final class ChunkHeightGenerator {
             }
         }
         if (dirty) {
-            storage.markDirty();
+            storage.setDirty();
         }
 
         return new ChunkHeightSnapshot(heights, chunkSide);
     }
 
-    private static AquiferSampler.FluidLevelSampler createFluidSampler(ChunkGeneratorSettings settings) {
-        AquiferSampler.FluidLevel lava = new AquiferSampler.FluidLevel(-54, Blocks.LAVA.getDefaultState());
+    private static Aquifer.FluidPicker createFluidSampler(NoiseGeneratorSettings settings) {
+        Aquifer.FluidStatus lava = new Aquifer.FluidStatus(-54, Blocks.LAVA.defaultBlockState());
         int seaLevel = settings.seaLevel();
-        AquiferSampler.FluidLevel sea = new AquiferSampler.FluidLevel(seaLevel, settings.defaultFluid());
+        Aquifer.FluidStatus sea = new Aquifer.FluidStatus(seaLevel, settings.defaultFluid());
         int cutoff = Math.min(-54, seaLevel);
         return (x, y, z) -> y < cutoff ? lava : sea;
     }
@@ -197,7 +197,7 @@ public final class ChunkHeightGenerator {
         }
     }
 
-    private static DensityFunctionTypes.Beardifying noBeard() {
+    private static DensityFunctions.BeardifierOrMarker noBeard() {
         return LazyBeardifyingHolder.INSTANCE;
     }
 
@@ -206,14 +206,14 @@ public final class ChunkHeightGenerator {
     }
 
     private static final class LazyBeardifyingHolder {
-        private static final DensityFunctionTypes.Beardifying INSTANCE = new DensityFunctionTypes.Beardifying() {
+        private static final DensityFunctions.BeardifierOrMarker INSTANCE = new DensityFunctions.BeardifierOrMarker() {
             @Override
-            public double sample(DensityFunction.NoisePos pos) {
+            public double compute(FunctionContext pos) {
                 return 0.0D;
             }
 
             @Override
-            public void fill(double[] densities, DensityFunction.EachApplier applier) {
+            public void fillArray(double[] densities, ContextProvider applier) {
                 Arrays.fill(densities, 0.0D);
             }
 
@@ -228,8 +228,8 @@ public final class ChunkHeightGenerator {
             }
 
             @Override
-            public CodecHolder<? extends DensityFunction> getCodecHolder() {
-                return CodecHolder.of(MapCodec.unit(DensityFunctionTypes.constant(0.0D)));
+            public KeyDispatchDataCodec<? extends DensityFunction> codec() {
+                return KeyDispatchDataCodec.of(MapCodec.unit(DensityFunctions.constant(0.0D)));
             }
         };
 
@@ -237,22 +237,22 @@ public final class ChunkHeightGenerator {
         }
     }
 
-    private static final class AccessibleChunkNoiseSampler extends ChunkNoiseSampler {
+    private static final class AccessibleChunkNoiseSampler extends NoiseChunk {
         AccessibleChunkNoiseSampler(int horizontalCellCount,
-                                    NoiseConfig noiseConfig,
+                                    RandomState noiseConfig,
                                     int startBlockX,
                                     int startBlockZ,
-                                    GenerationShapeConfig generationShapeConfig,
-                                    DensityFunctionTypes.Beardifying beardifying,
-                                    ChunkGeneratorSettings chunkGeneratorSettings,
-                                    AquiferSampler.FluidLevelSampler fluidLevelSampler,
+                                    NoiseSettings generationShapeConfig,
+                                    DensityFunctions.BeardifierOrMarker beardifying,
+                                    NoiseGeneratorSettings chunkGeneratorSettings,
+                                    Aquifer.FluidPicker fluidLevelSampler,
                                     Blender blender) {
             super(horizontalCellCount, noiseConfig, startBlockX, startBlockZ, generationShapeConfig,
                     beardifying, chunkGeneratorSettings, fluidLevelSampler, blender);
         }
 
         BlockState sampleBlockStateDirect() {
-            return super.sampleBlockState();
+            return super.getInterpolatedState();
         }
     }
 }

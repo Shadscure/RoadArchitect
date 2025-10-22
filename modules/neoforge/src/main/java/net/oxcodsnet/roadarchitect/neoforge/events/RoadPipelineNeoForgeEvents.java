@@ -1,8 +1,8 @@
 package net.oxcodsnet.roadarchitect.neoforge.events;
 
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.chunk.Chunk;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -39,8 +39,8 @@ public final class RoadPipelineNeoForgeEvents {
     @SubscribeEvent
     public static void onChunkLoad(ChunkEvent.Load event) {
         if (!event.isNewChunk()) return;
-        if (!(event.getLevel() instanceof ServerWorld world)) return;
-        Chunk chunk = event.getChunk();
+        if (!(event.getLevel() instanceof ServerLevel world)) return;
+        ChunkAccess chunk = event.getChunk();
         if (!dhPresent) {
             RoadPipelineController.onSpawnChunkGenerated(world, chunk);
         }
@@ -50,7 +50,7 @@ public final class RoadPipelineNeoForgeEvents {
 
     @SubscribeEvent
     public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayerEntity player)) return;
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
         RoadPipelineController.onPlayerJoin(player);
     }
 

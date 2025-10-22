@@ -1,7 +1,7 @@
 package net.oxcodsnet.roadarchitect.handlers;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.RoadGraphState;
 import net.oxcodsnet.roadarchitect.util.DebugLog;
@@ -22,27 +22,27 @@ public final class RoadGraphStateManager {
     /**
      * Вызывается платформой при загрузке ServerWorld.
      */
-    public static void onWorldLoad(ServerWorld world) {
+    public static void onWorldLoad(ServerLevel world) {
         // Гарантируем, что стейт создан/поднят
         RoadGraphState.get(world);
-        DebugLog.info(LOGGER, "RoadGraphState loaded for world {}", world.getRegistryKey().getValue());
+        DebugLog.info(LOGGER, "RoadGraphState loaded for world {}", world.dimension().location());
     }
 
     /**
      * Вызывается платформой при выгрузке ServerWorld.
      */
-    public static void onWorldUnload(ServerWorld world) {
+    public static void onWorldUnload(ServerLevel world) {
         RoadGraphState state = RoadGraphState.get(world);
-        state.markDirty();
-        DebugLog.info(LOGGER, "Saved RoadGraphState for world {} on unload", world.getRegistryKey().getValue());
+        state.setDirty();
+        DebugLog.info(LOGGER, "Saved RoadGraphState for world {} on unload", world.dimension().location());
     }
 
     /**
      * Вызывается платформой при остановке сервера (до закрытия миров).
      */
     public static void onServerStopping(MinecraftServer server) {
-        for (ServerWorld world : server.getWorlds()) {
-            RoadGraphState.get(world).markDirty();
+        for (ServerLevel world : server.getAllLevels()) {
+            RoadGraphState.get(world).setDirty();
         }
         DebugLog.info(LOGGER, "Server stopping, all RoadGraphStates marked dirty");
     }

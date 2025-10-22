@@ -1,16 +1,16 @@
 package net.oxcodsnet.roadarchitect.worldgen.style;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.entry.RegistryEntryList;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.config.RoadDecorationType;
@@ -48,7 +48,7 @@ public final class RoadStyles {
     private RoadStyles() {
     }
 
-    public static RoadStyle forBiome(Registry<Biome> registry, RegistryEntry<Biome> biomeEntry) {
+    public static RoadStyle forBiome(Registry<Biome> registry, Holder<Biome> biomeEntry) {
         if (registry == null || biomeEntry == null) {
             return FALLBACK;
         }
@@ -60,7 +60,7 @@ public final class RoadStyles {
             List<CompiledStyle> compiled = new ArrayList<>(STYLES.size());
             for (ParsedStyle parsed : STYLES) {
                 List<String> selectors = parsed.selectors();
-                List<RegistryEntryList<Biome>> compiledSelectors = selectors.isEmpty()
+                List<HolderSet<Biome>> compiledSelectors = selectors.isEmpty()
                         ? List.of()
                         : BiomeSelectorUtil.compile(reg, selectors);
                 compiled.add(new CompiledStyle(parsed.style(), compiledSelectors));
@@ -70,7 +70,7 @@ public final class RoadStyles {
 
         RoadStyle fallback = FALLBACK;
         for (CompiledStyle compiled : cache.styles()) {
-            List<RegistryEntryList<Biome>> selectors = compiled.selectors();
+            List<HolderSet<Biome>> selectors = compiled.selectors();
             if (selectors.isEmpty()) {
                 fallback = compiled.style();
                 continue;
@@ -133,11 +133,11 @@ public final class RoadStyles {
             return style;
         }
         BlockPalette palette = BlockPalette.builder()
-                .add(Blocks.GRASS_BLOCK.getDefaultState(), 7)
-                .add(Blocks.DIRT_PATH.getDefaultState(), 2)
-                .add(Blocks.COBBLESTONE.getDefaultState(), 2)
-                .add(Blocks.MOSSY_COBBLESTONE.getDefaultState(), 1)
-                .add(Blocks.GRAVEL.getDefaultState(), 1)
+                .add(Blocks.GRASS_BLOCK.defaultBlockState(), 7)
+                .add(Blocks.DIRT_PATH.defaultBlockState(), 2)
+                .add(Blocks.COBBLESTONE.defaultBlockState(), 2)
+                .add(Blocks.MOSSY_COBBLESTONE.defaultBlockState(), 1)
+                .add(Blocks.GRAVEL.defaultBlockState(), 1)
                 .build();
         return new RoadStyle(palette, List.of());
     }
@@ -171,39 +171,39 @@ public final class RoadStyles {
             }
             if (raw.startsWith("#")) {
                 String tagName = raw.substring(1);
-                Identifier id = Identifier.tryParse(tagName);
+                ResourceLocation id = ResourceLocation.tryParse(tagName);
                 if (id == null) {
                     LOGGER.warn("Road style palette tag '{}' is invalid", raw);
                     continue;
                 }
-                TagKey<Block> tag = TagKey.of(RegistryKeys.BLOCK, id);
-                Optional<RegistryEntryList.Named<Block>> optional = Registries.BLOCK.getEntryList(tag);
+                TagKey<Block> tag = TagKey.create(Registries.BLOCK, id);
+                Optional<HolderSet.Named<Block>> optional = BuiltInRegistries.BLOCK.getTag(tag);
                 if (optional.isEmpty()) {
                     LOGGER.warn("Road style palette tag '{}' resolved to nothing", raw);
                     continue;
                 }
-                RegistryEntryList<Block> list = optional.get();
+                HolderSet<Block> list = optional.get();
                 int before = added;
-                for (RegistryEntry<Block> blockEntry : list) {
+                for (Holder<Block> blockEntry : list) {
                     Block block = blockEntry.value();
-                    builder.add(block.getDefaultState(), weight);
+                    builder.add(block.defaultBlockState(), weight);
                     added++;
                 }
                 if (added == before) {
                     LOGGER.warn("Road style palette tag '{}' had no resolvable blocks", raw);
                 }
             } else {
-                Identifier id = Identifier.tryParse(raw);
+                ResourceLocation id = ResourceLocation.tryParse(raw);
                 if (id == null) {
                     LOGGER.warn("Road style palette block '{}' is invalid", raw);
                     continue;
                 }
-                Optional<Block> optional = Registries.BLOCK.getOrEmpty(id);
+                Optional<Block> optional = BuiltInRegistries.BLOCK.getOptional(id);
                 if (optional.isEmpty()) {
                     LOGGER.warn("Road style palette block '{}' is not registered", raw);
                     continue;
                 }
-                builder.add(optional.get().getDefaultState(), weight);
+                builder.add(optional.get().defaultBlockState(), weight);
                 added++;
             }
         }
@@ -249,41 +249,41 @@ public final class RoadStyles {
         }
         if (raw.startsWith("#")) {
             String tagName = raw.substring(1);
-            Identifier id = Identifier.tryParse(tagName);
+            ResourceLocation id = ResourceLocation.tryParse(tagName);
             if (id == null) {
                 LOGGER.warn("Road style {} tag '{}' is invalid", role, raw);
                 return null;
             }
-            TagKey<Block> tag = TagKey.of(RegistryKeys.BLOCK, id);
-            Optional<RegistryEntryList.Named<Block>> optional = Registries.BLOCK.getEntryList(tag);
+            TagKey<Block> tag = TagKey.create(Registries.BLOCK, id);
+            Optional<HolderSet.Named<Block>> optional = BuiltInRegistries.BLOCK.getTag(tag);
             if (optional.isEmpty()) {
                 LOGGER.warn("Road style {} tag '{}' resolved to nothing", role, raw);
                 return null;
             }
-            RegistryEntryList<Block> list = optional.get();
-            for (RegistryEntry<Block> blockEntry : list) {
-                return blockEntry.value().getDefaultState();
+            HolderSet<Block> list = optional.get();
+            for (Holder<Block> blockEntry : list) {
+                return blockEntry.value().defaultBlockState();
             }
             LOGGER.warn("Road style {} tag '{}' had no blocks", role, raw);
             return null;
         }
-        Identifier id = Identifier.tryParse(raw);
+        ResourceLocation id = ResourceLocation.tryParse(raw);
         if (id == null) {
             LOGGER.warn("Road style {} '{}' is invalid", role, raw);
             return null;
         }
-        Optional<Block> optional = Registries.BLOCK.getOrEmpty(id);
+        Optional<Block> optional = BuiltInRegistries.BLOCK.getOptional(id);
         if (optional.isEmpty()) {
             LOGGER.warn("Road style {} '{}' is not registered", role, raw);
             return null;
         }
-        return optional.get().getDefaultState();
+        return optional.get().defaultBlockState();
     }
 
     private record ParsedStyle(List<String> selectors, RoadStyle style) {
     }
 
-    private record CompiledStyle(RoadStyle style, List<RegistryEntryList<Biome>> selectors) {
+    private record CompiledStyle(RoadStyle style, List<HolderSet<Biome>> selectors) {
     }
 
     private record CacheEntry(int version, List<CompiledStyle> styles) {

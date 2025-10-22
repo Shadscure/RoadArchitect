@@ -1,15 +1,15 @@
 package net.oxcodsnet.roadarchitect.worldgen.style.decoration;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.entry.RegistryEntryList;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.StructureWorldAccess;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
@@ -67,13 +67,13 @@ public final class LampPostConfigResolver {
         CACHE.clear();
     }
 
-    public static LampPostDecoration resolve(StructureWorldAccess world, RegistryEntry<Biome> biome,
+    public static LampPostDecoration resolve(WorldGenLevel world, Holder<Biome> biome,
                                              LampPostDecoration fallback, String pathKey, long ordinal) {
         List<Override> overrides = OVERRIDES;
         if (overrides.isEmpty()) {
             return fallback;
         }
-        Registry<Biome> registry = world.getRegistryManager().get(RegistryKeys.BIOME);
+        Registry<Biome> registry = world.registryAccess().registryOrThrow(Registries.BIOME);
         CacheEntry cache = CACHE.compute(registry, (reg, existing) -> {
             int current = VERSION.get();
             if (existing != null && existing.version == current) {
@@ -82,7 +82,7 @@ public final class LampPostConfigResolver {
             List<CompiledOverride> compiled = new ArrayList<>(overrides.size());
             for (Override override : overrides) {
                 List<String> selectors = override.selectors();
-                List<RegistryEntryList<Biome>> compiledSelectors = selectors.isEmpty()
+                List<HolderSet<Biome>> compiledSelectors = selectors.isEmpty()
                         ? List.of()
                         : BiomeSelectorUtil.compile(reg, selectors);
                 compiled.add(new CompiledOverride(override.decoration(), compiledSelectors));
@@ -94,7 +94,7 @@ public final class LampPostConfigResolver {
         ArrayList<LampPostDecoration> fallbacks = null;
 
         for (CompiledOverride entry : cache.overrides) {
-            List<RegistryEntryList<Biome>> selectors = entry.selectors();
+            List<HolderSet<Biome>> selectors = entry.selectors();
             if (selectors.isEmpty()) {
                 if (fallbacks == null) fallbacks = new ArrayList<>();
                 fallbacks.add(entry.decoration());
@@ -120,13 +120,13 @@ public final class LampPostConfigResolver {
             LOGGER.warn("Lamp post override {} is empty", role);
             return null;
         }
-        Identifier id = Identifier.tryParse(raw);
+        ResourceLocation id = ResourceLocation.tryParse(raw);
         if (id == null) {
             LOGGER.warn("Lamp post override {} '{}' is not a valid identifier", role, raw);
             return null;
         }
-        return Registries.BLOCK.getOrEmpty(id)
-                .map(Block::getDefaultState)
+        return BuiltInRegistries.BLOCK.getOptional(id)
+                .map(Block::defaultBlockState)
                 .orElseGet(() -> {
                     LOGGER.warn("Lamp post override {} '{}' is not registered", role, raw);
                     return null;
@@ -142,6 +142,6 @@ public final class LampPostConfigResolver {
     private record CacheEntry(int version, List<CompiledOverride> overrides) {
     }
 
-    private record CompiledOverride(LampPostDecoration decoration, List<RegistryEntryList<Biome>> selectors) {
+    private record CompiledOverride(LampPostDecoration decoration, List<HolderSet<Biome>> selectors) {
     }
 }

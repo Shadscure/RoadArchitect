@@ -9,6 +9,7 @@ import net.minecraft.text.Text;
 // Иначе пробрасывай Text stage параметром из «клея».
 import net.oxcodsnet.roadarchitect.handlers.PipelineRunner;
 
+
 public final class LoadingOverlayRenderer {
     private LoadingOverlayRenderer() {}
 

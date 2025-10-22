@@ -32,10 +32,20 @@ public final class RoadArchitectNeoForge {
 
         // --- client-only ---
         if (dist.isClient()) {
-            RAClientBootstrap.init(container);
+            initClient(modBus, container);
         }
 
         RoadArchitect.init();
         LOGGER.info("Initialized Road Architect on NeoForge");
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static void initClient(IEventBus modBus, ModContainer container) {
+        try {
+            Class<?> bootstrap = Class.forName("net.oxcodsnet.roadarchitect.neoforge.client.RAClientBootstrap");
+            bootstrap.getMethod("init", IEventBus.class, ModContainer.class).invoke(null, modBus, container);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Failed to initialize Road Architect NeoForge client bootstrap", e);
+        }
     }
 }

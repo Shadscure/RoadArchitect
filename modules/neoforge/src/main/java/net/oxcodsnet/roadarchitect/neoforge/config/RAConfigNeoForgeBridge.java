@@ -32,28 +32,9 @@ public final class RAConfigNeoForgeBridge {
     public static void bootstrap() {
         holder = AutoConfig.register(RoadArchitectConfigData.class, GsonConfigSerializer::new);
         if (!BopCompat.isPresent()) {
-            AutoConfig.getGuiRegistry(RoadArchitectConfigData.class)
-                    .registerPredicateProvider(
-                            (name, field, config, defaults, registry) -> {
-                                try {
-                                    Object builder = ConfigEntryBuilder.create();
-                                    Class<?> componentClass = Class.forName("net.minecraft.network.chat.Component");
-                                    Object component = componentClass
-                                            .getMethod("translatable", String.class, Object[].class)
-                                            .invoke(null, "text.autoconfig.roadarchitect.option.bopRoadStyles.installHint", new Object[0]);
-                                    Object descriptionBuilder = builder.getClass()
-                                            .getMethod("startTextDescription", componentClass)
-                                            .invoke(builder, component);
-                                    Object entry = descriptionBuilder.getClass().getMethod("build").invoke(descriptionBuilder);
-                                    return java.util.List.of((AbstractConfigListEntry<?>) entry);
-                                } catch (ReflectiveOperationException | RuntimeException e) {
-                                    LOG.warn("Failed to create Cloth Config hint entry for missing Biomes O' Plenty", e);
-                                    return java.util.List.of();
-                                }
-                            },
-                            field -> field.getDeclaringClass() == RoadArchitectConfigData.class
-                                    && field.getType() == RoadArchitectConfigData.BopRoadStyleSettings.class);
+            registerBopInstallHint();
         }
+
         RAConfigHolder.set(new RAConfig() {
             @Override
             public int initScanRadius() {
@@ -245,14 +226,29 @@ public final class RAConfigNeoForgeBridge {
                 RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
                 return settings != null && settings.enablePipelineProfiler;
             }
+
         });
+
         RoadPipelineController.refreshStructureSelectorCache();
         LOG.info("[RoadArchitect] cloth-config bridge initialized");
     }
 
-    private static java.util.List<RoadStyleConfigEntry> compileRoadStyles(
-            java.util.List<RoadArchitectConfigData.RoadStyleDefinition> definitions,
-            java.util.List<RoadStyleConfigEntry> defaults) {
+    private static void registerBopInstallHint() {
+        try {
+            AutoConfig.getGuiRegistry(RoadArchitectConfigData.class)
+                    .registerPredicateProvider(
+                            (name, field, config, defaults, registry) -> {
+                                LOG.warn("Failed to create Cloth Config hint entry for missing Biomes O' Plenty");
+                                return java.util.List.of();
+                            },
+                            field -> field.getDeclaringClass() == RoadArchitectConfigData.class
+                                    && field.getType() == RoadArchitectConfigData.BopRoadStyleSettings.class);
+        } catch (NoSuchMethodError missingGuiRegistry) {
+            LOG.warn("Cloth Config gui registry unavailable, skipping Biomes O' Plenty hint registration");
+        }
+    }
+
+    private static java.util.List<RoadStyleConfigEntry> compileRoadStyles(java.util.List<RoadArchitectConfigData.RoadStyleDefinition> definitions, java.util.List<RoadStyleConfigEntry> defaults) {
         if (definitions == null || definitions.isEmpty()) {
             return defaults;
         }

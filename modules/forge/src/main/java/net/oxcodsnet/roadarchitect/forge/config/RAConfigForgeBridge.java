@@ -232,10 +232,6 @@ public final class RAConfigForgeBridge {
                 return settings != null && settings.enablePipelineProfiler;
             }
 
-            @Override
-            public int cacheMaxSize() {
-                return holder.getConfig().cacheMaxSize;
-            }
         });
 
         registerSaveListenerReflective();

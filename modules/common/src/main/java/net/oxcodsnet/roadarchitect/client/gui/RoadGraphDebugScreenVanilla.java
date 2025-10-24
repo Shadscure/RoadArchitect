@@ -5,15 +5,6 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.client.render.GameRenderer;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
@@ -75,12 +66,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     private int viewportMaxX;
     private int viewportMinY;
     private int viewportMaxY;
-    private NativeImageBackedTexture graphTexture;
-    private Identifier graphTextureId;
-    private int textureWidth;
-    private int textureHeight;
-    private boolean textureDirty = true;
-
     public RoadGraphDebugScreenVanilla(List<DimensionLayer> layers) {
         this(layers, () -> Text.literal("Road Graph Debug"));
     }
@@ -113,7 +98,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         saveCurrentViewState();
         super.resize(client, width, height);
         layoutDirty = true;
-        textureDirty = true;
         if (currentLayer != null) {
             loadViewState(currentLayer);
         }
@@ -150,7 +134,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     @Override
     public void removed() {
         saveCurrentViewState();
-        destroyTexture();
         super.removed();
     }
 
@@ -185,7 +168,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             offsetY += deltaY;
             firstLayout = false;
             layoutDirty = true;
-            textureDirty = true;
             return true;
         }
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
@@ -208,7 +190,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         offsetY = (offsetY - mouseY + PADDING) * (zoom / old) + mouseY - PADDING;
         firstLayout = false;
         layoutDirty = true;
-        textureDirty = true;
         return true;
     }
 
@@ -325,7 +306,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             viewportMaxX = width - PADDING;
             viewportMaxY = height - PADDING;
             layoutDirty = false;
-            textureDirty = true;
             return;
         }
 
@@ -372,7 +352,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         }
 
         layoutDirty = false;
-        textureDirty = true;
     }
 
     private int computeGridSpacing() {
@@ -593,7 +572,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         recalcBounds(nodeRenderData);
         loadViewState(currentLayer);
         layoutDirty = true;
-        textureDirty = true;
 
         lastPlayerDimension = currentLayer.dimension();
     }
@@ -605,7 +583,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         edgeRenderData = EdgeRenderData.EMPTY;
         legendEntries = List.of();
         dimensionLabel = Text.empty();
-        destroyTexture();
         recalcBounds(nodeRenderData);
         zoom = 1.0;
         offsetX = 0;
@@ -613,7 +590,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         baseScale = 1.0;
         firstLayout = true;
         layoutDirty = true;
-        textureDirty = true;
     }
 
     private void focusOnCurrentDimension() {
@@ -692,7 +668,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             this.firstLayout = true;
         }
         layoutDirty = true;
-        textureDirty = true;
     }
 
     private static Text describeLayer(DimensionLayer layer) {
@@ -778,92 +753,18 @@ public class RoadGraphDebugScreenVanilla extends Screen {
 
     private void renderGraphCanvas(DrawContext ctx) {
         if (nodeRenderData.length == 0) {
-            destroyTexture();
             return;
         }
-        ensureTexture();
-        if (textureDirty && graphTexture != null) {
-            redrawTexture();
-        }
-        if (graphTextureId != null) {
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.setShader(GameRenderer::getPositionTexProgram);
-            RenderSystem.setShaderTexture(0, graphTextureId);
 
-            float minX = PADDING;
-            float minY = PADDING;
-            float maxX = PADDING + textureWidth;
-            float maxY = PADDING + textureHeight;
-
-            BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-            var matrix = ctx.getMatrices().peek().getPositionMatrix();
-
-            buffer.vertex(matrix, minX, maxY, 0).uv(0.0F, 1.0F).endVertex();
-            buffer.vertex(matrix, maxX, maxY, 0).uv(1.0F, 1.0F).endVertex();
-            buffer.vertex(matrix, maxX, minY, 0).uv(1.0F, 0.0F).endVertex();
-            buffer.vertex(matrix, minX, minY, 0).uv(0.0F, 0.0F).endVertex();
-
-            BufferUploader.drawWithShader(buffer.end());
-            RenderSystem.disableBlend();
-        }
-    }
-
-    private void ensureTexture() {
-        if (width <= 0 || height <= 0) {
-            return;
-        }
-        int areaWidth = Math.max(1, width - PADDING * 2);
-        int areaHeight = Math.max(1, height - PADDING * 2);
-        if (graphTexture != null && areaWidth == textureWidth && areaHeight == textureHeight) {
-            return;
-        }
-        destroyTexture();
-        NativeImage image = new NativeImage(NativeImage.Format.RGBA, areaWidth, areaHeight, false);
-        graphTexture = new NativeImageBackedTexture(() -> "roadarchitect_debug_graph", image);
-        textureWidth = areaWidth;
-        textureHeight = areaHeight;
-        graphTextureId = Identifier.of("roadarchitect", "debug_graph_canvas");
-        MinecraftClient.getInstance().getTextureManager().registerTexture(graphTextureId, graphTexture);
-        textureDirty = true;
-    }
-
-    private void redrawTexture() {
-        if (graphTexture == null) {
-            return;
-        }
-        NativeImage image = graphTexture.getImage();
-        clearImage(image);
-        int baseX = PADDING;
-        int baseY = PADDING;
         for (EdgeRenderData edge : edgeRenderData) {
             if (!edge.visible) continue;
-            drawLine(image,
-                    edge.a.screenX - baseX,
-                    edge.a.screenY - baseY,
-                    edge.b.screenX - baseX,
-                    edge.b.screenY - baseY,
-                    edge.color);
+            drawLine(ctx, edge.a.screenX, edge.a.screenY, edge.b.screenX, edge.b.screenY, edge.color);
         }
         for (NodeRenderData node : nodeRenderData) {
             if (!node.visible) continue;
-            fillCircle(image, node.screenX - baseX, node.screenY - baseY, RADIUS, node.color);
-            drawCircleOutline(image, node.screenX - baseX, node.screenY - baseY, RADIUS, 0xFF000000);
+            fillCircle(ctx, node.screenX, node.screenY, RADIUS, node.color);
+            drawCircleOutline(ctx, node.screenX, node.screenY, RADIUS, 0xFF000000);
         }
-        graphTexture.upload();
-        textureDirty = false;
-    }
-
-    private void destroyTexture() {
-        if (graphTexture != null && graphTextureId != null) {
-            MinecraftClient.getInstance().getTextureManager().destroyTexture(graphTextureId);
-            graphTexture.close();
-        }
-        graphTexture = null;
-        graphTextureId = null;
-        textureWidth = 0;
-        textureHeight = 0;
-        textureDirty = true;
     }
 
     private NodeRenderData findHovered(double mouseX, double mouseY) {
@@ -874,85 +775,6 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             }
         }
         return null;
-    }
-
-    private static void clearImage(NativeImage image) {
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                image.setColor(x, y, 0);
-            }
-        }
-    }
-
-    private static void drawLine(NativeImage image, int x0, int y0, int x1, int y1, int argb) {
-        int dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
-        int dy = -Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
-        int err = dx + dy;
-        int x = x0, y = y0;
-        int color = argbToAbgr(argb);
-        while (true) {
-            putPixel(image, x, y, color);
-            if (x == x1 && y == y1) break;
-            int e2 = 2 * err;
-            if (e2 >= dy) {
-                err += dy;
-                x += sx;
-            }
-            if (e2 <= dx) {
-                err += dx;
-                y += sy;
-            }
-        }
-    }
-
-    private static void fillCircle(NativeImage image, int cx, int cy, int r, int argb) {
-        int color = argbToAbgr(argb);
-        for (int dy = -r; dy <= r; dy++) {
-            int span = (int) Math.round(Math.sqrt(r * r - dy * dy));
-            int y = cy + dy;
-            for (int dx = -span; dx <= span; dx++) {
-                putPixel(image, cx + dx, y, color);
-            }
-        }
-    }
-
-    private static void drawCircleOutline(NativeImage image, int cx, int cy, int r, int argb) {
-        int x = r, y = 0;
-        int err = 0;
-        int color = argbToAbgr(argb);
-        while (x >= y) {
-            putPixel(image, cx + x, cy + y, color);
-            putPixel(image, cx + y, cy + x, color);
-            putPixel(image, cx - y, cy + x, color);
-            putPixel(image, cx - x, cy + y, color);
-            putPixel(image, cx - x, cy - y, color);
-            putPixel(image, cx - y, cy - x, color);
-            putPixel(image, cx + y, cy - x, color);
-            putPixel(image, cx + x, cy - y, color);
-            y++;
-            if (err <= 0) {
-                err += 2 * y + 1;
-            }
-            if (err > 0) {
-                x--;
-                err -= 2 * x + 1;
-            }
-        }
-    }
-
-    private static void putPixel(NativeImage image, int x, int y, int color) {
-        if (x < 0 || y < 0 || x >= image.getWidth() || y >= image.getHeight()) {
-            return;
-        }
-        image.setColor(x, y, color);
-    }
-
-    private static int argbToAbgr(int color) {
-        int a = (color >> 24) & 0xFF;
-        int r = (color >> 16) & 0xFF;
-        int g = (color >> 8) & 0xFF;
-        int b = color & 0xFF;
-        return (a << 24) | (b << 16) | (g << 8) | r;
     }
 
     public record DimensionLayer(RegistryKey<World> dimension, List<Node> nodes, List<EdgeStorage.Edge> edges) {

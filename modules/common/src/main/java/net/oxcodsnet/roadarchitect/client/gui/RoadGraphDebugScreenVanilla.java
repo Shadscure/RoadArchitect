@@ -5,6 +5,15 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.client.texture.NativeImage;
+import net.minecraft.client.texture.NativeImageBackedTexture;
+import net.minecraft.client.render.GameRenderer;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
@@ -25,18 +34,19 @@ import java.util.function.Supplier;
 
 /**
  * Ванильный экран отладки графа (без owo-lib).
- * Поддерживает: сетка, пан/зум, легенда, тултипы, клик для телепорта (в одиночке).
+ * Оптимизирован для работы с большими графами: переиспользует вычисления и
+ * минимизирует выделения памяти и количество draw-вызовов.
  */
 public class RoadGraphDebugScreenVanilla extends Screen {
 
     private static final int RADIUS = 4;
     private static final int PADDING = 20;
     private static final int TARGET_GRID_PX = 80;
+    private static final int EDGE_CULL_MARGIN = 12;
 
     private final List<DimensionLayer> layers;
     private final Supplier<Text> titleSupplier;
 
-    private final Map<String, ScreenPos> screenPositions = new HashMap<>();
     private final Map<String, Integer> typeColors = new HashMap<>();
     private final Map<EdgeStorage.Status, Integer> statusColors = Map.of(
             EdgeStorage.Status.NEW, 0xFFF2C94C,
@@ -44,20 +54,32 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             EdgeStorage.Status.FAILURE, 0xFFAE162B
     );
     private final Map<RegistryKey<World>, ViewState> viewStates = new HashMap<>();
-    private final List<Node> nodes = new ArrayList<>();
-    private final List<EdgeStorage.Edge> edges = new ArrayList<>();
-    private final Set<String> currentTypes = new LinkedHashSet<>();
+
+    private NodeRenderData[] nodeRenderData = NodeRenderData.EMPTY;
+    private EdgeRenderData[] edgeRenderData = EdgeRenderData.EMPTY;
+    private List<LegendEntry> legendEntries = List.of();
 
     private DimensionLayer currentLayer;
     private RegistryKey<World> lastPlayerDimension;
+    private Text dimensionLabel = Text.empty();
 
     private boolean dragging = false;
     private boolean firstLayout = true;
+    private boolean layoutDirty = true;
     private double zoom = 1.0;
     private double offsetX = 0;
     private double offsetY = 0;
     private double baseScale = 1.0;
     private int minX, maxX, minZ, maxZ;
+    private int viewportMinX;
+    private int viewportMaxX;
+    private int viewportMinY;
+    private int viewportMaxY;
+    private NativeImageBackedTexture graphTexture;
+    private Identifier graphTextureId;
+    private int textureWidth;
+    private int textureHeight;
+    private boolean textureDirty = true;
 
     public RoadGraphDebugScreenVanilla(List<DimensionLayer> layers) {
         this(layers, () -> Text.literal("Road Graph Debug"));
@@ -74,7 +96,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             }
         }
         if (this.layers.isEmpty()) {
-            recalcBounds();
+            clearActiveLayer();
         }
     }
 
@@ -90,6 +112,8 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     public void resize(MinecraftClient client, int width, int height) {
         saveCurrentViewState();
         super.resize(client, width, height);
+        layoutDirty = true;
+        textureDirty = true;
         if (currentLayer != null) {
             loadViewState(currentLayer);
         }
@@ -98,42 +122,26 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
         focusOnCurrentDimension();
-        computeLayout();
+        ensureLayout();
 
         ctx.fill(PADDING, PADDING, width - PADDING, height - PADDING, 0xA0101010);
         ctx.drawBorder(PADDING, PADDING, width - 2 * PADDING, height - 2 * PADDING, 0xFFFFFFFF);
 
         drawGrid(ctx);
-
-        for (EdgeStorage.Edge e : edges) {
-            ScreenPos a = screenPositions.get(e.nodeA());
-            ScreenPos b = screenPositions.get(e.nodeB());
-            if (a == null || b == null) continue;
-            int col = statusColors.getOrDefault(e.status(), 0xFFFFFFFF);
-            drawLine(ctx, a.x, a.y, b.x, b.y, col);
-        }
-
-        Node hovered = null;
-        for (Node n : nodes) {
-            ScreenPos p = screenPositions.get(n.id());
-            if (p == null) continue;
-            int fill = typeColors.getOrDefault(n.type(), 0xFFFFFFFF);
-            fillCircle(ctx, p.x, p.y, RADIUS, fill);
-            drawCircleOutline(ctx, p.x, p.y, RADIUS, 0xFF000000);
-
-            if (dist2(p.x, p.y, mouseX, mouseY) <= RADIUS * RADIUS) hovered = n;
+        renderGraphCanvas(ctx);
+        NodeRenderData hovered = findHovered(mouseX, mouseY);
+        if (hovered != null) {
+            drawCircleOutline(ctx, hovered.screenX, hovered.screenY, RADIUS + 3, 0xFFFFFFFF);
         }
         if (hovered != null) {
             TextRenderer font = MinecraftClient.getInstance().textRenderer;
-            ctx.drawTooltip(font, Text.literal(hovered.pos().toShortString() + " • " + hovered.type()), mouseX, mouseY);
+            ctx.drawTooltip(font, hovered.tooltip(), mouseX, mouseY);
         }
 
         drawPlayerMarker(ctx);
-
         drawScale(ctx);
         drawLegend(ctx);
         drawDimensionLabel(ctx);
-
         drawCenteredTitle(ctx);
 
         super.render(ctx, mouseX, mouseY, delta);
@@ -142,6 +150,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     @Override
     public void removed() {
         saveCurrentViewState();
+        destroyTexture();
         super.removed();
     }
 
@@ -175,6 +184,8 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             offsetX += deltaX;
             offsetY += deltaY;
             firstLayout = false;
+            layoutDirty = true;
+            textureDirty = true;
             return true;
         }
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
@@ -196,6 +207,8 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         offsetX = (offsetX - mouseX + PADDING) * (zoom / old) + mouseX - PADDING;
         offsetY = (offsetY - mouseY + PADDING) * (zoom / old) + mouseY - PADDING;
         firstLayout = false;
+        layoutDirty = true;
+        textureDirty = true;
         return true;
     }
 
@@ -209,7 +222,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     }
 
     private void drawGrid(DrawContext ctx) {
-        if (nodes.isEmpty()) {
+        if (nodeRenderData.length == 0) {
             return;
         }
         int w = width - PADDING * 2;
@@ -238,7 +251,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     }
 
     private void drawScale(DrawContext ctx) {
-        if (nodes.isEmpty()) {
+        if (nodeRenderData.length == 0) {
             return;
         }
         int spacing = computeGridSpacing();
@@ -253,16 +266,16 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     }
 
     private void drawLegend(DrawContext ctx) {
-        if (currentTypes.isEmpty()) {
+        if (legendEntries.isEmpty()) {
             return;
         }
+        TextRenderer font = MinecraftClient.getInstance().textRenderer;
         int x = PADDING;
-        int y = height - PADDING - currentTypes.size() * 12;
-        for (String type : currentTypes) {
-            int color = typeColors.getOrDefault(type, 0xFFFFFFFF);
-            ctx.fill(x, y, x + 8, y + 8, color);
+        int y = height - PADDING - legendEntries.size() * 12;
+        for (LegendEntry entry : legendEntries) {
+            ctx.fill(x, y, x + 8, y + 8, entry.color());
             ctx.drawBorder(x, y, 8, 8, 0xFFFFFFFF);
-            drawSmallLabel(ctx, type, x + 10, y);
+            ctx.drawText(font, entry.label(), x + 10, y, 0xFFFFFFFF, true);
             y += 12;
         }
     }
@@ -272,18 +285,50 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             return;
         }
         TextRenderer font = MinecraftClient.getInstance().textRenderer;
-        String dimName = describeLayer(currentLayer).getString();
-        Text label = Text.translatable("screen.roadarchitect.debug.dimension_label", dimName)
-                .formatted(Formatting.GRAY);
-        ctx.drawText(font, label, PADDING + 4, PADDING + 4, 0xFFAAAAAA, false);
+        ctx.drawText(font, dimensionLabel, PADDING + 4, PADDING + 4, 0xFFAAAAAA, false);
+    }
+
+    private void drawPlayerMarker(DrawContext ctx) {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (mc == null || mc.player == null || mc.world == null) return;
+        if (currentLayer == null || !Objects.equals(mc.world.getRegistryKey(), currentLayer.dimension())) return;
+        if (nodeRenderData.length == 0) return;
+
+        ScreenPoint p = worldToScreen(mc.player.getX(), mc.player.getZ());
+        if (p == null) {
+            return;
+        }
+
+        final int r = RADIUS + 2;
+        final int fill = 0xFFE74C3C;
+        final int outline = 0xFF000000;
+
+        fillCircle(ctx, p.x(), p.y(), r, fill);
+        drawCircleOutline(ctx, p.x(), p.y(), r, outline);
+
+        float yaw = mc.player.getYaw();
+        double a = Math.toRadians(yaw) + Math.PI / 2.0;
+        int tx = p.x() + (int) Math.round(Math.cos(a) * (r + 3));
+        int ty = p.y() + (int) Math.round(Math.sin(a) * (r + 3));
+        drawLine(ctx, p.x(), p.y(), tx, ty, 0xFFFFFFFF);
     }
 
     // ---------- вычисления/утилиты ----------
 
-    private void computeLayout() {
-        if (nodes.isEmpty()) {
+    private void ensureLayout() {
+        if (!layoutDirty) {
             return;
         }
+        if (nodeRenderData.length == 0) {
+            viewportMinX = PADDING;
+            viewportMinY = PADDING;
+            viewportMaxX = width - PADDING;
+            viewportMaxY = height - PADDING;
+            layoutDirty = false;
+            textureDirty = true;
+            return;
+        }
+
         int w = Math.max(1, width - PADDING * 2);
         int h = Math.max(1, height - PADDING * 2);
 
@@ -299,12 +344,35 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             firstLayout = false;
         }
 
-        screenPositions.clear();
-        for (Node node : nodes) {
-            double sx = (node.pos().getX() - minX) * baseScale * zoom + offsetX;
-            double sy = (node.pos().getZ() - minZ) * baseScale * zoom + offsetY;
-            screenPositions.put(node.id(), new ScreenPos(PADDING + (int) sx, PADDING + (int) sy));
+        viewportMinX = PADDING;
+        viewportMinY = PADDING;
+        viewportMaxX = width - PADDING;
+        viewportMaxY = height - PADDING;
+
+        for (NodeRenderData node : nodeRenderData) {
+            double sx = (node.node.pos().getX() - minX) * baseScale * zoom + offsetX;
+            double sy = (node.node.pos().getZ() - minZ) * baseScale * zoom + offsetY;
+            node.screenX = PADDING + (int) Math.round(sx);
+            node.screenY = PADDING + (int) Math.round(sy);
+            node.visible = node.screenX >= viewportMinX - EDGE_CULL_MARGIN
+                    && node.screenX <= viewportMaxX + EDGE_CULL_MARGIN
+                    && node.screenY >= viewportMinY - EDGE_CULL_MARGIN
+                    && node.screenY <= viewportMaxY + EDGE_CULL_MARGIN;
         }
+
+        for (EdgeRenderData edge : edgeRenderData) {
+            edge.visible = edge.a.visible
+                    || edge.b.visible
+                    || segmentIntersectsRect(
+                    edge.a.screenX, edge.a.screenY,
+                    edge.b.screenX, edge.b.screenY,
+                    viewportMinX, viewportMinY,
+                    viewportMaxX, viewportMaxY
+            );
+        }
+
+        layoutDirty = false;
+        textureDirty = true;
     }
 
     private int computeGridSpacing() {
@@ -319,13 +387,8 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     }
 
     private Node findClickedNode(double mouseX, double mouseY) {
-        for (Node node : nodes) {
-            ScreenPos p = screenPositions.get(node.id());
-            if (p != null && dist2(p.x, p.y, mouseX, mouseY) <= RADIUS * RADIUS) {
-                return node;
-            }
-        }
-        return null;
+        NodeRenderData hovered = findHovered(mouseX, mouseY);
+        return hovered == null ? null : hovered.node;
     }
 
     private boolean teleportTo(Node node) {
@@ -354,9 +417,9 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         return dx * dx + dy * dy;
     }
 
-    private void drawSmallLabel(DrawContext ctx, String s, int x, int y) {
+    private void drawSmallLabel(DrawContext ctx, String text, int x, int y) {
         TextRenderer font = MinecraftClient.getInstance().textRenderer;
-        ctx.drawText(font, Text.literal(s), x, y, 0xFFFFFFFF, true);
+        ctx.drawText(font, text, x, y, 0xFFFFFFFF, true);
     }
 
     private static void fillH(DrawContext ctx, int x0, int x1, int y, int argb) {
@@ -475,44 +538,18 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         return (0xFF << 24) | (ri << 16) | (gi << 8) | bi;
     }
 
-    private ScreenPos worldToScreen(double wx, double wz) {
-        int sx = PADDING + (int) ((wx - minX) * baseScale * zoom + offsetX);
-        int sy = PADDING + (int) ((wz - minZ) * baseScale * zoom + offsetY);
-        return new ScreenPos(sx, sy);
-    }
-
-    private void drawPlayerMarker(DrawContext ctx) {
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc == null || mc.player == null || mc.world == null) return;
-        if (currentLayer == null || !Objects.equals(mc.world.getRegistryKey(), currentLayer.dimension())) return;
-        if (nodes.isEmpty()) return;
-
-        double px = mc.player.getX();
-        double pz = mc.player.getZ();
-
-        ScreenPos p = worldToScreen(px, pz);
-
-        final int r = RADIUS + 2;
-        final int fill = 0xFFE74C3C;
-        final int outline = 0xFF000000;
-
-        fillCircle(ctx, p.x, p.y, r, fill);
-        drawCircleOutline(ctx, p.x, p.y, r, outline);
-
-        float yaw = mc.player.getYaw();
-        double a = Math.toRadians(yaw) + Math.PI / 2.0;
-        int tx = p.x + (int) Math.round(Math.cos(a) * (r + 3));
-        int ty = p.y + (int) Math.round(Math.sin(a) * (r + 3));
-        drawLine(ctx, p.x, p.y, tx, ty, 0xFFFFFFFF);
+    private ScreenPoint worldToScreen(double wx, double wz) {
+        if (nodeRenderData.length == 0) {
+            return null;
+        }
+        int sx = PADDING + (int) Math.round((wx - minX) * baseScale * zoom + offsetX);
+        int sy = PADDING + (int) Math.round((wz - minZ) * baseScale * zoom + offsetY);
+        return new ScreenPoint(sx, sy);
     }
 
     private void setActiveLayer(int index) {
         if (layers.isEmpty()) {
-            currentLayer = null;
-            nodes.clear();
-            edges.clear();
-            currentTypes.clear();
-            recalcBounds();
+            clearActiveLayer();
             return;
         }
 
@@ -521,40 +558,62 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         int normalized = Math.floorMod(index, layers.size());
         currentLayer = layers.get(normalized);
 
-        nodes.clear();
-        nodes.addAll(currentLayer.nodes());
-        edges.clear();
-        edges.addAll(currentLayer.edges());
+        Map<String, NodeRenderData> lookup = new HashMap<>(currentLayer.nodes().size() * 2);
+        nodeRenderData = new NodeRenderData[currentLayer.nodes().size()];
 
-        currentTypes.clear();
-        for (Node node : nodes) {
-            currentTypes.add(node.type());
-            typeColors.computeIfAbsent(node.type(), t -> hsvToArgb(Math.abs(t.hashCode() % 360), 0.6f, 0.9f));
+        Set<String> typeOrder = new LinkedHashSet<>();
+        for (int i = 0; i < currentLayer.nodes().size(); i++) {
+            Node node = currentLayer.nodes().get(i);
+            typeOrder.add(node.type());
+            int color = typeColors.computeIfAbsent(node.type(), t -> hsvToArgb(Math.abs(t.hashCode() % 360), 0.6f, 0.9f));
+            NodeRenderData data = new NodeRenderData(node, color);
+            nodeRenderData[i] = data;
+            lookup.put(node.id(), data);
         }
 
-        recalcBounds();
+        List<EdgeRenderData> edges = new ArrayList<>(currentLayer.edges().size());
+        for (EdgeStorage.Edge edge : currentLayer.edges()) {
+            NodeRenderData a = lookup.get(edge.nodeA());
+            NodeRenderData b = lookup.get(edge.nodeB());
+            if (a == null || b == null) continue;
+            int color = statusColors.getOrDefault(edge.status(), 0xFFFFFFFF);
+            edges.add(new EdgeRenderData(a, b, color));
+        }
+        edgeRenderData = edges.toArray(EdgeRenderData[]::new);
+
+        List<LegendEntry> legend = new ArrayList<>(typeOrder.size());
+        for (String type : typeOrder) {
+            legend.add(new LegendEntry(Text.literal(type), typeColors.getOrDefault(type, 0xFFFFFFFF)));
+        }
+        legendEntries = List.copyOf(legend);
+
+        dimensionLabel = Text.translatable("screen.roadarchitect.debug.dimension_label",
+                describeLayer(currentLayer).getString()).formatted(Formatting.GRAY);
+
+        recalcBounds(nodeRenderData);
         loadViewState(currentLayer);
-        screenPositions.clear();
+        layoutDirty = true;
+        textureDirty = true;
 
         lastPlayerDimension = currentLayer.dimension();
     }
 
     private void clearActiveLayer() {
         saveCurrentViewState();
-        if (currentLayer == null && nodes.isEmpty() && edges.isEmpty()) {
-            return;
-        }
         currentLayer = null;
-        nodes.clear();
-        edges.clear();
-        currentTypes.clear();
-        recalcBounds();
-        screenPositions.clear();
+        nodeRenderData = NodeRenderData.EMPTY;
+        edgeRenderData = EdgeRenderData.EMPTY;
+        legendEntries = List.of();
+        dimensionLabel = Text.empty();
+        destroyTexture();
+        recalcBounds(nodeRenderData);
         zoom = 1.0;
         offsetX = 0;
         offsetY = 0;
         baseScale = 1.0;
         firstLayout = true;
+        layoutDirty = true;
+        textureDirty = true;
     }
 
     private void focusOnCurrentDimension() {
@@ -585,15 +644,31 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         lastPlayerDimension = playerDimension;
     }
 
-    private void recalcBounds() {
-        if (nodes.isEmpty()) {
+    private void recalcBounds(NodeRenderData[] nodes) {
+        if (nodes.length == 0) {
             minX = maxX = minZ = maxZ = 0;
             return;
         }
-        minX = nodes.stream().mapToInt(n -> n.pos().getX()).min().orElse(0);
-        maxX = nodes.stream().mapToInt(n -> n.pos().getX()).max().orElse(0);
-        minZ = nodes.stream().mapToInt(n -> n.pos().getZ()).min().orElse(0);
-        maxZ = nodes.stream().mapToInt(n -> n.pos().getZ()).max().orElse(0);
+        minX = Integer.MAX_VALUE;
+        maxX = Integer.MIN_VALUE;
+        minZ = Integer.MAX_VALUE;
+        maxZ = Integer.MIN_VALUE;
+        for (NodeRenderData node : nodes) {
+            int x = node.node.pos().getX();
+            int z = node.node.pos().getZ();
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (z < minZ) minZ = z;
+            if (z > maxZ) maxZ = z;
+        }
+        if (minX == maxX) {
+            minX -= 1;
+            maxX += 1;
+        }
+        if (minZ == maxZ) {
+            minZ -= 1;
+            maxZ += 1;
+        }
     }
 
     private void saveCurrentViewState() {
@@ -616,11 +691,268 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             this.offsetY = 0;
             this.firstLayout = true;
         }
+        layoutDirty = true;
+        textureDirty = true;
     }
 
     private static Text describeLayer(DimensionLayer layer) {
         Identifier id = layer.dimension().getValue();
         return Text.literal(id.toString());
+    }
+
+    private static boolean segmentIntersectsRect(int x0, int y0, int x1, int y1,
+                                                 int minX, int minY, int maxX, int maxY) {
+        int code0 = outCode(x0, y0, minX, minY, maxX, maxY);
+        int code1 = outCode(x1, y1, minX, minY, maxX, maxY);
+        while (true) {
+            if ((code0 | code1) == 0) {
+                return true;
+            }
+            if ((code0 & code1) != 0) {
+                return false;
+            }
+            int outCode = code0 != 0 ? code0 : code1;
+            double ix = 0;
+            double iy = 0;
+
+            if ((outCode & TOP) != 0) {
+                if (y1 == y0) {
+                    iy = maxY;
+                    ix = x0;
+                } else {
+                    ix = x0 + (double) (x1 - x0) * (maxY - y0) / (double) (y1 - y0);
+                    iy = maxY;
+                }
+            } else if ((outCode & BOTTOM) != 0) {
+                if (y1 == y0) {
+                    iy = minY;
+                    ix = x0;
+                } else {
+                    ix = x0 + (double) (x1 - x0) * (minY - y0) / (double) (y1 - y0);
+                    iy = minY;
+                }
+            } else if ((outCode & RIGHT) != 0) {
+                if (x1 == x0) {
+                    ix = maxX;
+                    iy = y0;
+                } else {
+                    iy = y0 + (double) (y1 - y0) * (maxX - x0) / (double) (x1 - x0);
+                    ix = maxX;
+                }
+            } else if ((outCode & LEFT) != 0) {
+                if (x1 == x0) {
+                    ix = minX;
+                    iy = y0;
+                } else {
+                    iy = y0 + (double) (y1 - y0) * (minX - x0) / (double) (x1 - x0);
+                    ix = minX;
+                }
+            }
+
+            if (outCode == code0) {
+                x0 = (int) Math.round(ix);
+                y0 = (int) Math.round(iy);
+                code0 = outCode(x0, y0, minX, minY, maxX, maxY);
+            } else {
+                x1 = (int) Math.round(ix);
+                y1 = (int) Math.round(iy);
+                code1 = outCode(x1, y1, minX, minY, maxX, maxY);
+            }
+        }
+    }
+
+    private static int outCode(int x, int y, int minX, int minY, int maxX, int maxY) {
+        int code = INSIDE;
+        if (x < minX) code |= LEFT;
+        else if (x > maxX) code |= RIGHT;
+        if (y < minY) code |= BOTTOM;
+        else if (y > maxY) code |= TOP;
+        return code;
+    }
+
+    private static final int INSIDE = 0;
+    private static final int LEFT = 1;
+    private static final int RIGHT = 2;
+    private static final int BOTTOM = 4;
+    private static final int TOP = 8;
+
+    private void renderGraphCanvas(DrawContext ctx) {
+        if (nodeRenderData.length == 0) {
+            destroyTexture();
+            return;
+        }
+        ensureTexture();
+        if (textureDirty && graphTexture != null) {
+            redrawTexture();
+        }
+        if (graphTextureId != null) {
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
+            RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+            RenderSystem.setShaderTexture(0, graphTextureId);
+
+            float minX = PADDING;
+            float minY = PADDING;
+            float maxX = PADDING + textureWidth;
+            float maxY = PADDING + textureHeight;
+
+            BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            var matrix = ctx.getMatrices().peek().getPositionMatrix();
+
+            buffer.vertex(matrix, minX, maxY, 0).uv(0.0F, 1.0F).endVertex();
+            buffer.vertex(matrix, maxX, maxY, 0).uv(1.0F, 1.0F).endVertex();
+            buffer.vertex(matrix, maxX, minY, 0).uv(1.0F, 0.0F).endVertex();
+            buffer.vertex(matrix, minX, minY, 0).uv(0.0F, 0.0F).endVertex();
+
+            BufferUploader.drawWithShader(buffer.end());
+            RenderSystem.disableBlend();
+        }
+    }
+
+    private void ensureTexture() {
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+        int areaWidth = Math.max(1, width - PADDING * 2);
+        int areaHeight = Math.max(1, height - PADDING * 2);
+        if (graphTexture != null && areaWidth == textureWidth && areaHeight == textureHeight) {
+            return;
+        }
+        destroyTexture();
+        NativeImage image = new NativeImage(NativeImage.Format.RGBA, areaWidth, areaHeight, false);
+        graphTexture = new NativeImageBackedTexture(() -> "roadarchitect_debug_graph", image);
+        textureWidth = areaWidth;
+        textureHeight = areaHeight;
+        graphTextureId = Identifier.of("roadarchitect", "debug_graph_canvas");
+        MinecraftClient.getInstance().getTextureManager().registerTexture(graphTextureId, graphTexture);
+        textureDirty = true;
+    }
+
+    private void redrawTexture() {
+        if (graphTexture == null) {
+            return;
+        }
+        NativeImage image = graphTexture.getImage();
+        clearImage(image);
+        int baseX = PADDING;
+        int baseY = PADDING;
+        for (EdgeRenderData edge : edgeRenderData) {
+            if (!edge.visible) continue;
+            drawLine(image,
+                    edge.a.screenX - baseX,
+                    edge.a.screenY - baseY,
+                    edge.b.screenX - baseX,
+                    edge.b.screenY - baseY,
+                    edge.color);
+        }
+        for (NodeRenderData node : nodeRenderData) {
+            if (!node.visible) continue;
+            fillCircle(image, node.screenX - baseX, node.screenY - baseY, RADIUS, node.color);
+            drawCircleOutline(image, node.screenX - baseX, node.screenY - baseY, RADIUS, 0xFF000000);
+        }
+        graphTexture.upload();
+        textureDirty = false;
+    }
+
+    private void destroyTexture() {
+        if (graphTexture != null && graphTextureId != null) {
+            MinecraftClient.getInstance().getTextureManager().destroyTexture(graphTextureId);
+            graphTexture.close();
+        }
+        graphTexture = null;
+        graphTextureId = null;
+        textureWidth = 0;
+        textureHeight = 0;
+        textureDirty = true;
+    }
+
+    private NodeRenderData findHovered(double mouseX, double mouseY) {
+        for (NodeRenderData node : nodeRenderData) {
+            if (!node.visible) continue;
+            if (dist2(node.screenX, node.screenY, mouseX, mouseY) <= RADIUS * RADIUS) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    private static void clearImage(NativeImage image) {
+        for (int y = 0; y < image.getHeight(); y++) {
+            for (int x = 0; x < image.getWidth(); x++) {
+                image.setColor(x, y, 0);
+            }
+        }
+    }
+
+    private static void drawLine(NativeImage image, int x0, int y0, int x1, int y1, int argb) {
+        int dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+        int dy = -Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+        int err = dx + dy;
+        int x = x0, y = y0;
+        int color = argbToAbgr(argb);
+        while (true) {
+            putPixel(image, x, y, color);
+            if (x == x1 && y == y1) break;
+            int e2 = 2 * err;
+            if (e2 >= dy) {
+                err += dy;
+                x += sx;
+            }
+            if (e2 <= dx) {
+                err += dx;
+                y += sy;
+            }
+        }
+    }
+
+    private static void fillCircle(NativeImage image, int cx, int cy, int r, int argb) {
+        int color = argbToAbgr(argb);
+        for (int dy = -r; dy <= r; dy++) {
+            int span = (int) Math.round(Math.sqrt(r * r - dy * dy));
+            int y = cy + dy;
+            for (int dx = -span; dx <= span; dx++) {
+                putPixel(image, cx + dx, y, color);
+            }
+        }
+    }
+
+    private static void drawCircleOutline(NativeImage image, int cx, int cy, int r, int argb) {
+        int x = r, y = 0;
+        int err = 0;
+        int color = argbToAbgr(argb);
+        while (x >= y) {
+            putPixel(image, cx + x, cy + y, color);
+            putPixel(image, cx + y, cy + x, color);
+            putPixel(image, cx - y, cy + x, color);
+            putPixel(image, cx - x, cy + y, color);
+            putPixel(image, cx - x, cy - y, color);
+            putPixel(image, cx - y, cy - x, color);
+            putPixel(image, cx + y, cy - x, color);
+            putPixel(image, cx + x, cy - y, color);
+            y++;
+            if (err <= 0) {
+                err += 2 * y + 1;
+            }
+            if (err > 0) {
+                x--;
+                err -= 2 * x + 1;
+            }
+        }
+    }
+
+    private static void putPixel(NativeImage image, int x, int y, int color) {
+        if (x < 0 || y < 0 || x >= image.getWidth() || y >= image.getHeight()) {
+            return;
+        }
+        image.setColor(x, y, color);
+    }
+
+    private static int argbToAbgr(int color) {
+        int a = (color >> 24) & 0xFF;
+        int r = (color >> 16) & 0xFF;
+        int g = (color >> 8) & 0xFF;
+        int b = color & 0xFF;
+        return (a << 24) | (b << 16) | (g << 8) | r;
     }
 
     public record DimensionLayer(RegistryKey<World> dimension, List<Node> nodes, List<EdgeStorage.Edge> edges) {
@@ -633,6 +965,43 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     private record ViewState(double zoom, double offsetX, double offsetY, boolean firstLayout) {
     }
 
-    private record ScreenPos(int x, int y) {
+    private record LegendEntry(Text label, int color) {
+    }
+
+    private record ScreenPoint(int x, int y) {
+    }
+
+    private static final class NodeRenderData {
+        private static final NodeRenderData[] EMPTY = new NodeRenderData[0];
+        final Node node;
+        final int color;
+        final Text tooltip;
+        int screenX;
+        int screenY;
+        boolean visible;
+
+        NodeRenderData(Node node, int color) {
+            this.node = node;
+            this.color = color;
+            this.tooltip = Text.literal(node.pos().toShortString() + " • " + node.type());
+        }
+
+        Text tooltip() {
+            return tooltip;
+        }
+    }
+
+    private static final class EdgeRenderData {
+        private static final EdgeRenderData[] EMPTY = new EdgeRenderData[0];
+        final NodeRenderData a;
+        final NodeRenderData b;
+        final int color;
+        boolean visible;
+
+        EdgeRenderData(NodeRenderData a, NodeRenderData b, int color) {
+            this.a = a;
+            this.b = b;
+            this.color = color;
+        }
     }
 }

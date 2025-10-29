@@ -1,7 +1,12 @@
+def sharedProjects = [
+        modrinth  : 'dLRvLyY3',
+        curseforge: '1326434'
+]
+
 ext.releaseConfig = [
         fabric  : [
                 modrinth : [
-                        projectId    : 'dLRvLyY3',
+                        projectId    : sharedProjects.modrinth,
                         versionNumber: { project -> "${project.version}-fabric" },
                         versionName  : { project, root -> "RoadArchitect v${project.version}+${root.minecraft_version} [Fabric/Quilt]" },
                         versionType  : 'release',
@@ -13,6 +18,7 @@ ext.releaseConfig = [
                         ]
                 ],
                 curseforge: [
+                        projectId  : sharedProjects.curseforge,
                         displayName : { project, root -> "RoadArchitect v${project.version}+${root.minecraft_version} [Fabric/Quilt]" },
                         releaseType : 'release',
                         modLoaders  : ['Fabric', 'Quilt'],
@@ -25,7 +31,7 @@ ext.releaseConfig = [
         ],
         neoforge: [
                 modrinth : [
-                        projectId    : 'dLRvLyY3',
+                        projectId    : sharedProjects.modrinth,
                         versionNumber: { project -> "${project.version}-neoforge" },
                         versionName  : { project, root -> "RoadArchitect v${project.version}+${root.minecraft_version} [NeoForge]" },
                         versionType  : 'release',
@@ -37,6 +43,7 @@ ext.releaseConfig = [
                         ]
                 ],
                 curseforge: [
+                        projectId  : sharedProjects.curseforge,
                         displayName : { project, root -> "RoadArchitect v${project.version}+${root.minecraft_version} [NeoForge]" },
                         releaseType : 'release',
                         modLoaders  : ['NeoForge'],

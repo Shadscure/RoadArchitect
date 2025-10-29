@@ -1,4 +1,5 @@
 import java.util.Locale
+import org.gradle.api.GradleException
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 
 plugins {
@@ -197,13 +198,68 @@ ext.envConfig.maven = [
 ]
 
 ext.envConfig.curseforge = [
-        token    : rootProject.ext.resolveConfigValue("CURSEFORGE_TOKEN"),
-        projectId: rootProject.ext.resolveConfigValue(["CURSEFORGE_PROJECT", "CURSEFORGE_PROJECT_ID", "curseforge_project"]) ?: "1326434"
+        token: rootProject.ext.resolveConfigValue("CURSEFORGE_TOKEN")
 ]
 
 ext.envConfig.modrinth = [
         token: rootProject.ext.resolveConfigValue("MODRINTH_TOKEN")
 ]
+
+ext.evaluateReleaseConfigValue = { value, Project moduleProject ->
+    if (value instanceof Closure) {
+        def params = value.maximumNumberOfParameters
+        if (params >= 2) {
+            return value.call(moduleProject, moduleProject.rootProject)
+        } else if (params == 1) {
+            return value.call(moduleProject)
+        } else {
+            return value.call()
+        }
+    }
+    return value
+}
+
+ext.resolveReleaseConfigValue = { String platform, String section, String key, Project moduleProject, boolean required = false, Object fallback = null ->
+    def releaseConfig = rootProject.ext.releaseConfig ?: [:]
+    def platformConfig = releaseConfig[platform]
+    if (platformConfig == null) {
+        if (required) {
+            throw new GradleException("releaseConfig.${platform} is not defined")
+        }
+        return fallback
+    }
+
+    def sectionConfig = platformConfig[section]
+    if (sectionConfig == null) {
+        if (required) {
+            throw new GradleException("releaseConfig.${platform}.${section} is not defined")
+        }
+        return fallback
+    }
+
+    def rawValue = sectionConfig[key]
+    def evaluated = rootProject.ext.evaluateReleaseConfigValue(rawValue, moduleProject)
+    if (evaluated == null && required) {
+        throw new GradleException("releaseConfig.${platform}.${section}.${key} is not defined")
+    }
+    return evaluated != null ? evaluated : fallback
+}
+
+ext.toList = { Object value ->
+    if (value == null) {
+        return []
+    }
+    if (value instanceof List) {
+        return value
+    }
+    if (value instanceof Collection) {
+        return new ArrayList(value)
+    }
+    if (value.getClass().isArray()) {
+        return value.toList()
+    }
+    return [value]
+}
 
 // ====================== Maven (.env) ====================
 // ---- helpers for Maven repository configuration ----
@@ -230,10 +286,6 @@ ext.resolveMavenRepoName = {
 // ====================== CurseForge ====================
 ext.resolveCurseforgeToken = {
     rootProject.ext.envConfig.curseforge.token
-}
-
-ext.resolveCurseforgeProjectId = { String platform = null ->
-    rootProject.ext.envConfig.curseforge.projectId ?: "1326434"
 }
 
 tasks.register("publishCurseForgeAll") {

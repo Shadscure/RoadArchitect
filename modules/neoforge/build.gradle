@@ -68,19 +68,11 @@ remapJar {
     archiveFileName.set("roadarchitect-${project.version}-neoforge+${rootProject.minecraft_version}.jar")
 }
 
-def releaseConfig = rootProject.ext.releaseConfig?.neoforge ?: [:]
-def releaseValue = { value ->
-    if (value instanceof Closure) {
-        def params = value.maximumNumberOfParameters
-        if (params >= 2) {
-            return value.call(project, rootProject)
-        } else if (params == 1) {
-            return value.call(project)
-        } else {
-            return value.call()
-        }
-    }
-    return value
+def releaseValue = { String section, String key, boolean required = false ->
+    rootProject.ext.resolveReleaseConfigValue("neoforge", section, key, project, required)
+}
+def releaseList = { String section, String key, boolean required = false ->
+    rootProject.ext.toList(releaseValue(section, key, required))
 }
 
 // =========== Modrith =========
@@ -93,16 +85,15 @@ if (!hasModrinthToken) {
     modrinth_token = "modrinth_dummy_token"
 }
 
-def modrinthRelease = releaseConfig.modrinth ?: [:]
-def modrinthProjectId = releaseValue(modrinthRelease.projectId) ?: "dLRvLyY3"
-def modrinthVersionNumber = releaseValue(modrinthRelease.versionNumber) ?: "${project.version}-neoforge"
-def modrinthVersionName = releaseValue(modrinthRelease.versionName) ?: "RoadArchitect v${project.version}+${rootProject.minecraft_version} [NeoForge]"
-def modrinthVersionType = releaseValue(modrinthRelease.versionType) ?: "release"
-def modrinthLoaders = (releaseValue(modrinthRelease.loaders) ?: ["neoforge"]) as List
-def modrinthGameVersions = (releaseValue(modrinthRelease.gameVersions) ?: [rootProject.minecraft_version]) as List
-def modrinthDependencies = modrinthRelease.dependencies ?: [:]
-def modrinthRequiredProjects = (releaseValue(modrinthDependencies.requiredProjects) ?: ["cloth-config"]) as List
-def modrinthOptionalProjects = (releaseValue(modrinthDependencies.optionalProjects) ?: []) as List
+def modrinthProjectId = releaseValue("modrinth", "projectId", true)
+def modrinthVersionNumber = releaseValue("modrinth", "versionNumber", true)
+def modrinthVersionName = releaseValue("modrinth", "versionName", true)
+def modrinthVersionType = releaseValue("modrinth", "versionType", true)
+def modrinthLoaders = releaseList("modrinth", "loaders", true)
+def modrinthGameVersions = releaseList("modrinth", "gameVersions", true)
+def modrinthDependencies = releaseValue("modrinth", "dependencies")
+def modrinthRequiredProjects = rootProject.ext.toList(modrinthDependencies?.requiredProjects)
+def modrinthOptionalProjects = rootProject.ext.toList(modrinthDependencies?.optionalProjects)
 
 modrinth {
     token = modrinth_token
@@ -135,18 +126,16 @@ if (!hasCurseToken) {
     logger.warn("CURSEFORGE_TOKEN is not configured; using a dummy value and disabling CurseForge publishing tasks.")
     curse_token = "curseforge_dummy_token"
 }
-def curseforgeRelease = releaseConfig.curseforge ?: [:]
-def curseProjectOverride = releaseValue(curseforgeRelease.projectId)
-def curse_project_id = (curseProjectOverride ?: rootProject.ext.resolveCurseforgeProjectId())
+def curse_project_id = releaseValue("curseforge", "projectId", true)
 
-def curseDisplayName = releaseValue(curseforgeRelease.displayName) ?: "RoadArchitect v${project.version}+${rootProject.minecraft_version} [NeoForge]"
-def curseReleaseType = releaseValue(curseforgeRelease.releaseType) ?: "release"
-def curseModLoaders = (releaseValue(curseforgeRelease.modLoaders) ?: ["NeoForge"]) as List
-def curseGameVersions = (releaseValue(curseforgeRelease.gameVersions) ?: [rootProject.minecraft_version]) as List
-def curseJavaVersions = (releaseValue(curseforgeRelease.javaVersions) ?: ["Java 21"]) as List
-def curseEnvironments = (releaseValue(curseforgeRelease.environments) ?: ["Client", "Server"]) as List
-def curseRequirements = (releaseValue(curseforgeRelease.requirements) ?: ["cloth-config"]) as List
-def curseOptionals = (releaseValue(curseforgeRelease.optionals) ?: ["catalogue"]) as List
+def curseDisplayName = releaseValue("curseforge", "displayName", true)
+def curseReleaseType = releaseValue("curseforge", "releaseType", true)
+def curseModLoaders = releaseList("curseforge", "modLoaders", true)
+def curseGameVersions = releaseList("curseforge", "gameVersions", true)
+def curseJavaVersions = releaseList("curseforge", "javaVersions")
+def curseEnvironments = releaseList("curseforge", "environments")
+def curseRequirements = releaseList("curseforge", "requirements")
+def curseOptionals = releaseList("curseforge", "optionals")
 
 tasks.register("curseforge", net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     onlyIf { hasCurseToken }

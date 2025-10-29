@@ -1,5 +1,5 @@
 ext.standardRepositoryConfig = [
-        mirror       : [name: 'PackexMirror', envKeys: ['MAVEN_REPO_MIRROR_URL', 'MAVEN_MIRROR_URL', 'MIRROR_REPO_URL', 'PACKEX_MIRROR_URL'], defaultUrl: 'https://packex.shadscure.com/mirror'],
+        mirror       : [name: 'PackexMirror', envKeys: ['MAVEN_REPO_MIRROR_URL', 'MAVEN_MIRROR_URL', 'MIRROR_REPO_URL', 'PACKEX_MIRROR_URL'], defaultUrl: 'https://packex.shadscure.com/mirror', useMavenCredentials: true],
         mavenLocal   : [type: 'mavenLocal'],
         mavenCentral : [type: 'mavenCentral'],
         modrinth     : [name: 'Modrinth', url: 'https://api.modrinth.com/maven'],

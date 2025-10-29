@@ -90,6 +90,21 @@ remapJar {
     archiveFileName.set("roadarchitect-${project.version}-fabric+${rootProject.minecraft_version}.jar")
 }
 
+def releaseConfig = rootProject.ext.releaseConfig?.fabric ?: [:]
+def releaseValue = { value ->
+    if (value instanceof Closure) {
+        def params = value.maximumNumberOfParameters
+        if (params >= 2) {
+            return value.call(project, rootProject)
+        } else if (params == 1) {
+            return value.call(project)
+        } else {
+            return value.call()
+        }
+    }
+    return value
+}
+
 // ====================== Modrinth ====================
 apply plugin: "com.modrinth.minotaur"
 def modrinthConfig = rootProject.ext.envConfig?.modrinth ?: [:]
@@ -100,17 +115,31 @@ if (!hasModrinthToken) {
     modrinth_token = "modrinth_dummy_token"
 }
 
+def modrinthRelease = releaseConfig.modrinth ?: [:]
+def modrinthProjectId = releaseValue(modrinthRelease.projectId) ?: "dLRvLyY3"
+def modrinthVersionNumber = releaseValue(modrinthRelease.versionNumber) ?: "${project.version}-fabric"
+def modrinthVersionName = releaseValue(modrinthRelease.versionName) ?: "RoadArchitect v${project.version}+${rootProject.minecraft_version} [Fabric/Quilt]"
+def modrinthVersionType = releaseValue(modrinthRelease.versionType) ?: "release"
+def modrinthLoaders = (releaseValue(modrinthRelease.loaders) ?: ["fabric", "quilt"]) as List
+def modrinthGameVersions = (releaseValue(modrinthRelease.gameVersions) ?: [rootProject.minecraft_version]) as List
+def modrinthDependencies = modrinthRelease.dependencies ?: [:]
+def modrinthRequiredProjects = (releaseValue(modrinthDependencies.requiredProjects) ?: ["cloth-config"]) as List
+def modrinthOptionalProjects = (releaseValue(modrinthDependencies.optionalProjects) ?: []) as List
+
 modrinth {
     token = modrinth_token
-    projectId = "dLRvLyY3"
-    versionNumber = "${project.version}-fabric"
-    versionName   = "RoadArchitect v${project.version}+${rootProject.minecraft_version} [Fabric/Quilt]"
-    versionType   = "release"                 // или "beta"/"alpha"
-    gameVersions  = [ rootProject.minecraft_version ]
-    loaders       = [ "fabric","quilt" ]
+    projectId = modrinthProjectId
+    versionNumber = modrinthVersionNumber
+    versionName   = modrinthVersionName
+    versionType   = modrinthVersionType
+    gameVersions  = modrinthGameVersions
+    loaders       = modrinthLoaders
     uploadFile    = remapJar                   // из Loom
     changelog     = rootProject.file("CHANGELOG.md").exists() ? rootProject.file("CHANGELOG.md").text : ""
-    dependencies { required.project "cloth-config" }
+    dependencies {
+        modrinthRequiredProjects.each { required.project(it) }
+        modrinthOptionalProjects.each { optional.project(it) }
+    }
 }
 tasks.configureEach { task ->
     if (task.name.toLowerCase().startsWith("modrinth")) {
@@ -130,7 +159,18 @@ if (!hasCurseToken) {
     curse_token = "curseforge_dummy_token"
 }
 
-def curse_project_id = rootProject.ext.resolveCurseforgeProjectId("fabric")
+def curseforgeRelease = releaseConfig.curseforge ?: [:]
+def curseProjectOverride = releaseValue(curseforgeRelease.projectId)
+def curse_project_id = (curseProjectOverride ?: rootProject.ext.resolveCurseforgeProjectId())
+
+def curseDisplayName = releaseValue(curseforgeRelease.displayName) ?: "RoadArchitect v${project.version}+${rootProject.minecraft_version} [Fabric/Quilt]"
+def curseReleaseType = releaseValue(curseforgeRelease.releaseType) ?: "release"
+def curseModLoaders = (releaseValue(curseforgeRelease.modLoaders) ?: ["Fabric", "Quilt"]) as List
+def curseGameVersions = (releaseValue(curseforgeRelease.gameVersions) ?: [rootProject.minecraft_version]) as List
+def curseJavaVersions = (releaseValue(curseforgeRelease.javaVersions) ?: ["Java 21"]) as List
+def curseEnvironments = (releaseValue(curseforgeRelease.environments) ?: ["Client", "Server"]) as List
+def curseRequirements = (releaseValue(curseforgeRelease.requirements) ?: ["cloth-config"]) as List
+def curseOptionals = (releaseValue(curseforgeRelease.optionals) ?: []) as List
 
 tasks.register("curseforge", net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     onlyIf { hasCurseToken }
@@ -143,15 +183,15 @@ tasks.register("curseforge", net.darkhax.curseforgegradle.TaskPublishCurseForge)
     def mainFile = upload(curse_project_id as String, remapJar)
 
     // метаданные
-    mainFile.displayName = "RoadArchitect v${project.version}+${rootProject.minecraft_version} [Fabric/Quilt]"
-    mainFile.releaseType = "release" // или "beta"/"alpha"
-    mainFile.addModLoader("Fabric")
-    mainFile.addModLoader("Quilt")
-    mainFile.addGameVersion("${rootProject.minecraft_version}")
-    mainFile.addJavaVersion("Java 21")
-    mainFile.addEnvironment("Client", "Server")
+    mainFile.displayName = curseDisplayName
+    mainFile.releaseType = curseReleaseType
+    curseModLoaders.each { mainFile.addModLoader(it) }
+    curseGameVersions.each { mainFile.addGameVersion(it) }
+    curseJavaVersions.each { mainFile.addJavaVersion(it) }
+    curseEnvironments.each { mainFile.addEnvironment(it) }
     mainFile.changelog = rootProject.file("CHANGELOG.md"); mainFile.changelogType = "markdown"
-    mainFile.addRequirement("cloth-config")
+    curseRequirements.each { mainFile.addRequirement(it) }
+    curseOptionals.each { mainFile.addOptional(it) }
 }
 tasks.configureEach { task ->
     if (task.name.toLowerCase().startsWith("curseforge")) {

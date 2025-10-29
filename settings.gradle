@@ -73,6 +73,24 @@ def resolveConfigValue = { Collection<String> keys, String fallback = null ->
     fallback
 }
 
+def mavenCredentials = [
+        username: resolveConfigValue(['MAVEN_REPO_USERNAME', 'MAVEN_REPO_USER', 'MAVEN_USERNAME', 'MAVEN_USER']),
+        password: resolveConfigValue(['MAVEN_REPO_PASSWORD', 'MAVEN_PASSWORD']),
+        token   : resolveConfigValue(['MAVEN_REPO_TOKEN', 'MAVEN_TOKEN'])
+]
+
+def applyMavenCredentials = { repo ->
+    def user = mavenCredentials.username
+    def pass = mavenCredentials.password
+    def token = mavenCredentials.token
+    if ((user && pass) || token) {
+        repo.credentials {
+            username = user ?: 'token'
+            password = pass ?: token
+        }
+    }
+}
+
 def configureStandardRepositories = { handler, boolean includePluginPortal = false ->
     def repoConfig = settings.ext.standardRepositoryConfig ?: [:]
 
@@ -85,6 +103,9 @@ def configureStandardRepositories = { handler, boolean includePluginPortal = fal
                 name = spec.name
             }
             url = uri(urlValue)
+            if (spec?.useMavenCredentials) {
+                applyMavenCredentials(delegate)
+            }
         }
     }
 

@@ -1,3 +1,6 @@
+import java.util.Locale
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+
 plugins {
     id 'dev.architectury.loom' version '1.11-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
@@ -8,6 +11,7 @@ plugins {
 }
 
 apply from: "gradle/repository-config.gradle"
+apply from: "config.gradle"
 
 architectury {
     minecraft = project.minecraft_version
@@ -100,6 +104,21 @@ ext.configureStandardRepositories = { handler, Map options = [:] ->
 
     def repoConfig = rootProject.ext.standardRepositoryConfig ?: [:]
 
+    def configureCredentials = { MavenArtifactRepository repo, Map credentials ->
+        if (!repo || !credentials) {
+            return
+        }
+        def user = credentials.username
+        def pass = credentials.password
+        def token = credentials.token
+        if ((user && pass) || token) {
+            repo.credentials {
+                username = user ?: 'token'
+                password = pass ?: token
+            }
+        }
+    }
+
     def addMavenRepo = { Map spec ->
         def resolvedUrl = spec?.url ?: spec?.defaultUrl
         if (!resolvedUrl) {
@@ -114,6 +133,12 @@ ext.configureStandardRepositories = { handler, Map options = [:] ->
                 spec.configure.delegate = delegate
                 spec.configure.resolveStrategy = Closure.DELEGATE_FIRST
                 spec.configure.call(delegate)
+            }
+            if (spec?.credentialsProvider instanceof Closure) {
+                def creds = spec.credentialsProvider.call()
+                configureCredentials(delegate, creds)
+            } else if (spec?.useMavenCredentials) {
+                configureCredentials(delegate, rootProject.ext.envConfig?.maven?.releases)
             }
         }
     }
@@ -151,32 +176,29 @@ ext.configureStandardRepositories = { handler, Map options = [:] ->
 ext.envConfig = [:]
 
 def resolvedMirrorUrl = rootProject.ext.resolveMirrorRepositoryUrl()
+def mavenUsername = rootProject.ext.resolveConfigValue("MAVEN_REPO_USERNAME", "MAVEN_REPO_USER", "MAVEN_USERNAME", "MAVEN_USER")
+def mavenPassword = rootProject.ext.resolveConfigValue("MAVEN_REPO_PASSWORD", "MAVEN_PASSWORD")
+def mavenToken = rootProject.ext.resolveConfigValue("MAVEN_REPO_TOKEN", "MAVEN_TOKEN")
+
 ext.envConfig.maven = [
         releases: [
                 url     : rootProject.ext.resolveConfigValue("MAVEN_REPO_URL", "MAVEN_URL"),
                 name    : rootProject.ext.resolveConfigValue("MAVEN_REPO_NAME") ?: "private",
-                username: rootProject.ext.resolveConfigValue("MAVEN_REPO_USERNAME", "MAVEN_REPO_USER", "MAVEN_USERNAME", "MAVEN_USER"),
-                password: rootProject.ext.resolveConfigValue("MAVEN_REPO_PASSWORD", "MAVEN_PASSWORD"),
-                token   : rootProject.ext.resolveConfigValue("MAVEN_REPO_TOKEN", "MAVEN_TOKEN")
+                username: mavenUsername,
+                password: mavenPassword,
+                token   : mavenToken
         ],
         mirror  : [
-                url: resolvedMirrorUrl
+                url     : resolvedMirrorUrl,
+                username: mavenUsername,
+                password: mavenPassword,
+                token   : mavenToken
         ]
 ]
 
-def curseforgeToken = rootProject.ext.resolveConfigValue("CURSEFORGE_TOKEN")
-def curseforgeDefaultProject = rootProject.ext.resolveConfigValue(["CURSEFORGE_PROJECT", "CURSEFORGE_PROJECT_ID", "curseforge_project"]) ?: "1326434"
-def curseforgeProjects = [default: curseforgeDefaultProject]
-["fabric", "forge", "neoforge", "quilt", "common"].each { platform ->
-    def projectId = rootProject.ext.resolveConfigValue("CURSEFORGE_PROJECT_${platform.toUpperCase(Locale.ROOT)}", "curseforge_project_${platform.toLowerCase(Locale.ROOT)}")
-    if (projectId) {
-        curseforgeProjects[platform.toLowerCase(Locale.ROOT)] = projectId
-    }
-}
-
 ext.envConfig.curseforge = [
-        token     : curseforgeToken,
-        projectIds: curseforgeProjects
+        token    : rootProject.ext.resolveConfigValue("CURSEFORGE_TOKEN"),
+        projectId: rootProject.ext.resolveConfigValue(["CURSEFORGE_PROJECT", "CURSEFORGE_PROJECT_ID", "curseforge_project"]) ?: "1326434"
 ]
 
 ext.envConfig.modrinth = [
@@ -211,17 +233,7 @@ ext.resolveCurseforgeToken = {
 }
 
 ext.resolveCurseforgeProjectId = { String platform = null ->
-    def projects = rootProject.ext.envConfig.curseforge.projectIds ?: [:]
-    if (platform) {
-        def normalized = platform.trim().toLowerCase(Locale.ROOT)
-        if (!normalized.isEmpty()) {
-            def specific = projects[normalized]
-            if (specific) {
-                return specific
-            }
-        }
-    }
-    return projects.default ?: "1326434"
+    rootProject.ext.envConfig.curseforge.projectId ?: "1326434"
 }
 
 tasks.register("publishCurseForgeAll") {

@@ -24,13 +24,6 @@ configurations {
     }
 }
 
-repositories {
-    maven {
-        name = 'NeoForged'
-        url = 'https://maven.neoforged.net/releases'
-    }
-}
-
 dependencies {
     neoForge "net.neoforged:neoforge:$rootProject.neoforge_version"
 
@@ -77,7 +70,8 @@ remapJar {
 
 // =========== Modrith =========
 apply plugin: "com.modrinth.minotaur"
-def modrinth_token = rootProject.ext.resolveModrinthToken()
+def modrinthConfig = rootProject.ext.envConfig?.modrinth ?: [:]
+def modrinth_token = modrinthConfig.token
 boolean hasModrinthToken = modrinth_token != null && !modrinth_token.toString().trim().isEmpty()
 if (!hasModrinthToken) {
     logger.warn("MODRINTH_TOKEN is not configured; using a dummy value and disabling Modrinth publishing tasks.")
@@ -105,20 +99,14 @@ tasks.configureEach { task ->
 // ====================== CurseForge ====================
 apply plugin: "net.darkhax.curseforgegradle"
 
-def curse_token = rootProject.ext.resolveCurseforgeToken()
+def curseforgeConfig = rootProject.ext.envConfig?.curseforge ?: [:]
+def curse_token = curseforgeConfig.token
 boolean hasCurseToken = curse_token != null && !curse_token.toString().trim().isEmpty()
 if (!hasCurseToken) {
     logger.warn("CURSEFORGE_TOKEN is not configured; using a dummy value and disabling CurseForge publishing tasks.")
     curse_token = "curseforge_dummy_token"
 }
-
-
-def curse_project_id =
-        (findProperty("curseforge_project_fabric")
-                ?: System.getenv("CURSEFORGE_PROJECT_FABRIC")
-                ?: findProperty("curseforge_project")
-                ?: System.getenv("CURSEFORGE_PROJECT_ID")
-                ?: "1326434")
+def curse_project_id = rootProject.ext.resolveCurseforgeProjectId("neoforge")
 
 
 tasks.register("curseforge", net.darkhax.curseforgegradle.TaskPublishCurseForge) {

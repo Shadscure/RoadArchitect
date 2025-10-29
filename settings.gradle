@@ -1,10 +1,118 @@
+import java.util.Locale
+
+apply from: file('gradle/repository-config.gradle')
+
+def dotEnvValues = null
+def loadDotEnvValues = {
+    if (dotEnvValues != null) {
+        return dotEnvValues
+    }
+    dotEnvValues = [:]
+    def envFile = file('.env')
+    if (envFile.exists()) {
+        envFile.eachLine { line ->
+            def trimmed = line.trim()
+            if (trimmed && !trimmed.startsWith('#')) {
+                int idx = trimmed.indexOf('=')
+                if (idx > 0) {
+                    def key = trimmed.substring(0, idx).trim()
+                    def value = trimmed.substring(idx + 1).trim()
+                    if (!key.isEmpty()) {
+                        dotEnvValues[key] = value
+                    }
+                }
+            }
+        }
+    }
+    dotEnvValues
+}
+
+def resolveConfigValue = { Collection<String> keys, String fallback = null ->
+    if (!keys) {
+        return fallback
+    }
+
+    List<String> variants = []
+    keys.each { key ->
+        if (key) {
+            String original = key.toString()
+            if (!variants.contains(original)) {
+                variants << original
+            }
+            String lower = original.toLowerCase(Locale.ROOT)
+            if (!variants.contains(lower)) {
+                variants << lower
+            }
+            String upper = original.toUpperCase(Locale.ROOT)
+            if (!variants.contains(upper)) {
+                variants << upper
+            }
+        }
+    }
+
+    for (String variant : variants) {
+        def envValue = System.getenv(variant)
+        if (envValue) {
+            String trimmed = envValue.toString().trim()
+            if (!trimmed.isEmpty()) {
+                return trimmed
+            }
+        }
+    }
+
+    def envMap = loadDotEnvValues()
+    for (String variant : variants) {
+        if (envMap.containsKey(variant)) {
+            String trimmed = envMap[variant].toString().trim()
+            if (!trimmed.isEmpty()) {
+                return trimmed
+            }
+        }
+    }
+
+    fallback
+}
+
+def configureStandardRepositories = { handler, boolean includePluginPortal = false ->
+    def repoConfig = settings.ext.standardRepositoryConfig ?: [:]
+
+    def addMavenRepo = { Map spec, String urlValue ->
+        if (!urlValue) {
+            return
+        }
+        handler.maven {
+            if (spec?.name) {
+                name = spec.name
+            }
+            url = uri(urlValue)
+        }
+    }
+
+    def mirrorConfig = repoConfig.mirror
+    if (mirrorConfig) {
+        def mirrorUrl = resolveConfigValue(mirrorConfig.envKeys ?: [], mirrorConfig.defaultUrl)
+        addMavenRepo(mirrorConfig, mirrorUrl)
+    }
+
+    if (repoConfig.mavenCentral && handler.metaClass.respondsTo(handler, "mavenCentral")) {
+        handler.mavenCentral()
+    }
+
+    repoConfig.each { key, spec ->
+        if (key in ['mirror', 'mavenCentral', 'mavenLocal']) {
+            return
+        }
+        addMavenRepo(spec, spec?.url)
+    }
+
+    if (includePluginPortal && handler.metaClass.respondsTo(handler, "gradlePluginPortal")) {
+        handler.gradlePluginPortal()
+    }
+}
+
 pluginManagement {
-    repositories {
-        maven { url "https://packex.shadscure.com/mirror" }
-//        maven { url "https://maven.fabricmc.net/" }
-//        maven { url "https://maven.architectury.dev/" }
-//        maven { url "https://files.minecraftforge.net/maven/" }
-        gradlePluginPortal()
+    repositories { repoHandler ->
+        configureStandardRepositories(repoHandler, true)
     }
 }
 

@@ -1,20 +1,20 @@
 package net.oxcodsnet.roadarchitect.handlers;
 
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.TagKey;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.structure.StructureStart;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.structure.Structure;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.util.DebugLog;
 import org.slf4j.Logger;
@@ -36,14 +36,14 @@ public final class RoadPipelineController {
     /**
      * Миры, для которых уже отработал INIT по событию генерации спавн-чанка.
      */
-    private static final Set<RegistryKey<World>> INITIALIZED = ConcurrentHashMap.newKeySet();
+    private static final Set<ResourceKey<Level>> INITIALIZED = ConcurrentHashMap.newKeySet();
 
     /**
      * Кеш селекторов (ID и теги) из конфигурации, для быстрых проверок.
      */
-    private static final Set<Identifier> TARGET_IDS = new HashSet<>();
+    private static final Set<ResourceLocation> TARGET_IDS = new HashSet<>();
     private static final Set<TagKey<Structure>> TARGET_TAGS = new HashSet<>();
-    private static final Set<Identifier> TARGET_DIMENSION_IDS = new HashSet<>();
+    private static final Set<ResourceLocation> TARGET_DIMENSION_IDS = new HashSet<>();
 
     /**
      * Счётчик тиков для периодического триггера.
@@ -75,27 +75,27 @@ public final class RoadPipelineController {
     /**
      * 1) Генерация спавн-чанка ВПЕРВЫЕ → INIT.
      */
-    public static void onSpawnChunkGenerated(ServerWorld world, Chunk chunk) {
-        if (!isDimensionEnabled(world.getRegistryKey())) return;
+    public static void onSpawnChunkGenerated(ServerLevel world, ChunkAccess chunk) {
+        if (!isDimensionEnabled(world.dimension())) return;
 
-        ChunkPos spawnChunk = new ChunkPos(world.getSpawnPoint().getPos());
+        ChunkPos spawnChunk = new ChunkPos(world.getRespawnData().pos());
         if (!chunk.getPos().equals(spawnChunk)) return;
 
-        if (INITIALIZED.add(world.getRegistryKey())) {
+        if (INITIALIZED.add(world.dimension())) {
             DebugLog.info(LOGGER, "Spawn chunk {} generated in {}, starting INIT pipeline",
-                    chunk.getPos(), world.getRegistryKey().getValue());
-            PipelineRunner.runPipeline(world, world.getSpawnPoint().getPos(), PipelineRunner.PipelineMode.INIT);
+                    chunk.getPos(), world.dimension().location());
+            PipelineRunner.runPipeline(world, world.getRespawnData().pos(), PipelineRunner.PipelineMode.INIT);
         }
     }
 
     /**
      * 2) Генерация ЛЮБОГО чанка; если внутри есть целевая структура → CHUNK.
      */
-    public static void onChunkGenerated(ServerWorld world, Chunk chunk) {
-        if (!isDimensionEnabled(world.getRegistryKey())) return;
+    public static void onChunkGenerated(ServerLevel world, ChunkAccess chunk) {
+        if (!isDimensionEnabled(world.dimension())) return;
         if (!containsTargetStructure(world, chunk)) return;
 
-        BlockPos center = chunk.getPos().getCenterAtY(0);
+        BlockPos center = chunk.getPos().getMiddleBlockPosition(0);
         DebugLog.info(LOGGER, "Chunk {} generated with target structure, starting CHUNK pipeline", chunk.getPos());
         PipelineRunner.runPipeline(world, center, PipelineRunner.PipelineMode.CHUNK);
     }
@@ -103,11 +103,11 @@ public final class RoadPipelineController {
     /**
      * 3) Игрок вошёл на сервер → PERIODIC (как в исходнике).
      */
-    public static void onPlayerJoin(ServerPlayerEntity player) {
-        ServerWorld world = player.getEntityWorld();
-        if (!isDimensionEnabled(world.getRegistryKey())) return;
+    public static void onPlayerJoin(ServerPlayer player) {
+        ServerLevel world = player.level();
+        if (!isDimensionEnabled(world.dimension())) return;
 
-        BlockPos pos = player.getBlockPos();
+        BlockPos pos = player.blockPosition();
         DebugLog.info(LOGGER, "Player {} joined at {}, starting PERIODIC pipeline",
                 player.getName().getString(), pos);
         PipelineRunner.runPipeline(world, pos, PipelineRunner.PipelineMode.PERIODIC);
@@ -122,11 +122,11 @@ public final class RoadPipelineController {
         if (tickCounter < intervalTicks) return;
         tickCounter = 0;
 
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            ServerWorld w = player.getEntityWorld();
-            if (!isDimensionEnabled(w.getRegistryKey())) continue;
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            ServerLevel w = player.level();
+            if (!isDimensionEnabled(w.dimension())) continue;
 
-            BlockPos pos = player.getBlockPos();
+            BlockPos pos = player.blockPosition();
             DebugLog.info(LOGGER, "Periodic trigger at player {} pos {}, starting PERIODIC pipeline",
                     player.getName().getString(), pos);
             PipelineRunner.runPipeline(w, pos, PipelineRunner.PipelineMode.PERIODIC);
@@ -150,16 +150,16 @@ public final class RoadPipelineController {
         List<String> selectors = RoadArchitect.CONFIG.structureSelectors();
         for (String sel : selectors) {
             if (sel.startsWith("#")) {
-                TARGET_TAGS.add(TagKey.of(RegistryKeys.STRUCTURE, Identifier.of(sel.substring(1))));
+                TARGET_TAGS.add(TagKey.create(Registries.STRUCTURE, ResourceLocation.parse(sel.substring(1))));
             } else {
-                TARGET_IDS.add(Identifier.of(sel));
+                TARGET_IDS.add(ResourceLocation.parse(sel));
             }
         }
 
         TARGET_DIMENSION_IDS.clear();
         List<String> dimensionSelectors = RoadArchitect.CONFIG.dimensionSelectors();
         if (dimensionSelectors == null || dimensionSelectors.isEmpty()) {
-            TARGET_DIMENSION_IDS.add(World.OVERWORLD.getValue());
+            TARGET_DIMENSION_IDS.add(Level.OVERWORLD.location());
         } else {
             for (String selector : dimensionSelectors) {
                 if (selector.startsWith("#")) {
@@ -167,37 +167,37 @@ public final class RoadPipelineController {
                     continue;
                 }
                 try {
-                    TARGET_DIMENSION_IDS.add(Identifier.of(selector));
+                    TARGET_DIMENSION_IDS.add(ResourceLocation.parse(selector));
                 } catch (IllegalArgumentException ex) {
                     LOGGER.warn("Skipping invalid dimension selector '{}': {}", selector, ex.getMessage());
                 }
             }
             if (TARGET_DIMENSION_IDS.isEmpty()) {
-                TARGET_DIMENSION_IDS.add(World.OVERWORLD.getValue());
+                TARGET_DIMENSION_IDS.add(Level.OVERWORLD.location());
             }
         }
     }
 
-    static boolean isDimensionEnabled(RegistryKey<World> key) {
+    static boolean isDimensionEnabled(ResourceKey<Level> key) {
         if (TARGET_DIMENSION_IDS.isEmpty()) {
-            return key == World.OVERWORLD;
+            return key == Level.OVERWORLD;
         }
-        return TARGET_DIMENSION_IDS.contains(key.getValue());
+        return TARGET_DIMENSION_IDS.contains(key.location());
     }
 
-    private static boolean containsTargetStructure(ServerWorld world, Chunk chunk) {
-        if (!chunk.hasStructureReferences()) return false;
+    private static boolean containsTargetStructure(ServerLevel world, ChunkAccess chunk) {
+        if (!chunk.hasAnyStructureReferences()) return false;
 
-        Registry<Structure> registry = world.getRegistryManager().getOrThrow(RegistryKeys.STRUCTURE);
-        for (StructureStart start : chunk.getStructureStarts().values()) {
+        Registry<Structure> registry = world.registryAccess().lookupOrThrow(Registries.STRUCTURE);
+        for (StructureStart start : chunk.getAllStarts().values()) {
             Structure structure = start.getStructure();
-            Identifier id = registry.getId(structure);
+            ResourceLocation id = registry.getKey(structure);
             if (id != null && TARGET_IDS.contains(id)) return true;
 
-            RegistryEntry<Structure> entry = registry.getEntry(structure);
+            Holder<Structure> entry = registry.wrapAsHolder(structure);
             if (entry != null) {
                 for (TagKey<Structure> tag : TARGET_TAGS) {
-                    if (entry.isIn(tag)) return true;
+                    if (entry.is(tag)) return true;
                 }
             }
         }

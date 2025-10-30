@@ -1,8 +1,8 @@
 package net.oxcodsnet.roadarchitect.storage;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
 
 import java.util.Collections;
@@ -21,15 +21,15 @@ public class NodeStorage {
      * Загружает хранилище узлов из списка NBT.
      * <p>Loads node storage from the given NBT list.</p>
      */
-    public static NodeStorage fromNbt(NbtList list) {
+    public static NodeStorage fromNbt(ListTag list) {
         NodeStorage storage = new NodeStorage();
         for (int i = 0; i < list.size(); i++) {
-            NbtCompound tag = list.getCompoundOrEmpty(i);
-            String id = tag.getString("id", "");
+            CompoundTag tag = list.getCompoundOrEmpty(i);
+            String id = tag.getStringOr("id", "");
             if (id.isEmpty()) continue;
-            long rawPos = tag.getLong("pos", 0L);
-            BlockPos pos = BlockPos.fromLong(rawPos);
-            String type = tag.getString("type", "");
+            long rawPos = tag.getLongOr("pos", 0L);
+            BlockPos pos = BlockPos.of(rawPos);
+            String type = tag.getStringOr("type", "");
             storage.nodes.put(id, new Node(id, pos, type));
         }
         return storage;
@@ -83,10 +83,10 @@ public class NodeStorage {
      * Сериализует все узлы в список NBT.
      * <p>Serializes all nodes into an NBT list.</p>
      */
-    public NbtList toNbt() {
-        NbtList list = new NbtList();
+    public ListTag toNbt() {
+        ListTag list = new ListTag();
         for (Node node : nodes.values()) {
-            NbtCompound tag = new NbtCompound();
+            CompoundTag tag = new CompoundTag();
             tag.putString("id", node.id());
             tag.putLong("pos", node.pos().asLong());
             tag.putString("type", node.type());

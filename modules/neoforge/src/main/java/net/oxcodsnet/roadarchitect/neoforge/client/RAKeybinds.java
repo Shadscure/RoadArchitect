@@ -1,8 +1,8 @@
 package net.oxcodsnet.roadarchitect.neoforge.client;
 
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.util.Identifier;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -15,14 +15,14 @@ import org.lwjgl.glfw.GLFW;
         value = Dist.CLIENT
 )
 public final class RAKeybinds {
-    public static KeyBinding OPEN;
+    public static KeyMapping OPEN;
 
 
     @SubscribeEvent
     public static void registerKeys(RegisterKeyMappingsEvent e) {
-        OPEN = new KeyBinding("key.roadarchitect.debug",
-                InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H,
-                KeyBinding.Category.create(Identifier.of("category.roadarchitect")));
+        OPEN = new KeyMapping("key.roadarchitect.debug",
+                InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_H,
+                KeyMapping.Category.register(ResourceLocation.parse("category.roadarchitect")));
         e.register(OPEN);
     }
 }

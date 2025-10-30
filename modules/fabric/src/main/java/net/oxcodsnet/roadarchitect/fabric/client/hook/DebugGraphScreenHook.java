@@ -1,52 +1,50 @@
 package net.oxcodsnet.roadarchitect.fabric.client.hook;
 
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.util.Identifier;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.client.gui.RoadGraphDebugScreenVanilla;
 import net.oxcodsnet.roadarchitect.storage.EdgeStorage;
 import net.oxcodsnet.roadarchitect.storage.RoadGraphState;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
 import org.lwjgl.glfw.GLFW;
-
+import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.World;
-
 public final class DebugGraphScreenHook {
     private DebugGraphScreenHook() {}
 
     public static void init() {
-        KeyBinding openDebugKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+        KeyMapping openDebugKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
                 "key.roadarchitect.debug",
-                InputUtil.Type.KEYSYM,
+                InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_H,
-                KeyBinding.Category.create(Identifier.of("category.roadarchitect"))
+                KeyMapping.Category.register(ResourceLocation.parse("category.roadarchitect"))
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
-            while (openDebugKey.wasPressed()) {
-                if (mc.currentScreen instanceof RoadGraphDebugScreenVanilla) {
+            while (openDebugKey.consumeClick()) {
+                if (mc.screen instanceof RoadGraphDebugScreenVanilla) {
                     mc.setScreen(null);
                     continue;
                 }
 
-                if (mc.getServer() == null || mc.world == null) {
+                if (mc.getSingleplayerServer() == null || mc.level == null) {
                     continue;
                 }
 
                 List<RoadGraphDebugScreenVanilla.DimensionLayer> layers = new ArrayList<>();
-                for (RegistryKey<World> key : mc.getServer().getWorldRegistryKeys()) {
-                    ServerWorld serverWorld = mc.getServer().getWorld(key);
+                for (ResourceKey<Level> key : mc.getSingleplayerServer().levelKeys()) {
+                    ServerLevel serverWorld = mc.getSingleplayerServer().getLevel(key);
                     if (serverWorld == null) {
                         continue;
                     }
@@ -60,8 +58,8 @@ public final class DebugGraphScreenHook {
                     continue;
                 }
 
-                layers.sort(Comparator.comparing(layer -> layer.dimension().getValue().toString()));
-                RegistryKey<World> currentDim = mc.world.getRegistryKey();
+                layers.sort(Comparator.comparing(layer -> layer.dimension().location().toString()));
+                ResourceKey<Level> currentDim = mc.level.dimension();
                 int idx = -1;
                 for (int i = 0; i < layers.size(); i++) {
                     if (layers.get(i).dimension().equals(currentDim)) {
@@ -73,7 +71,7 @@ public final class DebugGraphScreenHook {
                     Collections.swap(layers, 0, idx);
                 }
 
-                MinecraftClient.getInstance().setScreen(new RoadGraphDebugScreenVanilla(layers));
+                Minecraft.getInstance().setScreen(new RoadGraphDebugScreenVanilla(layers));
             }
         });
     }

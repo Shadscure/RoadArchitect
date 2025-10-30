@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +18,7 @@ class PipelineProfilerTest {
 
     @Test
     void snapshotContainsRecordedData() {
-        try (PipelineProfiler profiler = PipelineProfiler.start("test_trigger", "test_world", BlockPos.ORIGIN)) {
+        try (PipelineProfiler profiler = PipelineProfiler.start("test_trigger", "test_world", BlockPos.ZERO)) {
             try (PipelineProfiler.Section ignored = PipelineProfiler.openSection("timing.section")) {
                 PipelineProfiler.recordDuration("timing.nested", 2_000_000L);
             }
@@ -33,7 +33,7 @@ class PipelineProfilerTest {
 
             assertEquals("test_trigger", report.trigger());
             assertEquals("test_world", report.worldId());
-            assertEquals(BlockPos.ORIGIN, report.origin());
+            assertEquals(BlockPos.ZERO, report.origin());
             assertFalse(report.timings().isEmpty());
             assertFalse(report.counters().isEmpty());
             assertFalse(report.values().isEmpty());

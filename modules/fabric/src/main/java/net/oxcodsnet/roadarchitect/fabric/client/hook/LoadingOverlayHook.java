@@ -1,8 +1,8 @@
 package net.oxcodsnet.roadarchitect.fabric.client.hook;
 
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.world.LevelLoadingScreen;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.LevelLoadingScreen;
 import net.oxcodsnet.roadarchitect.client.gui.LoadingOverlayRenderer;
 
 public final class LoadingOverlayHook {
@@ -15,11 +15,11 @@ public final class LoadingOverlayHook {
 
             // Регистрируем post-render на ЭТОТ экран
             ScreenEvents.afterRender(screen).register((scr, ctx, mouseX, mouseY, tickDelta) -> {
-                MinecraftClient mc = MinecraftClient.getInstance();
+                Minecraft mc = Minecraft.getInstance();
                 LoadingOverlayRenderer.render(
                         ctx,
-                        mc.getWindow().getScaledWidth(),
-                        mc.getWindow().getScaledHeight()
+                        mc.getWindow().getGuiScaledWidth(),
+                        mc.getWindow().getGuiScaledHeight()
                 );
             });
         });

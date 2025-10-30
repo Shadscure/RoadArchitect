@@ -1,8 +1,8 @@
 package net.oxcodsnet.roadarchitect.handlers;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.util.StructureLocator;
 import net.oxcodsnet.roadarchitect.util.profiler.PipelineProfiler;
@@ -26,7 +26,7 @@ public class StructureScanManager {
      * @param approach label of the caller/context used in logs
      * @param center   scan center position
      */
-    static void scan(ServerWorld world, String approach, BlockPos center) {
+    static void scan(ServerLevel world, String approach, BlockPos center) {
         scan(world, approach, center, 1);
     }
 
@@ -38,7 +38,7 @@ public class StructureScanManager {
      * @param center         scan center position
      * @param overallRadius  grid half-size in chunks for planning pass
      */
-    static void scan(ServerWorld world, String approach, BlockPos center, int overallRadius) {
+    static void scan(ServerLevel world, String approach, BlockPos center, int overallRadius) {
         int scanRadius = 1;
         List<String> selectors = RoadArchitect.CONFIG.structureSelectors();
         DebugLog.info(LOGGER, "[{}] Scan launch: overallRadius={}, scanRadius={}, selectors={}", approach, overallRadius, scanRadius, selectors);
@@ -63,7 +63,7 @@ public class StructureScanManager {
      * @param overallRadius   grid half-size in chunks for planning pass
      * @param allowChunkLoads if false, skip loading chunks for ambiguous candidates
      */
-    static void scan(ServerWorld world, String approach, BlockPos center, int overallRadius, boolean allowChunkLoads) {
+    static void scan(ServerLevel world, String approach, BlockPos center, int overallRadius, boolean allowChunkLoads) {
         int scanRadius = 1;
         List<String> selectors = RoadArchitect.CONFIG.structureSelectors();
         DebugLog.info(LOGGER, "[{}] Scan launch: overallRadius={}, scanRadius={}, allowChunkLoads={}, selectors={}",

@@ -1,17 +1,14 @@
 package net.oxcodsnet.roadarchitect.worldgen;
 
-//import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
-//import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
-
-import net.minecraft.registry.Registerable;
-import net.minecraft.registry.RegistryEntryLookup;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.gen.feature.ConfiguredFeature;
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.PlacedFeature;
-import net.minecraft.world.gen.placementmodifier.SquarePlacementModifier;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.placement.InSquarePlacement;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.worldgen.RoadFeatureConfig.GenerationPhase;
 
@@ -27,32 +24,32 @@ public final class RoadFeatureRegistry {
     /**
      * Key for the road feature instance.
      */
-    public static final RegistryKey<Feature<?>> ROAD_FEATURE_KEY = RegistryKey.of(RegistryKeys.FEATURE,
-            Identifier.of(RoadArchitect.MOD_ID, "road"));
+    public static final ResourceKey<Feature<?>> ROAD_FEATURE_KEY = ResourceKey.create(Registries.FEATURE,
+            ResourceLocation.fromNamespaceAndPath(RoadArchitect.MOD_ID, "road"));
 
     /**
      * Key for the configured road feature.
      */
-    public static final RegistryKey<ConfiguredFeature<?, ?>> ROAD_PREP_CONFIGURED_FEATURE_KEY = RegistryKey.of(
-            RegistryKeys.CONFIGURED_FEATURE, Identifier.of(RoadArchitect.MOD_ID, "road_prepare"));
+    public static final ResourceKey<ConfiguredFeature<?, ?>> ROAD_PREP_CONFIGURED_FEATURE_KEY = ResourceKey.create(
+            Registries.CONFIGURED_FEATURE, ResourceLocation.fromNamespaceAndPath(RoadArchitect.MOD_ID, "road_prepare"));
 
     /**
      * Key for the configured road feature during the finishing pass.
      */
-    public static final RegistryKey<ConfiguredFeature<?, ?>> ROAD_FINAL_CONFIGURED_FEATURE_KEY = RegistryKey.of(
-            RegistryKeys.CONFIGURED_FEATURE, Identifier.of(RoadArchitect.MOD_ID, "road_finalize"));
+    public static final ResourceKey<ConfiguredFeature<?, ?>> ROAD_FINAL_CONFIGURED_FEATURE_KEY = ResourceKey.create(
+            Registries.CONFIGURED_FEATURE, ResourceLocation.fromNamespaceAndPath(RoadArchitect.MOD_ID, "road_finalize"));
 
     /**
      * Key for the placed road feature used during the preparation pass.
      */
-    public static final RegistryKey<PlacedFeature> ROAD_PREP_PLACED_FEATURE_KEY = RegistryKey.of(
-            RegistryKeys.PLACED_FEATURE, Identifier.of(RoadArchitect.MOD_ID, "road_prepare"));
+    public static final ResourceKey<PlacedFeature> ROAD_PREP_PLACED_FEATURE_KEY = ResourceKey.create(
+            Registries.PLACED_FEATURE, ResourceLocation.fromNamespaceAndPath(RoadArchitect.MOD_ID, "road_prepare"));
 
     /**
      * Key for the placed road feature used during the finishing pass.
      */
-    public static final RegistryKey<PlacedFeature> ROAD_FINAL_PLACED_FEATURE_KEY = RegistryKey.of(
-            RegistryKeys.PLACED_FEATURE, Identifier.of(RoadArchitect.MOD_ID, "road_finalize"));
+    public static final ResourceKey<PlacedFeature> ROAD_FINAL_PLACED_FEATURE_KEY = ResourceKey.create(
+            Registries.PLACED_FEATURE, ResourceLocation.fromNamespaceAndPath(RoadArchitect.MOD_ID, "road_finalize"));
 
     private RoadFeatureRegistry() {
     }
@@ -62,7 +59,7 @@ public final class RoadFeatureRegistry {
      *
      * @param ctx registerable context for configured features
      */
-    public static void bootstrapConfigured(Registerable<ConfiguredFeature<?, ?>> ctx) {
+    public static void bootstrapConfigured(BootstrapContext<ConfiguredFeature<?, ?>> ctx) {
         ctx.register(ROAD_PREP_CONFIGURED_FEATURE_KEY,
                 new ConfiguredFeature<>(ROAD_FEATURE, new RoadFeatureConfig(3, 1, GenerationPhase.PREPARE)));
         ctx.register(ROAD_FINAL_CONFIGURED_FEATURE_KEY,
@@ -74,11 +71,11 @@ public final class RoadFeatureRegistry {
      *
      * @param ctx registerable context for placed features
      */
-    public static void bootstrapPlaced(net.minecraft.registry.Registerable<PlacedFeature> ctx) {
-        RegistryEntryLookup<ConfiguredFeature<?, ?>> lookup = ctx.getRegistryLookup(RegistryKeys.CONFIGURED_FEATURE);
+    public static void bootstrapPlaced(net.minecraft.data.worldgen.BootstrapContext<PlacedFeature> ctx) {
+        HolderGetter<ConfiguredFeature<?, ?>> lookup = ctx.lookup(Registries.CONFIGURED_FEATURE);
         ctx.register(ROAD_PREP_PLACED_FEATURE_KEY,
-                new PlacedFeature(lookup.getOrThrow(ROAD_PREP_CONFIGURED_FEATURE_KEY), java.util.List.of(SquarePlacementModifier.of())));
+                new PlacedFeature(lookup.getOrThrow(ROAD_PREP_CONFIGURED_FEATURE_KEY), java.util.List.of(InSquarePlacement.spread())));
         ctx.register(ROAD_FINAL_PLACED_FEATURE_KEY,
-                new PlacedFeature(lookup.getOrThrow(ROAD_FINAL_CONFIGURED_FEATURE_KEY), java.util.List.of(SquarePlacementModifier.of())));
+                new PlacedFeature(lookup.getOrThrow(ROAD_FINAL_CONFIGURED_FEATURE_KEY), java.util.List.of(InSquarePlacement.spread())));
     }
 }

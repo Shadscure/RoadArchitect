@@ -24,7 +24,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +70,7 @@ public final class PipelineProfiler implements AutoCloseable {
     private PipelineProfiler(String trigger, String worldId, BlockPos origin) {
         this.trigger = trigger;
         this.worldId = worldId;
-        this.origin = origin == null ? null : origin.toImmutable();
+        this.origin = origin == null ? null : origin.immutable();
         this.startedNanos = System.nanoTime();
         this.startedWallClock = Instant.now();
         this.lastSampleNanos = 0L;

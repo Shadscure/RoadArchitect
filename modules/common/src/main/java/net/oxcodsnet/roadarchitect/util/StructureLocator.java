@@ -5,26 +5,27 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import net.minecraft.command.argument.RegistryPredicateArgumentType;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.entry.RegistryEntryList;
+import net.minecraft.commands.arguments.ResourceOrTagKeyArgument;
+import net.minecraft.commands.arguments.ResourceOrTagKeyArgument.Result;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.Registry;
+import net.minecraft.core.SectionPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.structure.StructureStart;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.ChunkSectionPos;
-import net.minecraft.world.StructurePresence;
-import net.minecraft.world.gen.StructureAccessor;
-import net.minecraft.world.gen.chunk.placement.ConcentricRingsStructurePlacement;
-import net.minecraft.world.gen.chunk.placement.RandomSpreadStructurePlacement;
-import net.minecraft.world.gen.chunk.placement.StructurePlacement;
-import net.minecraft.world.gen.chunk.placement.StructurePlacementCalculator;
-import net.minecraft.world.gen.structure.Structure;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructureCheckResult;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
+import net.minecraft.world.level.levelgen.structure.placement.ConcentricRingsStructurePlacement;
+import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
+import net.minecraft.world.level.levelgen.structure.placement.StructurePlacement;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.RoadGraphState;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
@@ -47,7 +48,7 @@ import java.util.stream.StreamSupport;
  *   <li><b>Разрешение кандидатов (main thread)</b> — батчево проверяет presence и при необходимости один раз грузит чанк
  *       для нескольких структур, минимизируя обращения к миру.</li>
  * </ol>
- * Потокобезопасность: любая операция, потенциально ведущая к загрузке чанка или доступу к {@link StructureAccessor},
+ * Потокобезопасность: любая операция, потенциально ведущая к загрузке чанка или доступу к {@link StructureManager},
  * выполняется только на главном треде сервера.
  */
 public final class StructureLocator {
@@ -55,7 +56,7 @@ public final class StructureLocator {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/" + StructureLocator.class.getSimpleName());
 
     private static final DynamicCommandExceptionType INVALID_STRUCTURE_EXCEPTION =
-            new DynamicCommandExceptionType(id -> Text.translatable("commands.locate.structure.invalid", id));
+            new DynamicCommandExceptionType(id -> Component.translatable("commands.locate.structure.invalid", id));
 
     private StructureLocator() {}
 
@@ -65,17 +66,17 @@ public final class StructureLocator {
     /* ───────────────────────────── Selector cache ───────────────────────────── */
 
     /** Кэш: реестр -> (строка селектора -> готовый список структур). */
-    private static final Map<Registry<Structure>, Map<String, RegistryEntryList<Structure>>> SELECTOR_CACHE = new WeakHashMap<>();
+    private static final Map<Registry<Structure>, Map<String, HolderSet<Structure>>> SELECTOR_CACHE = new WeakHashMap<>();
 
-    private static List<RegistryEntryList<Structure>> compileSelectors(Registry<Structure> registry, List<String> selectors) {
-        Map<String, RegistryEntryList<Structure>> cache =
+    private static List<HolderSet<Structure>> compileSelectors(Registry<Structure> registry, List<String> selectors) {
+        Map<String, HolderSet<Structure>> cache =
                 SELECTOR_CACHE.computeIfAbsent(registry, r -> new HashMap<>(selectors.size() * 2));
 
-        RegistryPredicateArgumentType<Structure> argType = new RegistryPredicateArgumentType<>(RegistryKeys.STRUCTURE);
-        List<RegistryEntryList<Structure>> compiled = new ArrayList<>(selectors.size());
+        ResourceOrTagKeyArgument<Structure> argType = new ResourceOrTagKeyArgument<>(Registries.STRUCTURE);
+        List<HolderSet<Structure>> compiled = new ArrayList<>(selectors.size());
 
         for (String raw : selectors) {
-            RegistryEntryList<Structure> list = cache.get(raw);
+            HolderSet<Structure> list = cache.get(raw);
             if (list == null) {
                 try {
                     var predicate = argType.parse(new StringReader(raw));
@@ -98,14 +99,14 @@ public final class StructureLocator {
      * Сканирует область сеткой; планирование — параллельно, проверка — на главном треде; затем сохраняет найденные узлы.
      * Возвращает список найденных (позиция, id структуры).
      */
-    public static List<Pair<BlockPos, String>> scanGridAsync(ServerWorld world, BlockPos origin, int overallRadius, int scanRadius, List<String> structureSelectors) {
+    public static List<Pair<BlockPos, String>> scanGridAsync(ServerLevel world, BlockPos origin, int overallRadius, int scanRadius, List<String> structureSelectors) {
         return scanGridAsync(world, origin, overallRadius, scanRadius, structureSelectors, true);
     }
 
     /**
      * Сканирует область сеткой с опцией запрета загрузки чанков при разрешении кандидатов.
      */
-    public static List<Pair<BlockPos, String>> scanGridAsync(ServerWorld world, BlockPos origin, int overallRadius,
+    public static List<Pair<BlockPos, String>> scanGridAsync(ServerLevel world, BlockPos origin, int overallRadius,
                                                              int scanRadius, List<String> structureSelectors,
                                                              boolean allowChunkLoads) {
         PipelineProfiler.increment("structure_locator.invocations");
@@ -115,8 +116,8 @@ public final class StructureLocator {
         PipelineProfiler.increment("structure_locator.allow_chunk_loads." + (allowChunkLoads ? "enabled" : "disabled"));
 
         try (PipelineProfiler.Section total = PipelineProfiler.openSection("structure_locator.total")) {
-            final Registry<Structure> registry = world.getRegistryManager().getOrThrow(RegistryKeys.STRUCTURE);
-            final List<RegistryEntryList<Structure>> compiledSelectors;
+            final Registry<Structure> registry = world.registryAccess().lookupOrThrow(Registries.STRUCTURE);
+            final List<HolderSet<Structure>> compiledSelectors;
             try (PipelineProfiler.Section compile = PipelineProfiler.openSection("structure_locator.compile_selectors")) {
                 compiledSelectors = compileSelectors(registry, structureSelectors);
             }
@@ -171,22 +172,22 @@ public final class StructureLocator {
     /* ───────────────────────────── Placement index & planning ───────────────────────────── */
 
     private record PlacementIndex(
-            Map<RandomSpreadStructurePlacement, Set<RegistryEntry<Structure>>> randomGroups,
-            Map<ConcentricRingsStructurePlacement, Set<RegistryEntry<Structure>>> ringGroups,
+            Map<RandomSpreadStructurePlacement, Set<Holder<Structure>>> randomGroups,
+            Map<ConcentricRingsStructurePlacement, Set<Holder<Structure>>> ringGroups,
             Map<ConcentricRingsStructurePlacement, List<ChunkPos>> ringPositions,
             long structureSeed
     ) {}
 
-    private static PlacementIndex buildPlacementIndex(ServerWorld world, List<RegistryEntryList<Structure>> compiledSelectors) {
-        StructurePlacementCalculator calc = world.getChunkManager().getStructurePlacementCalculator();
+    private static PlacementIndex buildPlacementIndex(ServerLevel world, List<HolderSet<Structure>> compiledSelectors) {
+        ChunkGeneratorStructureState calc = world.getChunkSource().getGeneratorState();
 
-        Map<RandomSpreadStructurePlacement, Set<RegistryEntry<Structure>>> randomGroups = new HashMap<>();
-        Map<ConcentricRingsStructurePlacement, Set<RegistryEntry<Structure>>> ringGroups = new HashMap<>();
+        Map<RandomSpreadStructurePlacement, Set<Holder<Structure>>> randomGroups = new HashMap<>();
+        Map<ConcentricRingsStructurePlacement, Set<Holder<Structure>>> ringGroups = new HashMap<>();
         Map<ConcentricRingsStructurePlacement, List<ChunkPos>> ringPositions = new HashMap<>();
 
-        for (RegistryEntryList<Structure> list : compiledSelectors) {
-            for (RegistryEntry<Structure> entry : list) {
-                for (StructurePlacement p : calc.getPlacements(entry)) {
+        for (HolderSet<Structure> list : compiledSelectors) {
+            for (Holder<Structure> entry : list) {
+                for (StructurePlacement p : calc.getPlacementsForStructure(entry)) {
                     if (p instanceof RandomSpreadStructurePlacement rsp) {
                         randomGroups.computeIfAbsent(rsp, __ -> new HashSet<>()).add(entry);
                     } else if (p instanceof ConcentricRingsStructurePlacement cr) {
@@ -198,25 +199,25 @@ public final class StructureLocator {
 
         // Предвычислить список позиций колец для каждой кольцевой схемы
         for (ConcentricRingsStructurePlacement cr : ringGroups.keySet()) {
-            List<ChunkPos> positions = calc.getPlacementPositions(cr);
+            List<ChunkPos> positions = calc.getRingPositionsFor(cr);
             if (positions == null) throw new IllegalStateException("Missing ring placement positions");
             ringPositions.put(cr, positions);
         }
 
-        return new PlacementIndex(randomGroups, ringGroups, ringPositions, calc.getStructureSeed());
+        return new PlacementIndex(randomGroups, ringGroups, ringPositions, calc.getLevelSeed());
     }
 
     private record Cell(int centerChunkX, int centerChunkZ, BlockPos worldCenter) {}
 
-    private record Candidate(ChunkPos pos, int prioritySq, StructurePlacement placement, Set<RegistryEntry<Structure>> structs) {}
+    private record Candidate(ChunkPos pos, int prioritySq, StructurePlacement placement, Set<Holder<Structure>> structs) {}
 
     private static Stream<Candidate> planCandidatesForCell(PlacementIndex index, Cell cell, int radius) {
         List<Candidate> out = new ArrayList<>();
 
         // RandomSpread: точно повторяем геометрию обхода границы «квадратных колец»
-        for (Map.Entry<RandomSpreadStructurePlacement, Set<RegistryEntry<Structure>>> e : index.randomGroups.entrySet()) {
+        for (Map.Entry<RandomSpreadStructurePlacement, Set<Holder<Structure>>> e : index.randomGroups.entrySet()) {
             RandomSpreadStructurePlacement placement = e.getKey();
-            int spacing = placement.getSpacing();
+            int spacing = placement.spacing();
 
             for (int k = 0; k <= radius; k++) {
                 for (int dj = -k; dj <= k; dj++) {
@@ -227,9 +228,9 @@ public final class StructureLocator {
 
                         int l = cell.centerChunkX + spacing * di;
                         int m = cell.centerChunkZ + spacing * dj;
-                        ChunkPos start = placement.getStartChunk(index.structureSeed, l, m);
-                        int px = (start.getStartX() + 8);
-                        int pz = (start.getStartZ() + 8);
+                        ChunkPos start = placement.getPotentialStructureChunk(index.structureSeed, l, m);
+                        int px = (start.getMinBlockX() + 8);
+                        int pz = (start.getMinBlockZ() + 8);
                         int dist2 = sq(px - cell.worldCenter.getX()) + sq(pz - cell.worldCenter.getZ());
                         out.add(new Candidate(start, dist2, placement, e.getValue()));
                     }
@@ -238,15 +239,15 @@ public final class StructureLocator {
         }
 
         // ConcentricRings: берём несколько ближайших к ячейке позиций из предвычисленного списка
-        for (Map.Entry<ConcentricRingsStructurePlacement, Set<RegistryEntry<Structure>>> e : index.ringGroups.entrySet()) {
+        for (Map.Entry<ConcentricRingsStructurePlacement, Set<Holder<Structure>>> e : index.ringGroups.entrySet()) {
             ConcentricRingsStructurePlacement placement = e.getKey();
             List<ChunkPos> positions = index.ringPositions.get(placement);
             if (positions == null || positions.isEmpty()) continue;
 
             positions.stream()
                     .map(cp -> {
-                        int px = (ChunkSectionPos.getOffsetPos(cp.x, 8));
-                        int pz = (ChunkSectionPos.getOffsetPos(cp.z, 8));
+                        int px = (SectionPos.sectionToBlockCoord(cp.x, 8));
+                        int pz = (SectionPos.sectionToBlockCoord(cp.z, 8));
                         int d2 = sq(px - cell.worldCenter.getX()) + sq(pz - cell.worldCenter.getZ());
                         return new Object[]{cp, d2};
                     })
@@ -264,7 +265,7 @@ public final class StructureLocator {
 
     /* ───────────────────────────── Resolution (main thread only) ───────────────────────────── */
 
-    private static List<Pair<BlockPos, String>> resolveCandidatesOnMainThread(ServerWorld world,
+    private static List<Pair<BlockPos, String>> resolveCandidatesOnMainThread(ServerLevel world,
                                                                               Registry<Structure> registry,
                                                                               PlacementIndex index,
                                                                               List<Candidate> candidates,
@@ -276,7 +277,7 @@ public final class StructureLocator {
         // Негативный кэш: (ChunkPos + placement) -> «здесь ничего нет» для текущего сида
         final LongOpenHashSet neg = getOrCreateNegativeCache(world);
 
-        final StructureAccessor accessor = world.getStructureAccessor();
+        final StructureManager accessor = world.structureManager();
 
         PipelineProfiler.recordValue("structure_locator.resolve_candidates_input", candidates.size());
 
@@ -291,19 +292,19 @@ public final class StructureLocator {
             boolean needChunk = false;
             PipelineProfiler.recordValue("structure_locator.structures_per_candidate", c.structs.size());
             // Быстрый проход по presence
-            for (RegistryEntry<Structure> s : c.structs) {
-                StructurePresence presence;
+            for (Holder<Structure> s : c.structs) {
+                StructureCheckResult presence;
                 PipelineProfiler.increment("structure_locator.presence_checks");
                 try (PipelineProfiler.Section presenceTimer = PipelineProfiler.openSection(
                         "structure_locator.presence_check")) {
-                    presence = accessor.getStructurePresence(c.pos, s.value(), c.placement, true);
+                    presence = accessor.checkStructurePresence(c.pos, s.value(), c.placement, true);
                 }
-                if (presence == StructurePresence.START_PRESENT) {
+                if (presence == StructureCheckResult.START_PRESENT) {
                     PipelineProfiler.increment("structure_locator.presence_positive");
                     BlockPos hit = c.placement.getLocatePos(c.pos);
                     long keyXZ = BlockPos.asLong(hit.getX(), 0, hit.getZ());
                     if (seenXZ.add(keyXZ)) {
-                        Identifier id = registry.getId(s.value());
+                        ResourceLocation id = registry.getKey(s.value());
                         found.add(Pair.of(new BlockPos(hit.getX(), CacheManager.getHeight(world, hit.getX(), hit.getZ()), hit.getZ()),
                                 id == null ? "unknown" : id.toString()));
                         PipelineProfiler.increment("structure_locator.found_structures");
@@ -312,7 +313,7 @@ public final class StructureLocator {
                     needChunk = false; // на всякий случай
                     continue;
                 }
-                if (presence != StructurePresence.START_NOT_PRESENT) {
+                if (presence != StructureCheckResult.START_NOT_PRESENT) {
                     needChunk = true; // может быть, но нужно подтверждение
                     PipelineProfiler.increment("structure_locator.chunk_confirmation_needed");
                 }
@@ -333,23 +334,23 @@ public final class StructureLocator {
 
             // Единоразовая загрузка чанка до STRUCTURE_STARTS для всей группы
             PipelineProfiler.increment("structure_locator.chunk_load_requests");
-            net.minecraft.world.chunk.Chunk chunk;
+            net.minecraft.world.level.chunk.ChunkAccess chunk;
             try (PipelineProfiler.Section chunkTimer = PipelineProfiler.openSection("structure_locator.chunk_load")) {
                 chunk = world.getChunk(c.pos.x, c.pos.z,
-                        net.minecraft.world.chunk.ChunkStatus.STRUCTURE_STARTS);
+                        net.minecraft.world.level.chunk.status.ChunkStatus.STRUCTURE_STARTS);
             }
             PipelineProfiler.increment("structure_locator.chunk_loads_completed");
-            var secPos = ChunkSectionPos.from(chunk);
+            var secPos = SectionPos.bottomOf(chunk);
 
             boolean any = false;
-            for (RegistryEntry<Structure> s : c.structs) {
-                StructureStart start = accessor.getStructureStart(secPos, s.value(), chunk);
-                if (start != null && start.hasChildren()) {
+            for (Holder<Structure> s : c.structs) {
+                StructureStart start = accessor.getStartForStructure(secPos, s.value(), chunk);
+                if (start != null && start.isValid()) {
                     PipelineProfiler.increment("structure_locator.chunk_resolve_success");
-                    BlockPos hit = c.placement.getLocatePos(start.getPos());
+                    BlockPos hit = c.placement.getLocatePos(start.getChunkPos());
                     long keyXZ = BlockPos.asLong(hit.getX(), 0, hit.getZ());
                     if (seenXZ.add(keyXZ)) {
-                        Identifier id = registry.getId(s.value());
+                        ResourceLocation id = registry.getKey(s.value());
                         found.add(Pair.of(new BlockPos(hit.getX(), CacheManager.getHeight(world, hit.getX(), hit.getZ()), hit.getZ()),
                                 id == null ? "unknown" : id.toString()));
                         PipelineProfiler.increment("structure_locator.found_structures");
@@ -370,7 +371,7 @@ public final class StructureLocator {
 
     private static final Map<MinecraftServer, NegCache> NEGATIVE_CACHE = new WeakHashMap<>();
 
-    private static LongOpenHashSet getOrCreateNegativeCache(ServerWorld world) {
+    private static LongOpenHashSet getOrCreateNegativeCache(ServerLevel world) {
         MinecraftServer server = world.getServer();
         long seed = world.getSeed();
         NegCache nc = NEGATIVE_CACHE.get(server);
@@ -382,7 +383,7 @@ public final class StructureLocator {
     }
 
     private static long packNegKey(ChunkPos pos, StructurePlacement placement) {
-        long a = ChunkPos.toLong(pos.x, pos.z);
+        long a = ChunkPos.asLong(pos.x, pos.z);
         int b = System.identityHashCode(placement);
         return a ^ (((long) b) << 1);
     }
@@ -395,7 +396,7 @@ public final class StructureLocator {
 
     /* ───────────────────────────── Persistence ───────────────────────────── */
 
-    private static void schedulePersistence(ServerWorld world, List<Pair<BlockPos, String>> found) {
+    private static void schedulePersistence(ServerLevel world, List<Pair<BlockPos, String>> found) {
         if (found.isEmpty()) return;
         MinecraftServer server = world.getServer();
         server.execute(() -> {
@@ -404,18 +405,18 @@ public final class StructureLocator {
                 Node node = graph.addNodeWithEdges(pair.getFirst(), pair.getSecond());
                 DebugLog.info(LOGGER, "Added node {} at {} ({})", node.id(), node.pos(), pair.getSecond());
             }
-            graph.markDirty();
+            graph.setDirty();
         });
     }
 
     /* ───────────────────────────── Helpers ───────────────────────────── */
 
-    private static Optional<? extends RegistryEntryList<Structure>> getStructureList(RegistryPredicateArgumentType.RegistryPredicate<Structure> predicate, Registry<Structure> registry) {
-        return predicate.getKey().map(
-                key -> registry.getEntry(key.getValue()).map(RegistryEntryList::of),
+    private static Optional<? extends HolderSet<Structure>> getStructureList(ResourceOrTagKeyArgument.Result<Structure> predicate, Registry<Structure> registry) {
+        return predicate.unwrap().map(
+                key -> registry.get(key.location()).map(HolderSet::direct),
                 tag -> {
-                    List<RegistryEntry<Structure>> entries = StreamSupport.stream(registry.iterateEntries(tag).spliterator(), false).toList();
-                    return Optional.of(RegistryEntryList.of(entries));
+                    List<Holder<Structure>> entries = StreamSupport.stream(registry.getTagOrEmpty(tag).spliterator(), false).toList();
+                    return Optional.of(HolderSet.direct(entries));
                 }
         );
     }
@@ -426,7 +427,7 @@ public final class StructureLocator {
     private static int computeGridStepChunks(PlacementIndex index, int fallbackStep) {
         int minSpacing = Integer.MAX_VALUE;
         for (RandomSpreadStructurePlacement rsp : index.randomGroups.keySet()) {
-            minSpacing = Math.min(minSpacing, rsp.getSpacing());
+            minSpacing = Math.min(minSpacing, rsp.spacing());
         }
         if (minSpacing != Integer.MAX_VALUE) {
             int step = Math.max(fallbackStep, minSpacing);

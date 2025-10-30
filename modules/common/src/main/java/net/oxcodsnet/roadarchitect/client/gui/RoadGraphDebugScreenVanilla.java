@@ -1,16 +1,16 @@
 package net.oxcodsnet.roadarchitect.client.gui;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.oxcodsnet.roadarchitect.storage.EdgeStorage;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
 
@@ -34,7 +34,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     private static final int TARGET_GRID_PX = 80;
 
     private final List<DimensionLayer> layers;
-    private final Supplier<Text> titleSupplier;
+    private final Supplier<Component> titleSupplier;
 
     private final Map<String, ScreenPos> screenPositions = new HashMap<>();
     private final Map<String, Integer> typeColors = new HashMap<>();
@@ -43,13 +43,13 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             EdgeStorage.Status.SUCCESS, 0xFF27AE60,
             EdgeStorage.Status.FAILURE, 0xFFAE162B
     );
-    private final Map<RegistryKey<World>, ViewState> viewStates = new HashMap<>();
+    private final Map<ResourceKey<Level>, ViewState> viewStates = new HashMap<>();
     private final List<Node> nodes = new ArrayList<>();
     private final List<EdgeStorage.Edge> edges = new ArrayList<>();
     private final Set<String> currentTypes = new LinkedHashSet<>();
 
     private DimensionLayer currentLayer;
-    private RegistryKey<World> lastPlayerDimension;
+    private ResourceKey<Level> lastPlayerDimension;
 
     private boolean dragging = false;
     private boolean firstLayout = true;
@@ -60,10 +60,10 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     private int minX, maxX, minZ, maxZ;
 
     public RoadGraphDebugScreenVanilla(List<DimensionLayer> layers) {
-        this(layers, () -> Text.literal("Road Graph Debug"));
+        this(layers, () -> Component.literal("Road Graph Debug"));
     }
 
-    public RoadGraphDebugScreenVanilla(List<DimensionLayer> layers, Supplier<Text> titleSupplier) {
+    public RoadGraphDebugScreenVanilla(List<DimensionLayer> layers, Supplier<Component> titleSupplier) {
         super(titleSupplier.get());
         this.layers = List.copyOf(layers);
         this.titleSupplier = titleSupplier;
@@ -87,7 +87,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     }
 
     @Override
-    public void resize(MinecraftClient client, int width, int height) {
+    public void resize(Minecraft client, int width, int height) {
         saveCurrentViewState();
         super.resize(client, width, height);
         if (currentLayer != null) {
@@ -96,12 +96,12 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     }
 
     @Override
-    public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics ctx, int mouseX, int mouseY, float delta) {
         focusOnCurrentDimension();
         computeLayout();
 
         ctx.fill(PADDING, PADDING, width - PADDING, height - PADDING, 0xA0101010);
-        ctx.drawBorder(PADDING, PADDING, width - 2 * PADDING, height - 2 * PADDING, 0xFFFFFFFF);
+        ctx.renderOutline(PADDING, PADDING, width - 2 * PADDING, height - 2 * PADDING, 0xFFFFFFFF);
 
         drawGrid(ctx);
 
@@ -124,8 +124,8 @@ public class RoadGraphDebugScreenVanilla extends Screen {
             if (dist2(p.x, p.y, mouseX, mouseY) <= RADIUS * RADIUS) hovered = n;
         }
         if (hovered != null) {
-            TextRenderer font = MinecraftClient.getInstance().textRenderer;
-            ctx.drawTooltip(font, Text.literal(hovered.pos().toShortString() + " • " + hovered.type()), mouseX, mouseY);
+            Font font = Minecraft.getInstance().font;
+            ctx.renderTooltip(font, Component.literal(hovered.pos().toShortString() + " • " + hovered.type()), mouseX, mouseY);
         }
 
         drawPlayerMarker(ctx);
@@ -153,7 +153,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     // ---------- ввод ----------
 
     @Override
-    protected void applyBlur(){
+    protected void renderBlurredBackground(){
 
     }
 
@@ -192,7 +192,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
         double old = zoom;
-        zoom = MathHelper.clamp(vertical > 0 ? zoom * 1.1 : zoom / 1.1, 0.1, 10.0);
+        zoom = Mth.clamp(vertical > 0 ? zoom * 1.1 : zoom / 1.1, 0.1, 10.0);
         offsetX = (offsetX - mouseX + PADDING) * (zoom / old) + mouseX - PADDING;
         offsetY = (offsetY - mouseY + PADDING) * (zoom / old) + mouseY - PADDING;
         firstLayout = false;
@@ -201,14 +201,14 @@ public class RoadGraphDebugScreenVanilla extends Screen {
 
     // ---------- отрисовка частей ----------
 
-    private void drawCenteredTitle(DrawContext ctx) {
-        TextRenderer font = MinecraftClient.getInstance().textRenderer;
-        Text t = titleSupplier.get();
-        int tw = font.getWidth(t);
-        ctx.drawText(font, t, (width - tw) / 2, PADDING - 12, 0xFFFFFFFF, true);
+    private void drawCenteredTitle(GuiGraphics ctx) {
+        Font font = Minecraft.getInstance().font;
+        Component t = titleSupplier.get();
+        int tw = font.width(t);
+        ctx.drawString(font, t, (width - tw) / 2, PADDING - 12, 0xFFFFFFFF, true);
     }
 
-    private void drawGrid(DrawContext ctx) {
+    private void drawGrid(GuiGraphics ctx) {
         if (nodes.isEmpty()) {
             return;
         }
@@ -237,7 +237,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         }
     }
 
-    private void drawScale(DrawContext ctx) {
+    private void drawScale(GuiGraphics ctx) {
         if (nodes.isEmpty()) {
             return;
         }
@@ -252,7 +252,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         drawSmallLabel(ctx, spacing + "m", x, y - 10);
     }
 
-    private void drawLegend(DrawContext ctx) {
+    private void drawLegend(GuiGraphics ctx) {
         if (currentTypes.isEmpty()) {
             return;
         }
@@ -261,21 +261,21 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         for (String type : currentTypes) {
             int color = typeColors.getOrDefault(type, 0xFFFFFFFF);
             ctx.fill(x, y, x + 8, y + 8, color);
-            ctx.drawBorder(x, y, 8, 8, 0xFFFFFFFF);
+            ctx.renderOutline(x, y, 8, 8, 0xFFFFFFFF);
             drawSmallLabel(ctx, type, x + 10, y);
             y += 12;
         }
     }
 
-    private void drawDimensionLabel(DrawContext ctx) {
+    private void drawDimensionLabel(GuiGraphics ctx) {
         if (currentLayer == null) {
             return;
         }
-        TextRenderer font = MinecraftClient.getInstance().textRenderer;
+        Font font = Minecraft.getInstance().font;
         String dimName = describeLayer(currentLayer).getString();
-        Text label = Text.translatable("screen.roadarchitect.debug.dimension_label", dimName)
-                .formatted(Formatting.GRAY);
-        ctx.drawText(font, label, PADDING + 4, PADDING + 4, 0xFFAAAAAA, false);
+        Component label = Component.translatable("screen.roadarchitect.debug.dimension_label", dimName)
+                .withStyle(ChatFormatting.GRAY);
+        ctx.drawString(font, label, PADDING + 4, PADDING + 4, 0xFFAAAAAA, false);
     }
 
     // ---------- вычисления/утилиты ----------
@@ -329,19 +329,19 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     }
 
     private boolean teleportTo(Node node) {
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.player == null || mc.world == null) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) {
             return false;
         }
-        if (currentLayer == null || !Objects.equals(mc.world.getRegistryKey(), currentLayer.dimension())) {
+        if (currentLayer == null || !Objects.equals(mc.level.dimension(), currentLayer.dimension())) {
             return false;
         }
 
-        if (mc.getServer() != null) {
-            mc.getServer().execute(() -> {
-                ServerPlayerEntity sp = mc.getServer().getPlayerManager().getPlayer(mc.player.getUuid());
+        if (mc.getSingleplayerServer() != null) {
+            mc.getSingleplayerServer().execute(() -> {
+                ServerPlayer sp = mc.getSingleplayerServer().getPlayerList().getPlayer(mc.player.getUUID());
                 if (sp != null) {
-                    sp.requestTeleport(node.pos().getX() + 0.5, node.pos().getY(), node.pos().getZ() + 0.5);
+                    sp.teleportTo(node.pos().getX() + 0.5, node.pos().getY(), node.pos().getZ() + 0.5);
                 }
             });
             return true;
@@ -354,12 +354,12 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         return dx * dx + dy * dy;
     }
 
-    private void drawSmallLabel(DrawContext ctx, String s, int x, int y) {
-        TextRenderer font = MinecraftClient.getInstance().textRenderer;
-        ctx.drawText(font, Text.literal(s), x, y, 0xFFFFFFFF, true);
+    private void drawSmallLabel(GuiGraphics ctx, String s, int x, int y) {
+        Font font = Minecraft.getInstance().font;
+        ctx.drawString(font, Component.literal(s), x, y, 0xFFFFFFFF, true);
     }
 
-    private static void fillH(DrawContext ctx, int x0, int x1, int y, int argb) {
+    private static void fillH(GuiGraphics ctx, int x0, int x1, int y, int argb) {
         if (x1 < x0) {
             int t = x0;
             x0 = x1;
@@ -368,7 +368,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         ctx.fill(x0, y, x1, y + 1, argb);
     }
 
-    private static void fillV(DrawContext ctx, int x, int y0, int y1, int argb) {
+    private static void fillV(GuiGraphics ctx, int x, int y0, int y1, int argb) {
         if (y1 < y0) {
             int t = y0;
             y0 = y1;
@@ -377,7 +377,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         ctx.fill(x, y0, x + 1, y1, argb);
     }
 
-    private static void drawLine(DrawContext ctx, int x0, int y0, int x1, int y1, int argb) {
+    private static void drawLine(GuiGraphics ctx, int x0, int y0, int x1, int y1, int argb) {
         int dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
         int dy = -Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
         int err = dx + dy;
@@ -397,14 +397,14 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         }
     }
 
-    private static void fillCircle(DrawContext ctx, int cx, int cy, int r, int argb) {
+    private static void fillCircle(GuiGraphics ctx, int cx, int cy, int r, int argb) {
         for (int dy = -r; dy <= r; dy++) {
             int span = (int) Math.round(Math.sqrt(r * r - dy * dy));
             ctx.fill(cx - span, cy + dy, cx + span + 1, cy + dy + 1, argb);
         }
     }
 
-    private static void drawCircleOutline(DrawContext ctx, int cx, int cy, int r, int argb) {
+    private static void drawCircleOutline(GuiGraphics ctx, int cx, int cy, int r, int argb) {
         int x = r, y = 0;
         int err = 0;
         while (x >= y) {
@@ -418,7 +418,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         }
     }
 
-    private static void plot8(DrawContext ctx, int cx, int cy, int x, int y, int argb) {
+    private static void plot8(GuiGraphics ctx, int cx, int cy, int x, int y, int argb) {
         ctx.fill(cx + x, cy + y, cx + x + 1, cy + y + 1, argb);
         ctx.fill(cx + y, cy + x, cx + y + 1, cy + x + 1, argb);
         ctx.fill(cx - y, cy + x, cx - y + 1, cy + x + 1, argb);
@@ -481,10 +481,10 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         return new ScreenPos(sx, sy);
     }
 
-    private void drawPlayerMarker(DrawContext ctx) {
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc == null || mc.player == null || mc.world == null) return;
-        if (currentLayer == null || !Objects.equals(mc.world.getRegistryKey(), currentLayer.dimension())) return;
+    private void drawPlayerMarker(GuiGraphics ctx) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc == null || mc.player == null || mc.level == null) return;
+        if (currentLayer == null || !Objects.equals(mc.level.dimension(), currentLayer.dimension())) return;
         if (nodes.isEmpty()) return;
 
         double px = mc.player.getX();
@@ -499,7 +499,7 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         fillCircle(ctx, p.x, p.y, r, fill);
         drawCircleOutline(ctx, p.x, p.y, r, outline);
 
-        float yaw = mc.player.getYaw();
+        float yaw = mc.player.getYRot();
         double a = Math.toRadians(yaw) + Math.PI / 2.0;
         int tx = p.x + (int) Math.round(Math.cos(a) * (r + 3));
         int ty = p.y + (int) Math.round(Math.sin(a) * (r + 3));
@@ -558,15 +558,15 @@ public class RoadGraphDebugScreenVanilla extends Screen {
     }
 
     private void focusOnCurrentDimension() {
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc == null || mc.world == null) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc == null || mc.level == null) {
             if (currentLayer != null) {
                 clearActiveLayer();
             }
             lastPlayerDimension = null;
             return;
         }
-        RegistryKey<World> playerDimension = mc.world.getRegistryKey();
+        ResourceKey<Level> playerDimension = mc.level.dimension();
         if (currentLayer != null && Objects.equals(currentLayer.dimension(), playerDimension)) {
             lastPlayerDimension = playerDimension;
             return;
@@ -618,12 +618,12 @@ public class RoadGraphDebugScreenVanilla extends Screen {
         }
     }
 
-    private static Text describeLayer(DimensionLayer layer) {
-        Identifier id = layer.dimension().getValue();
-        return Text.literal(id.toString());
+    private static Component describeLayer(DimensionLayer layer) {
+        ResourceLocation id = layer.dimension().location();
+        return Component.literal(id.toString());
     }
 
-    public record DimensionLayer(RegistryKey<World> dimension, List<Node> nodes, List<EdgeStorage.Edge> edges) {
+    public record DimensionLayer(ResourceKey<Level> dimension, List<Node> nodes, List<EdgeStorage.Edge> edges) {
         public DimensionLayer {
             nodes = List.copyOf(nodes);
             edges = List.copyOf(edges);

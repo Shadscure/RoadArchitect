@@ -1,7 +1,7 @@
 package net.oxcodsnet.roadarchitect.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.KeyMapping;
 import net.oxcodsnet.roadarchitect.fabric.client.hook.DebugGraphScreenHook;
 import net.oxcodsnet.roadarchitect.fabric.client.hook.LoadingOverlayHook;
 
@@ -11,7 +11,7 @@ import net.oxcodsnet.roadarchitect.fabric.client.hook.LoadingOverlayHook;
  */
 public class RoadArchitectClientFabric implements ClientModInitializer {
 
-    private static KeyBinding debugKey;
+    private static KeyMapping debugKey;
 
     @Override
     public void onInitializeClient() {

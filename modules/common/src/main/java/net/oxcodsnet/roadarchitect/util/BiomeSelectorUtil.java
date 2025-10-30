@@ -3,14 +3,6 @@ package net.oxcodsnet.roadarchitect.util;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Either;
-import net.minecraft.command.argument.RegistryPredicateArgumentType;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.entry.RegistryEntryList;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.world.biome.Biome;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.commands.arguments.ResourceOrTagKeyArgument;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.biome.Biome;
 
 /**
  * Parses and caches biome selector strings (e.g., "#minecraft:is_ocean" or "minecraft:badlands").
@@ -31,36 +31,36 @@ public final class BiomeSelectorUtil {
 
     /** Cache: registry -> (selector -> compiled list).
      *  Accessed from parallel pathfinding jobs — must be thread-safe. */
-    private static final Map<Registry<Biome>, Map<String, RegistryEntryList<Biome>>> CACHE = new ConcurrentHashMap<>();
+    private static final Map<Registry<Biome>, Map<String, HolderSet<Biome>>> CACHE = new ConcurrentHashMap<>();
 
-    public static List<RegistryEntryList<Biome>> compile(Registry<Biome> registry, List<String> selectors) {
+    public static List<HolderSet<Biome>> compile(Registry<Biome> registry, List<String> selectors) {
         // Ensure per-registry cache map is concurrent
-        Map<String, RegistryEntryList<Biome>> local = CACHE.computeIfAbsent(registry, r -> new ConcurrentHashMap<>());
+        Map<String, HolderSet<Biome>> local = CACHE.computeIfAbsent(registry, r -> new ConcurrentHashMap<>());
 
-        RegistryPredicateArgumentType<Biome> argType = new RegistryPredicateArgumentType<>(RegistryKeys.BIOME);
-        List<RegistryEntryList<Biome>> compiled = new ArrayList<>(selectors.size());
+        ResourceOrTagKeyArgument<Biome> argType = new ResourceOrTagKeyArgument<>(Registries.BIOME);
+        List<HolderSet<Biome>> compiled = new ArrayList<>(selectors.size());
         for (String raw : selectors) {
             if (raw == null || raw.isBlank()) continue;
-            RegistryEntryList<Biome> list = local.get(raw);
+            HolderSet<Biome> list = local.get(raw);
             if (list == null) {
                 try {
-                    RegistryPredicateArgumentType.RegistryPredicate<Biome> predicate = argType.parse(new StringReader(raw));
-                    Either<RegistryKey<Biome>, TagKey<Biome>> target = predicate.getKey();
-                    RegistryEntryList<Biome> parsed;
-                    Optional<RegistryKey<Biome>> directKey = target.left();
+                    ResourceOrTagKeyArgument.Result<Biome> predicate = argType.parse(new StringReader(raw));
+                    Either<ResourceKey<Biome>, TagKey<Biome>> target = predicate.unwrap();
+                    HolderSet<Biome> parsed;
+                    Optional<ResourceKey<Biome>> directKey = target.left();
                     if (directKey.isPresent()) {
-                        parsed = registry.getOptional(directKey.get())
-                                .map(RegistryEntryList::of)
+                        parsed = registry.get(directKey.get())
+                                .map(HolderSet::direct)
                                 .orElse(null);
                     } else {
                         parsed = target.right()
-                                .flatMap(tagKey -> registry.getOptional(tagKey)
-                                        .map(named -> (RegistryEntryList<Biome>) named))
+                                .flatMap(tagKey -> registry.get(tagKey)
+                                        .map(named -> (HolderSet<Biome>) named))
                                 .orElse(null);
                     }
                     if (parsed != null) {
                         // Avoid race: if another thread put the same key meanwhile, use that value
-                        RegistryEntryList<Biome> prev = local.putIfAbsent(raw, parsed);
+                        HolderSet<Biome> prev = local.putIfAbsent(raw, parsed);
                         list = (prev != null) ? prev : parsed;
                     } else {
                         LOGGER.warn("Biome selector '{}' resolved to nothing", raw);
@@ -76,8 +76,8 @@ public final class BiomeSelectorUtil {
         return compiled;
     }
 
-    public static boolean matches(RegistryEntry<Biome> biome, List<RegistryEntryList<Biome>> lists) {
-        for (RegistryEntryList<Biome> list : lists) {
+    public static boolean matches(Holder<Biome> biome, List<HolderSet<Biome>> lists) {
+        for (HolderSet<Biome> list : lists) {
             if (list.contains(biome)) {
                 return true;
             }

@@ -1,20 +1,20 @@
 package net.oxcodsnet.roadarchitect.util;
 
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.QuartPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.Heightmap;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.source.BiomeCoords;
-import net.minecraft.world.biome.source.BiomeSource;
-import net.minecraft.world.biome.source.util.MultiNoiseUtil;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.world.gen.noise.NoiseConfig;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.biome.Climate;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.RandomState;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.CacheStorage;
 import net.oxcodsnet.roadarchitect.util.cache.ChunkHeightGenerator;
@@ -40,7 +40,7 @@ import java.util.function.Supplier;
 public final class CacheManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/" + CacheManager.class.getSimpleName());
 
-    private static final Map<RegistryKey<World>, WorldCacheState> STATES = new ConcurrentHashMap<>();
+    private static final Map<ResourceKey<Level>, WorldCacheState> STATES = new ConcurrentHashMap<>();
     private static final int CHUNK_SIDE = 16;
     private static final int COLUMNS_PER_CHUNK = CHUNK_SIDE * CHUNK_SIDE;
 
@@ -54,8 +54,8 @@ public final class CacheManager {
      *
      * @param world server world
      */
-    public static void onWorldLoad(ServerWorld world) {
-        if (world.isClient()) return;
+    public static void onWorldLoad(ServerLevel world) {
+        if (world.isClientSide()) return;
         load(world);
     }
 
@@ -65,8 +65,8 @@ public final class CacheManager {
      *
      * @param world server world
      */
-    public static void onWorldUnload(ServerWorld world) {
-        if (world.isClient()) return;
+    public static void onWorldUnload(ServerLevel world) {
+        if (world.isClientSide()) return;
         save(world);
     }
 
@@ -77,27 +77,27 @@ public final class CacheManager {
      * @param server minecraft server
      */
     public static void onServerStopping(MinecraftServer server) {
-        for (ServerWorld world : server.getWorlds()) {
+        for (ServerLevel world : server.getAllLevels()) {
             save(world);
         }
     }
 
-    private static WorldCacheState state(ServerWorld world) {
-        return STATES.computeIfAbsent(world.getRegistryKey(), k -> new WorldCacheState(world, CacheStorage.get(world)));
+    private static WorldCacheState state(ServerLevel world) {
+        return STATES.computeIfAbsent(world.dimension(), k -> new WorldCacheState(world, CacheStorage.get(world)));
     }
 
-    private static void load(ServerWorld world) {
+    private static void load(ServerLevel world) {
         CacheStorage storage = CacheStorage.get(world);
-        STATES.put(world.getRegistryKey(), new WorldCacheState(world, storage));
-        DebugLog.info(LOGGER, "Cache loaded for world {}", world.getRegistryKey().getValue());
+        STATES.put(world.dimension(), new WorldCacheState(world, storage));
+        DebugLog.info(LOGGER, "Cache loaded for world {}", world.dimension().location());
     }
 
-    private static void save(ServerWorld world) {
-        WorldCacheState state = STATES.remove(world.getRegistryKey());
+    private static void save(ServerLevel world) {
+        WorldCacheState state = STATES.remove(world.dimension());
         if (state != null) {
             state.chunkHeights().clear();
-            state.storage().markDirty();
-            DebugLog.info(LOGGER, "Cache saved for world {}", world.getRegistryKey().getValue());
+            state.storage().setDirty();
+            DebugLog.info(LOGGER, "Cache saved for world {}", world.dimension().location());
         }
     }
 
@@ -110,14 +110,14 @@ public final class CacheManager {
      * @param maxX  max X (blocks)
      * @param maxZ  max Z (blocks)
      */
-    public static void prefill(ServerWorld world, int minX, int minZ, int maxX, int maxZ) {
+    public static void prefill(ServerLevel world, int minX, int minZ, int maxX, int maxZ) {
         int step = PathFinder.GRID_STEP;
         WorldCacheState state = state(world);
         CacheStorage storage = state.storage();
         AsyncExecutor.execute(() -> {
-            ChunkGenerator gen = world.getChunkManager().getChunkGenerator();
-            NoiseConfig cfg = world.getChunkManager().getNoiseConfig();
-            MultiNoiseUtil.MultiNoiseSampler sampler = cfg.getMultiNoiseSampler();
+            ChunkGenerator gen = world.getChunkSource().getGenerator();
+            RandomState cfg = world.getChunkSource().randomState();
+            Climate.Sampler sampler = cfg.sampler();
             BiomeSource bsrc = gen.getBiomeSource();
 
             for (int x = minX; x <= maxX; x += step) {
@@ -126,10 +126,10 @@ public final class CacheManager {
                     int finalX = x;
                     int finalZ = z;
                     AsyncExecutor.execute(() -> {
-                        int h = gen.getHeight(finalX, finalZ, Heightmap.Type.WORLD_SURFACE_WG, world, cfg);
-                        RegistryEntry<Biome> biome = bsrc.getBiome(
-                                BiomeCoords.fromBlock(finalX), 316,
-                                BiomeCoords.fromBlock(finalZ), sampler);
+                        int h = gen.getBaseHeight(finalX, finalZ, Heightmap.Types.WORLD_SURFACE_WG, world, cfg);
+                        Holder<Biome> biome = bsrc.getNoiseBiome(
+                                QuartPos.fromBlock(finalX), 316,
+                                QuartPos.fromBlock(finalZ), sampler);
                         storage.heights().put(key, h);
                         storage.biomes().put(key, biome);
                     });
@@ -147,7 +147,7 @@ public final class CacheManager {
      * @param key    cache key (hash of x,z)
      * @param loader fallback loader if value missing
      */
-    public static int getHeight(ServerWorld world, long key, IntSupplier loader) {
+    public static int getHeight(ServerLevel world, long key, IntSupplier loader) {
         PipelineProfiler.increment("cache.height.requests");
         WorldCacheState state = state(world);
         CacheStorage storage = state.storage();
@@ -188,7 +188,7 @@ public final class CacheManager {
     /**
      * Gets or computes world surface height at block coordinates.
      */
-    public static int getHeight(ServerWorld world, int x, int z) {
+    public static int getHeight(ServerLevel world, int x, int z) {
         long key = hash(x, z);
         OptionalInt prepared = RoadFeature.lookupPreparedSurface(x, z);
         if (prepared.isPresent()) {
@@ -198,16 +198,16 @@ public final class CacheManager {
             return value;
         }
         return getHeight(world, key, () -> {
-            ChunkGenerator gen = world.getChunkManager().getChunkGenerator();
-            NoiseConfig cfg = world.getChunkManager().getNoiseConfig();
-            return gen.getHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG, world, cfg);
+            ChunkGenerator gen = world.getChunkSource().getGenerator();
+            RandomState cfg = world.getChunkSource().randomState();
+            return gen.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, world, cfg);
         });
     }
 
     /**
      * Gets or computes terrain stability metric for the key.
      */
-    public static double getStability(ServerWorld world, long key, DoubleSupplier loader) {
+    public static double getStability(ServerLevel world, long key, DoubleSupplier loader) {
         PipelineProfiler.increment("cache.stability.requests");
         WorldCacheState state = state(world);
         CacheStorage storage = state.storage();
@@ -229,11 +229,11 @@ public final class CacheManager {
     /**
      * Gets or computes biome entry for the key.
      */
-    public static RegistryEntry<Biome> getBiome(ServerWorld world, long key, Supplier<RegistryEntry<Biome>> loader) {
+    public static Holder<Biome> getBiome(ServerLevel world, long key, Supplier<Holder<Biome>> loader) {
         PipelineProfiler.increment("cache.biome.requests");
         WorldCacheState state = state(world);
         CacheStorage storage = state.storage();
-        RegistryEntry<Biome> cached = storage.biomes().get(key);
+        Holder<Biome> cached = storage.biomes().get(key);
         if (cached != null) {
             PipelineProfiler.increment("cache.biome.hits");
             return cached;
@@ -241,7 +241,7 @@ public final class CacheManager {
         return storage.biomes().computeIfAbsent(key, k -> {
             PipelineProfiler.increment("cache.biome.loads");
             try (PipelineProfiler.Section section = PipelineProfiler.openSection("cache.biome.load_time")) {
-                RegistryEntry<Biome> value = loader.get();
+                Holder<Biome> value = loader.get();
                 return value;
             }
         });
@@ -264,21 +264,21 @@ public final class CacheManager {
     /**
      * Populates the runtime cache with the latest heightmap snapshot for a chunk when it becomes available.
      */
-    public static void onChunkLoad(ServerWorld world, Chunk chunk) {
-        if (world.isClient()) {
+    public static void onChunkLoad(ServerLevel world, ChunkAccess chunk) {
+        if (world.isClientSide()) {
             return;
         }
-        WorldCacheState state = STATES.get(world.getRegistryKey());
+        WorldCacheState state = STATES.get(world.dimension());
         if (state == null) {
             return;
         }
         ChunkPos pos = chunk.getPos();
-        int startX = pos.getStartX();
-        int startZ = pos.getStartZ();
+        int startX = pos.getMinBlockX();
+        int startZ = pos.getMinBlockZ();
         int minY = state.minWorldY();
 
-        Heightmap wg = chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE_WG);
-        Heightmap surface = chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE);
+        Heightmap wg = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.WORLD_SURFACE_WG);
+        Heightmap surface = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.WORLD_SURFACE);
         if (wg == null && surface == null) {
             return;
         }
@@ -295,9 +295,9 @@ public final class CacheManager {
         for (int localZ = 0; localZ < CHUNK_SIDE; localZ++) {
             for (int localX = 0; localX < CHUNK_SIDE; localX++) {
                 int idx = localZ * CHUNK_SIDE + localX;
-                int height = wg.get(localX, localZ);
+                int height = wg.getFirstAvailable(localX, localZ);
                 if (height <= minY) {
-                    height = surface.get(localX, localZ);
+                    height = surface.getFirstAvailable(localX, localZ);
                 }
                 snapshot[idx] = height;
                 long key = hash(startX + localX, startZ + localZ);
@@ -310,24 +310,24 @@ public final class CacheManager {
 
         state.putChunkSnapshot(pos.toLong(), new ChunkHeightSnapshot(snapshot, CHUNK_SIDE));
         if (dirty) {
-            storage.markDirty();
+            storage.setDirty();
         }
     }
 
     /**
      * Removes cached heightmap data when a chunk is unloaded to free memory.
      */
-    public static void onChunkUnload(ServerWorld world, ChunkPos pos) {
-        if (world.isClient()) {
+    public static void onChunkUnload(ServerLevel world, ChunkPos pos) {
+        if (world.isClientSide()) {
             return;
         }
-        WorldCacheState state = STATES.get(world.getRegistryKey());
+        WorldCacheState state = STATES.get(world.dimension());
         if (state != null) {
             state.removeChunkSnapshot(pos.toLong());
         }
     }
 
-    private static ChunkHeightSnapshot ensureChunkSnapshot(ServerWorld world,
+    private static ChunkHeightSnapshot ensureChunkSnapshot(ServerLevel world,
                                                            WorldCacheState state,
                                                            CacheStorage storage,
                                                            long key) {

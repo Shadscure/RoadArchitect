@@ -1,25 +1,25 @@
 package net.oxcodsnet.roadarchitect.storage;
 
-import net.minecraft.datafixer.DataFixTypes;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.PersistentState;
-import net.minecraft.world.biome.Biome;
 import net.oxcodsnet.roadarchitect.util.PersistentStateUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.saveddata.SavedData;
 import net.oxcodsnet.roadarchitect.util.NbtUtils;
 
-public class CacheStorage extends PersistentState {
+public class CacheStorage extends SavedData {
     private static final String KEY = "road_cache";
     private static final String HEIGHTS_KEY = "heights";
     private static final String STABILITIES_KEY = "stabilities";
@@ -27,45 +27,45 @@ public class CacheStorage extends PersistentState {
     private static final String ENTRY_KEY = "k";
     private static final String ENTRY_VALUE = "v";
 
-    public static final Type<CacheStorage> TYPE = new Type<>(CacheStorage::new, CacheStorage::fromNbt, DataFixTypes.SAVED_DATA_SCOREBOARD);
+    public static final Factory<CacheStorage> TYPE = new Factory<>(CacheStorage::new, CacheStorage::fromNbt, DataFixTypes.SAVED_DATA_SCOREBOARD);
 
     private final ConcurrentMap<Long, Integer> heights = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, Double> stabilities = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Long, RegistryEntry<Biome>> biomes = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, Holder<Biome>> biomes = new ConcurrentHashMap<>();
 
-    public static CacheStorage get(ServerWorld world) {
+    public static CacheStorage get(ServerLevel world) {
         return PersistentStateUtil.get(world, TYPE, KEY);
     }
 
-    public static CacheStorage fromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup lookup) {
+    public static CacheStorage fromNbt(CompoundTag tag, HolderLookup.Provider lookup) {
         CacheStorage storage = new CacheStorage();
-        NbtList hList = tag.getList(HEIGHTS_KEY, NbtElement.COMPOUND_TYPE);
+        ListTag hList = tag.getList(HEIGHTS_KEY, Tag.TAG_COMPOUND);
         NbtUtils.fillLongIntMap(hList, storage.heights);
 
-        NbtList sList = tag.getList(STABILITIES_KEY, NbtElement.COMPOUND_TYPE);
+        ListTag sList = tag.getList(STABILITIES_KEY, Tag.TAG_COMPOUND);
         NbtUtils.fillLongDoubleMap(sList, storage.stabilities);
-        NbtList bList = tag.getList(BIOMES_KEY, NbtElement.COMPOUND_TYPE);
+        ListTag bList = tag.getList(BIOMES_KEY, Tag.TAG_COMPOUND);
         java.util.HashMap<Long, String> biomeIds = new java.util.HashMap<>(bList.size());
         NbtUtils.fillLongStringMap(bList, biomeIds);
-        RegistryWrapper.Impl<Biome> registry = lookup.getWrapperOrThrow(RegistryKeys.BIOME);
+        HolderLookup.RegistryLookup<Biome> registry = lookup.lookupOrThrow(Registries.BIOME);
         for (java.util.Map.Entry<Long, String> e : biomeIds.entrySet()) {
-            Identifier id = Identifier.tryParse(e.getValue());
+            ResourceLocation id = ResourceLocation.tryParse(e.getValue());
             if (id == null) continue;
-            RegistryKey<Biome> key = RegistryKey.of(RegistryKeys.BIOME, id);
-            registry.getOptional(key).ifPresent(entry -> storage.biomes.put(e.getKey(), entry));
+            ResourceKey<Biome> key = ResourceKey.create(Registries.BIOME, id);
+            registry.get(key).ifPresent(entry -> storage.biomes.put(e.getKey(), entry));
         }
         return storage;
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound tag, RegistryWrapper.WrapperLookup lookup) {
+    public CompoundTag save(CompoundTag tag, HolderLookup.Provider lookup) {
         tag.put(HEIGHTS_KEY, NbtUtils.toLongIntList(heights));
 
         tag.put(STABILITIES_KEY, NbtUtils.toLongDoubleList(stabilities));
 
         java.util.HashMap<Long, String> biomeIds = new java.util.HashMap<>(biomes.size());
-        for (Map.Entry<Long, RegistryEntry<Biome>> entry : biomes.entrySet()) {
-            Identifier id = entry.getValue().getKey().map(RegistryKey::getValue).orElse(null);
+        for (Map.Entry<Long, Holder<Biome>> entry : biomes.entrySet()) {
+            ResourceLocation id = entry.getValue().unwrapKey().map(ResourceKey::location).orElse(null);
             if (id != null) {
                 biomeIds.put(entry.getKey(), id.toString());
             }
@@ -82,7 +82,7 @@ public class CacheStorage extends PersistentState {
         return stabilities;
     }
 
-    public ConcurrentMap<Long, RegistryEntry<Biome>> biomes() {
+    public ConcurrentMap<Long, Holder<Biome>> biomes() {
         return biomes;
     }
 }

@@ -1,8 +1,8 @@
 package net.oxcodsnet.roadarchitect.handlers;
 
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
 import java.util.Locale;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.util.DebugLog;
 import org.slf4j.Logger;
@@ -35,11 +35,11 @@ public final class PipelineRunner {
     /**
      * Runs the pipeline in the given mode starting from the provided position.
      */
-    public static void runPipeline(ServerWorld world, BlockPos center, PipelineMode mode) {
+    public static void runPipeline(ServerLevel world, BlockPos center, PipelineMode mode) {
         if (!RUNNING.compareAndSet(false, true)) {
             return;
         }
-        String worldId = world.getRegistryKey().getValue().toString();
+        String worldId = world.dimension().location().toString();
         PipelineProfiler profiler = null;
         try {
             if (RoadArchitect.CONFIG.debugPipelineProfiler()) {

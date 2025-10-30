@@ -4,22 +4,21 @@ import it.unimi.dsi.fastutil.longs.Long2DoubleMap;
 import it.unimi.dsi.fastutil.longs.Long2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.entry.RegistryEntryList;
-import net.minecraft.registry.tag.BiomeTags;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.Heightmap;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.source.BiomeCoords;
-import net.minecraft.world.biome.source.BiomeSource;
-import net.minecraft.world.biome.source.util.MultiNoiseUtil;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.world.gen.noise.NoiseConfig;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.QuartPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BiomeTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.biome.Climate;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.RandomState;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
@@ -76,15 +75,15 @@ public class PathFinder {
      */
     private static final boolean PROFILING_ENABLED = true;
     private final NodeStorage nodes;
-    private final ServerWorld world;
+    private final ServerLevel world;
     private final int maxSteps; // глобальный потолок (сохранён для обратной совместимости)
     private final double heuristicWeight;
 
     /* ===================================================== */
     /* ── горячие ссылки на объекты генерации мира ── */
     private final ChunkGenerator generator;
-    private final NoiseConfig noiseConfig;
-    private final MultiNoiseUtil.MultiNoiseSampler noiseSampler;
+    private final RandomState noiseConfig;
+    private final Climate.Sampler noiseSampler;
     private final BiomeSource biomeSource;
     /**
      * Счётчики вызовов семплеров на один запуск поиска
@@ -93,21 +92,21 @@ public class PathFinder {
     private long profBiomeCalls = 0L;
     private long profStabCalls = 0L;
     // Compiled forbidden biome selectors (per-registry)
-    private volatile List<RegistryEntryList<Biome>> forbiddenBiomeLists;
+    private volatile List<HolderSet<Biome>> forbiddenBiomeLists;
 
-    public PathFinder(NodeStorage nodes, ServerWorld world, int maxSteps) {
+    public PathFinder(NodeStorage nodes, ServerLevel world, int maxSteps) {
         this(nodes, world, maxSteps, HEURISTIC_WEIGHT);
     }
 
-    public PathFinder(NodeStorage nodes, ServerWorld world, int maxSteps, double heuristicWeight) {
+    public PathFinder(NodeStorage nodes, ServerLevel world, int maxSteps, double heuristicWeight) {
         this.nodes = nodes;
         this.world = world;
         this.maxSteps = maxSteps;
         this.heuristicWeight = heuristicWeight;
 
-        this.generator = world.getChunkManager().getChunkGenerator();
-        this.noiseConfig = world.getChunkManager().getNoiseConfig();
-        this.noiseSampler = noiseConfig.getMultiNoiseSampler();
+        this.generator = world.getChunkSource().getGenerator();
+        this.noiseConfig = world.getChunkSource().randomState();
+        this.noiseSampler = noiseConfig.sampler();
         this.biomeSource = generator.getBiomeSource();
     }
 
@@ -121,9 +120,9 @@ public class PathFinder {
         return Math.abs(y1 - y2) * 40.0;
     }
 
-    private static double biomeCost(RegistryEntry<Biome> biome) {
+    private static double biomeCost(Holder<Biome> biome) {
         for (Map.Entry<TagKey<Biome>, Double> entry : BIOME_COSTS.entrySet()) {
-            if (biome.isIn(entry.getKey())) {
+            if (biome.is(entry.getKey())) {
                 return entry.getValue();
             }
         }
@@ -171,7 +170,7 @@ public class PathFinder {
                 if (i == 0 && j == 0) continue;
                 int checkX = x + i * GRID_STEP;
                 int checkZ = z + j * GRID_STEP;
-                RegistryEntry<Biome> b = sampleBiome(checkX, checkZ, y);
+                Holder<Biome> b = sampleBiome(checkX, checkZ, y);
                 if (isWater(b)) {
                     return cfg.coastProximityPenalty();
                 }
@@ -385,7 +384,7 @@ public class PathFinder {
                     continue;
                 }
 
-                RegistryEntry<Biome> bEntry = sampleBiome(nx, nz, ny);
+                Holder<Biome> bEntry = sampleBiome(nx, nz, ny);
                 if (isForbiddenBiome(bEntry)) {
                     continue;
                 }
@@ -456,7 +455,7 @@ public class PathFinder {
         profHeightCalls++;
         long key = hash(x, z);
         return CacheManager.getHeight(world, key, () ->
-                generator.getHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG, world, noiseConfig)
+                generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, world, noiseConfig)
         );
     }
 
@@ -468,29 +467,29 @@ public class PathFinder {
         return CacheManager.getStability(world, key, () -> TerrainAnalyzer.stabilityCost(world, x, z, y));
     }
 
-    private RegistryEntry<Biome> sampleBiome(int x, int z, int y) {
+    private Holder<Biome> sampleBiome(int x, int z, int y) {
         profBiomeCalls++;
         long key = hash(x, z);
         return CacheManager.getBiome(world, key, () ->
-                biomeSource.getBiome(
-                        BiomeCoords.fromBlock(x),
+                biomeSource.getNoiseBiome(
+                        QuartPos.fromBlock(x),
                         316,
-                        BiomeCoords.fromBlock(z),
+                        QuartPos.fromBlock(z),
                         noiseSampler
                 )
         );
     }
 
-    private boolean isForbiddenBiome(RegistryEntry<Biome> biome) {
+    private boolean isForbiddenBiome(Holder<Biome> biome) {
         if (forbiddenBiomeLists == null) {
-            Registry<Biome> reg = world.getRegistryManager().get(RegistryKeys.BIOME);
+            Registry<Biome> reg = world.registryAccess().registryOrThrow(Registries.BIOME);
             forbiddenBiomeLists = BiomeSelectorUtil.compile(reg, RAConfigHolder.get().forbiddenBiomeSelectors());
         }
         return BiomeSelectorUtil.matches(biome, forbiddenBiomeLists);
     }
 
-    private static boolean isWater(RegistryEntry<Biome> biome) {
-        return biome.isIn(BiomeTags.IS_OCEAN) || biome.isIn(BiomeTags.IS_DEEP_OCEAN) || biome.isIn(BiomeTags.IS_RIVER);
+    private static boolean isWater(Holder<Biome> biome) {
+        return biome.is(BiomeTags.IS_OCEAN) || biome.is(BiomeTags.IS_DEEP_OCEAN) || biome.is(BiomeTags.IS_RIVER);
     }
 
     // Stability computation is provided by TerrainAnalyzer and cached via CacheManager.

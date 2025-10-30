@@ -1,19 +1,19 @@
 package net.oxcodsnet.roadarchitect.worldgen.style.decoration;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.LanternBlock;
-import net.minecraft.block.enums.WallShape;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.StructureWorldAccess;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.LanternBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.WallSide;
 
 public final class LampPostDecoration implements Decoration {
-    private static final int PLACE_FLAGS = Block.NOTIFY_ALL | Block.NO_REDRAW;
+    private static final int PLACE_FLAGS = Block.UPDATE_ALL | Block.UPDATE_INVISIBLE;
     private static final int MAX_SUPPORT_DEPTH = 3;
     private static final int MAX_UP_SEARCH = 3;
     private static final int HEIGHT = 3;
@@ -42,50 +42,50 @@ public final class LampPostDecoration implements Decoration {
     }
 
     @Override
-    public void place(StructureWorldAccess world, BlockPos basePos, Random random) {
+    public void place(WorldGenLevel world, BlockPos basePos, RandomSource random) {
         tryPlace(world, basePos, random);
     }
 
     /** Ставит фонарь «Г» и возвращает true при успехе. */
-    public boolean tryPlace(StructureWorldAccess world, BlockPos basePos, Random random) {
+    public boolean tryPlace(WorldGenLevel world, BlockPos basePos, RandomSource random) {
         BlockPos top = computeTop(world, basePos);
         if (top == null) return false;
 
         // Проверяем стойку (включая уровень armBase)
         for (int i = 1; i <= HEIGHT; i++) {
-            if (!world.getBlockState(top.up(i)).isReplaceable()) return false;
+            if (!world.getBlockState(top.above(i)).canBeReplaced()) return false;
         }
 
         // Вылет с уровня верхней стойки
-        BlockPos armBase = top.up(HEIGHT);
-        BlockPos hook    = armBase.offset(this.facing);
-        if (!world.getBlockState(hook).isReplaceable()) return false;
+        BlockPos armBase = top.above(HEIGHT);
+        BlockPos hook    = armBase.relative(this.facing);
+        if (!world.getBlockState(hook).canBeReplaced()) return false;
 
-        BlockPos lantern = hook.down();
-        if (!world.getBlockState(lantern).isReplaceable()) return false;
+        BlockPos lantern = hook.below();
+        if (!world.getBlockState(lantern).canBeReplaced()) return false;
 
         // Установка
         placeSupport(world, top);
 
         // 1..HEIGHT-1 — голая стойка
         for (int i = 1; i < HEIGHT; i++) {
-            world.setBlockState(top.up(i), this.postState, PLACE_FLAGS);
+            world.setBlock(top.above(i), this.postState, PLACE_FLAGS);
         }
 
         // ВЕРХ СТОЙКИ: задаём соединение в сторону «крюка»
         BlockState armBaseState = withFenceConnection(this.postState, this.facing);
-        world.setBlockState(armBase, armBaseState, PLACE_FLAGS);
+        world.setBlock(armBase, armBaseState, PLACE_FLAGS);
 
         // КРЮК: задаём соединение назад, к стойке
         BlockState hookState = withFenceConnection(this.postState, this.facing.getOpposite());
-        world.setBlockState(hook, hookState, PLACE_FLAGS);
+        world.setBlock(hook, hookState, PLACE_FLAGS);
 
         // Подвесной фонарь
         BlockState ls = this.lampState;
-        if (ls.contains(LanternBlock.HANGING)) {
-            ls = ls.with(LanternBlock.HANGING, true);
+        if (ls.hasProperty(LanternBlock.HANGING)) {
+            ls = ls.setValue(LanternBlock.HANGING, true);
         }
-        world.setBlockState(lantern, ls, PLACE_FLAGS);
+        world.setBlock(lantern, ls, PLACE_FLAGS);
 
         return true;
     }
@@ -96,79 +96,79 @@ public final class LampPostDecoration implements Decoration {
     private static BlockState withFenceConnection(BlockState state, Direction dir) {
         // 1) Заборы/решётки/панели — булевы свойства направлений
         BooleanProperty fenceProp = switch (dir) {
-            case NORTH -> Properties.NORTH;
-            case SOUTH -> Properties.SOUTH;
-            case EAST  -> Properties.EAST;
-            case WEST  -> Properties.WEST;
+            case NORTH -> BlockStateProperties.NORTH;
+            case SOUTH -> BlockStateProperties.SOUTH;
+            case EAST  -> BlockStateProperties.EAST;
+            case WEST  -> BlockStateProperties.WEST;
             default    -> null;
         };
-        if (fenceProp != null && state.contains(fenceProp)) {
-            return state.with(fenceProp, true);
+        if (fenceProp != null && state.hasProperty(fenceProp)) {
+            return state.setValue(fenceProp, true);
         }
 
         // 2) Стены — EnumProperty<WallShape> по направлениям
-        EnumProperty<WallShape> wallProp = switch (dir) {
-            case NORTH -> Properties.NORTH_WALL_SHAPE;
-            case SOUTH -> Properties.SOUTH_WALL_SHAPE;
-            case EAST  -> Properties.EAST_WALL_SHAPE;
-            case WEST  -> Properties.WEST_WALL_SHAPE;
+        EnumProperty<WallSide> wallProp = switch (dir) {
+            case NORTH -> BlockStateProperties.NORTH_WALL;
+            case SOUTH -> BlockStateProperties.SOUTH_WALL;
+            case EAST  -> BlockStateProperties.EAST_WALL;
+            case WEST  -> BlockStateProperties.WEST_WALL;
             default    -> null;
         };
-        if (wallProp != null && state.contains(wallProp)) {
+        if (wallProp != null && state.hasProperty(wallProp)) {
             // Можно выбрать LOW или TALL. Обычно LOW выглядит «горизонтальной» полкой,
             // TALL даёт высокий упор. Поставим LOW как более универсальный вариант.
-            return state.with(wallProp, WallShape.LOW);
+            return state.setValue(wallProp, WallSide.LOW);
         }
 
         // 3) Иные блоки — без изменений
         return state;
     }
 
-    private void placeSupport(StructureWorldAccess world, BlockPos top) {
+    private void placeSupport(WorldGenLevel world, BlockPos top) {
         // верх основания — стенка (или иной «тяжёлый» блок)
-        world.setBlockState(top, this.baseState, PLACE_FLAGS);
-        BlockPos cur = top.down();
+        world.setBlock(top, this.baseState, PLACE_FLAGS);
+        BlockPos cur = top.below();
         int depth = 0;
-        while (cur.getY() >= world.getBottomY()
+        while (cur.getY() >= world.getMinBuildHeight()
                 && depth < MAX_SUPPORT_DEPTH
-                && !world.getBlockState(cur).isSolidBlock(world, cur)) {
-            world.setBlockState(cur, this.baseState, PLACE_FLAGS);
-            cur = cur.down();
+                && !world.getBlockState(cur).isRedstoneConductor(world, cur)) {
+            world.setBlock(cur, this.baseState, PLACE_FLAGS);
+            cur = cur.below();
             depth++;
         }
     }
 
-    private BlockPos computeTop(StructureWorldAccess world, BlockPos base) {
-        int bottomY = world.getBottomY();
-        boolean baseSolid = world.getBlockState(base).isSolidBlock(world, base);
+    private BlockPos computeTop(WorldGenLevel world, BlockPos base) {
+        int bottomY = world.getMinBuildHeight();
+        boolean baseSolid = world.getBlockState(base).isRedstoneConductor(world, base);
 
         if (!baseSolid) {
-            BlockPos probe = base.down();
+            BlockPos probe = base.below();
             int depth = 0;
             while (probe.getY() >= bottomY
                     && depth < MAX_SUPPORT_DEPTH
-                    && !world.getBlockState(probe).isSolidBlock(world, probe)) {
-                probe = probe.down();
+                    && !world.getBlockState(probe).isRedstoneConductor(world, probe)) {
+                probe = probe.below();
                 depth++;
             }
-            if (!world.getBlockState(probe).isSolidBlock(world, probe)) return null;
-            return probe.up();
+            if (!world.getBlockState(probe).isRedstoneConductor(world, probe)) return null;
+            return probe.above();
         } else {
-            BlockPos top = base.up();
+            BlockPos top = base.above();
             int rise = 0;
-            while (rise < MAX_UP_SEARCH && !world.getBlockState(top).isReplaceable()) {
-                top = top.up(); rise++;
+            while (rise < MAX_UP_SEARCH && !world.getBlockState(top).canBeReplaced()) {
+                top = top.above(); rise++;
             }
-            if (!world.getBlockState(top).isReplaceable()) return null;
+            if (!world.getBlockState(top).canBeReplaced()) return null;
 
             int depth = 0;
-            BlockPos probe = top.down();
+            BlockPos probe = top.below();
             while (probe.getY() >= bottomY
                     && depth < MAX_SUPPORT_DEPTH
-                    && !world.getBlockState(probe).isSolidBlock(world, probe)) {
-                probe = probe.down(); depth++;
+                    && !world.getBlockState(probe).isRedstoneConductor(world, probe)) {
+                probe = probe.below(); depth++;
             }
-            if (!world.getBlockState(probe).isSolidBlock(world, probe)) return null;
+            if (!world.getBlockState(probe).isRedstoneConductor(world, probe)) return null;
             return top;
         }
     }

@@ -1,7 +1,7 @@
 package net.oxcodsnet.roadarchitect.handlers;
 
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.EdgeStorage;
 import net.oxcodsnet.roadarchitect.storage.PathStorage;
@@ -36,7 +36,7 @@ public class PathFinderManager {
      * @param preFillCacheZone half-size of the prefill square area in blocks (unused by default)
      * @param maxSteps         A* global step limit for this run
      */
-    public static void computePaths(ServerWorld world, int preFillCacheZone, int maxSteps) {
+    public static void computePaths(ServerLevel world, int preFillCacheZone, int maxSteps) {
         PipelineProfiler.increment("pathfinding.invocations");
         PipelineProfiler.recordValue("pathfinding.prefill_zone", preFillCacheZone);
         PipelineProfiler.recordValue("pathfinding.max_steps", maxSteps);
@@ -107,16 +107,16 @@ public class PathFinderManager {
             }
         }
 
-        storage.markDirty();
-        graph.markDirty();
-        DebugLog.info(LOGGER, "Path calculation completed for world {}", world.getRegistryKey().getValue());
+        storage.setDirty();
+        graph.setDirty();
+        DebugLog.info(LOGGER, "Path calculation completed for world {}", world.dimension().location());
     }
 
     // overloads for backwards compatibility
     /**
      * Backward-compat shortcut with default parameters.
      */
-    public static void computePaths(ServerWorld world) {
+    public static void computePaths(ServerLevel world) {
         computePaths(world, 50, 10480);
     }
 
@@ -126,7 +126,7 @@ public class PathFinderManager {
      * @param world            server world
      * @param preFillCacheZone half-size of the prefill square area in blocks (unused by default)
      */
-    public static void computePaths(ServerWorld world, int preFillCacheZone) {
+    public static void computePaths(ServerLevel world, int preFillCacheZone) {
         computePaths(world, preFillCacheZone, 10480);
     }
 

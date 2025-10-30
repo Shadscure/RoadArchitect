@@ -1,7 +1,7 @@
 package net.oxcodsnet.roadarchitect.util;
 
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 
@@ -26,11 +26,11 @@ public final class TerrainAnalyzer {
      * Returns Double.MAX_VALUE to mark the position as invalid when the
      * immediate neighborhood is too steep.
      */
-    public static double stabilityCost(ServerWorld world, int x, int z, int y) {
+    public static double stabilityCost(ServerLevel world, int x, int z, int y) {
         // Quick local steepness guard (cardinal neighbors). Blocks clearly unstable spots.
         int local = 0;
-        for (Direction d : Direction.Type.HORIZONTAL) {
-            int ny = CacheManager.getHeight(world, x + d.getOffsetX(), z + d.getOffsetZ());
+        for (Direction d : Direction.Plane.HORIZONTAL) {
+            int ny = CacheManager.getHeight(world, x + d.getStepX(), z + d.getStepZ());
             local += Math.abs(y - ny);
             if (local > 3) {
                 return Double.MAX_VALUE;

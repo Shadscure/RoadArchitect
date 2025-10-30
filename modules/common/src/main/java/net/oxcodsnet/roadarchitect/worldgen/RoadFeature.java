@@ -1,24 +1,24 @@
 package net.oxcodsnet.roadarchitect.worldgen;
 
 import com.mojang.serialization.Codec;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.StructureWorldAccess;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.util.FeatureContext;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
+import net.minecraft.world.phys.Vec3;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.PathStorage;
 import net.oxcodsnet.roadarchitect.storage.RoadBuilderStorage;
@@ -53,7 +53,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/" + RoadFeature.class.getSimpleName());
 
     private static final BuoyDecoration BUOY = new BuoyDecoration();
-    private static final BlockState PREPARATION_BLOCK = Blocks.BEDROCK.getDefaultState();
+    private static final BlockState PREPARATION_BLOCK = Blocks.BEDROCK.defaultBlockState();
     private static final int PREPARATION_CLEARANCE_EXTRA = 2;
     private static final Map<Long, PreparationEntry> PREPARATION_BACKUP = new ConcurrentHashMap<>();
     private static final Map<Long, ColumnSnapshot> PREPARATION_COLUMNS = new ConcurrentHashMap<>();
@@ -92,16 +92,16 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
     }
 
 
-    private static void buildRoadStripe(StructureWorldAccess world, List<BlockPos> pts, int halfWidth, Random random, GenerationPhase phase) {
+    private static void buildRoadStripe(WorldGenLevel world, List<BlockPos> pts, int halfWidth, RandomSource random, GenerationPhase phase) {
         boolean finalizePhase = phase == GenerationPhase.FINALIZE;
         int clearanceHalfWidth = halfWidth + PREPARATION_CLEARANCE_EXTRA;
-        Registry<Biome> biomeRegistry = finalizePhase ? world.getRegistryManager().getOrThrow(RegistryKeys.BIOME) : null;
+        Registry<Biome> biomeRegistry = finalizePhase ? world.registryAccess().lookupOrThrow(Registries.BIOME) : null;
         for (int i = 0; i < pts.size(); i++) {
             BlockPos p = pts.get(i);
             int prevIdx = Math.max(0, i - 2);
             int nextIdx = Math.min(pts.size() - 1, i + 2);
-            Vec3d prevPoint = Vec3d.ofCenter(pts.get(prevIdx));
-            Vec3d nextPoint = Vec3d.ofCenter(pts.get(nextIdx));
+            Vec3 prevPoint = Vec3.atCenterOf(pts.get(prevIdx));
+            Vec3 nextPoint = Vec3.atCenterOf(pts.get(nextIdx));
             double segDx = nextPoint.x - prevPoint.x;
             double segDz = nextPoint.z - prevPoint.z;
             double segmentLengthSq = segDx * segDx + segDz * segDz;
@@ -111,14 +111,14 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                 segDz = 0.0D;
             }
             double invLen = 1.0D / Math.sqrt(segmentLengthSq);
-            Vec3d dir = new Vec3d(segDx * invLen, 0.0D, segDz * invLen);
+            Vec3 dir = new Vec3(segDx * invLen, 0.0D, segDz * invLen);
             double nx = dir.x;
             double nz = dir.z;
 
             for (int dx = -clearanceHalfWidth; dx <= clearanceHalfWidth; dx++) {
                 for (int dz = -clearanceHalfWidth; dz <= clearanceHalfWidth; dz++) {
-                    BlockPos roadPos = p.add(dx, 0, dz);
-                    Vec3d cellCenter = Vec3d.ofCenter(roadPos);
+                    BlockPos roadPos = p.offset(dx, 0, dz);
+                    Vec3 cellCenter = Vec3.atCenterOf(roadPos);
                     double dist = horizontalDistanceToSegment(cellCenter, prevPoint, segDx, segDz, segmentLengthSq);
                     boolean insideRoad = dist <= (halfWidth + PIXEL_PADDING);
                     boolean insideClearance = dist <= (clearanceHalfWidth + PIXEL_PADDING);
@@ -133,7 +133,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                         }
                         if (insideRoad) {
                             prepareCell(world, roadPos, PreparationRole.ROAD);
-                            BlockPos topPos = roadPos.up();
+                            BlockPos topPos = roadPos.above();
                             prepareCell(world, topPos, PreparationRole.CAP);
                         } else {
                             prepareCell(world, roadPos, PreparationRole.CLEARANCE);
@@ -145,7 +145,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                         if (!isNotWaterBlock(world, roadPos)) {
                             continue;
                         }
-                        RegistryEntry<Biome> biome = world.getBiome(roadPos);
+                        Holder<Biome> biome = world.getBiome(roadPos);
                         RoadStyle style = RoadStyles.forBiome(biomeRegistry, biome);
                         BlockState roadState = style.palette().pick(random);
                         placeRoad(world, roadPos, roadState);
@@ -153,19 +153,19 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                         if (groundEntry != null) {
                             releaseColumn(roadPos);
                         }
-                        BlockPos topPos = roadPos.up();
+                        BlockPos topPos = roadPos.above();
                         long packedTop = topPos.asLong();
                         PreparationEntry topEntry = PREPARATION_BACKUP.remove(packedTop);
                         if (topEntry != null) {
                             restoreFromEntry(world, topPos, topEntry);
-                        } else if (world.getBlockState(topPos).isOf(PREPARATION_BLOCK.getBlock())) {
+                        } else if (world.getBlockState(topPos).is(PREPARATION_BLOCK.getBlock())) {
                             world.removeBlock(topPos, false);
                         }
                     } else {
                         PreparationEntry entry = PREPARATION_BACKUP.remove(packedPos);
                         if (entry != null) {
                             restoreFromEntry(world, roadPos, entry);
-                        } else if (world.getBlockState(roadPos).isOf(PREPARATION_BLOCK.getBlock())) {
+                        } else if (world.getBlockState(roadPos).is(PREPARATION_BLOCK.getBlock())) {
                             world.removeBlock(roadPos, false);
                         }
                     }
@@ -190,7 +190,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
     /* ======================  ВСПОМОГАТЕЛЬНОЕ  ==================== */
 
-    private static void decorateSide(StructureWorldAccess world, BlockPos center, double nx, double nz, int halfWidth, Decoration deco, Random random) {
+    private static void decorateSide(WorldGenLevel world, BlockPos center, double nx, double nz, int halfWidth, Decoration deco, RandomSource random) {
         int side = random.nextBoolean() ? 1 : -1;
         int sx = (int) Math.round(-nz * side);
         int sz = (int) Math.round(nx * side);
@@ -201,27 +201,27 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         if (deco instanceof FenceDecoration fence) {
             List<BlockPos> stripe = new ArrayList<>();
             for (int j = 0; j < length; j++) {
-                BlockPos dpos = center.add(sx * (halfWidth + 1) + fx * j, 0, sz * (halfWidth + 1) + fz * j);
+                BlockPos dpos = center.offset(sx * (halfWidth + 1) + fx * j, 0, sz * (halfWidth + 1) + fz * j);
                 if (!isNotWaterBlock(world, dpos)) {continue;}
                 stripe.add(dpos);
             }
             fence.placeFenceStripe(world, stripe);
         } else {
             for (int j = 0; j < length; j++) {
-                BlockPos dpos = center.add(sx * (halfWidth + 1) + fx * j, 0, sz * (halfWidth + 1) + fz * j);
+                BlockPos dpos = center.offset(sx * (halfWidth + 1) + fx * j, 0, sz * (halfWidth + 1) + fz * j);
                 if (!isNotWaterBlock(world, dpos)) {continue;}
                 deco.place(world, dpos, random);
             }
         }
     }
 
-    private static void placeLampDet(StructureWorldAccess world, BlockPos center, double nx, double nz, int halfWidth,
-                                     LampPostDecoration base, boolean leftFirst, Random random) {
+    private static void placeLampDet(WorldGenLevel world, BlockPos center, double nx, double nz, int halfWidth,
+                                     LampPostDecoration base, boolean leftFirst, RandomSource random) {
         int sx = (int) Math.round(-nz);
         int sz = (int) Math.round(nx);
 
-        BlockPos leftPos  = center.add( sx * (halfWidth + 1), 0,  sz * (halfWidth + 1));
-        BlockPos rightPos = center.add(-sx * (halfWidth + 1), 0, -sz * (halfWidth + 1));
+        BlockPos leftPos  = center.offset( sx * (halfWidth + 1), 0,  sz * (halfWidth + 1));
+        BlockPos rightPos = center.offset(-sx * (halfWidth + 1), 0, -sz * (halfWidth + 1));
         Direction leftFace  = directionFrom(-sx, -sz);
         Direction rightFace = directionFrom( sx,  sz);
 
@@ -240,8 +240,8 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         }
     }
 
-    private static void placeSideDet(StructureWorldAccess world, BlockPos center, double nx, double nz, int halfWidth,
-                                     Decoration deco, boolean leftSide, int length, Random detRandom) {
+    private static void placeSideDet(WorldGenLevel world, BlockPos center, double nx, double nz, int halfWidth,
+                                     Decoration deco, boolean leftSide, int length, RandomSource detRandom) {
         int sideMul = leftSide ? 1 : -1;
         int sx = (int) Math.round(-nz * sideMul);
         int sz = (int) Math.round(nx * sideMul);
@@ -251,14 +251,14 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         if (deco instanceof FenceDecoration fence) {
             List<BlockPos> stripe = new ArrayList<>();
             for (int j = 0; j < length; j++) {
-                BlockPos dpos = center.add(sx * (halfWidth + 1) + fx * j, 0, sz * (halfWidth + 1) + fz * j);
+                BlockPos dpos = center.offset(sx * (halfWidth + 1) + fx * j, 0, sz * (halfWidth + 1) + fz * j);
                 if (!isNotWaterBlock(world, dpos)) { continue; }
                 stripe.add(dpos);
             }
             if (!stripe.isEmpty()) fence.placeFenceStripe(world, stripe);
         } else {
             for (int j = 0; j < length; j++) {
-                BlockPos dpos = center.add(sx * (halfWidth + 1) + fx * j, 0, sz * (halfWidth + 1) + fz * j);
+                BlockPos dpos = center.offset(sx * (halfWidth + 1) + fx * j, 0, sz * (halfWidth + 1) + fz * j);
                 if (!isNotWaterBlock(world, dpos)) { continue; }
                 deco.place(world, dpos, detRandom);
             }
@@ -273,7 +273,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         return Direction.NORTH;
     }
 
-    private static void prepareCell(StructureWorldAccess world, BlockPos pos, PreparationRole role) {
+    private static void prepareCell(WorldGenLevel world, BlockPos pos, PreparationRole role) {
         long key = pos.asLong();
         BlockState currentState = world.getBlockState(pos);
         PREPARATION_BACKUP.compute(key, (k, existing) -> {
@@ -283,14 +283,14 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
             if (first) {
                 retainColumn(world, pos, mergedRole, original);
             }
-            if (!currentState.isOf(PREPARATION_BLOCK.getBlock())) {
-                world.setBlockState(pos, PREPARATION_BLOCK, Block.NOTIFY_NEIGHBORS);
+            if (!currentState.is(PREPARATION_BLOCK.getBlock())) {
+                world.setBlock(pos, PREPARATION_BLOCK, Block.UPDATE_NEIGHBORS);
             }
             return new PreparationEntry(original, mergedRole);
         });
     }
 
-    private static void restoreFromEntry(StructureWorldAccess world, BlockPos pos, PreparationEntry entry) {
+    private static void restoreFromEntry(WorldGenLevel world, BlockPos pos, PreparationEntry entry) {
         if (entry == null) {
             return;
         }
@@ -298,12 +298,12 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         if (original == null || original.isAir()) {
             world.removeBlock(pos, false);
         } else {
-            world.setBlockState(pos, original, Block.NOTIFY_NEIGHBORS);
+            world.setBlock(pos, original, Block.UPDATE_NEIGHBORS);
         }
         releaseColumn(pos);
     }
 
-    private static void retainColumn(StructureWorldAccess world, BlockPos pos, PreparationRole role, BlockState originalState) {
+    private static void retainColumn(WorldGenLevel world, BlockPos pos, PreparationRole role, BlockState originalState) {
         long key = columnKey(pos.getX(), pos.getZ());
         PREPARATION_COLUMNS.compute(key, (k, snapshot) -> {
             int measuredHeight = measureSurfaceHeight(world, pos, originalState);
@@ -329,12 +329,12 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         });
     }
 
-    private static int measureSurfaceHeight(StructureWorldAccess world, BlockPos pos, BlockState originalState) {
+    private static int measureSurfaceHeight(WorldGenLevel world, BlockPos pos, BlockState originalState) {
         if (originalState != null && !originalState.isAir()) {
             return pos.getY();
         }
-        BlockPos.Mutable mutable = pos.mutableCopy();
-        int bottom = world.getBottomY();
+        BlockPos.MutableBlockPos mutable = pos.mutable();
+        int bottom = world.getMinY();
         while (mutable.getY() >= bottom) {
             BlockState state = world.getBlockState(mutable);
             if (!state.isAir()) {
@@ -357,7 +357,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         return OptionalInt.of(snapshot.height);
     }
 
-    private static double horizontalDistanceToSegment(Vec3d point, Vec3d start, double segDx, double segDz, double segmentLengthSq) {
+    private static double horizontalDistanceToSegment(Vec3 point, Vec3 start, double segDx, double segDz, double segmentLengthSq) {
         double px = point.x;
         double pz = point.z;
         double ax = start.x;
@@ -367,7 +367,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
             double dz = pz - az;
             return Math.sqrt(dx * dx + dz * dz);
         }
-        double t = MathHelper.clamp(((px - ax) * segDx + (pz - az) * segDz) / segmentLengthSq, 0.0D, 1.0D);
+        double t = Mth.clamp(((px - ax) * segDx + (pz - az) * segDz) / segmentLengthSq, 0.0D, 1.0D);
         double closestX = ax + segDx * t;
         double closestZ = az + segDz * t;
         double dx = px - closestX;
@@ -375,17 +375,17 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
         return Math.sqrt(dx * dx + dz * dz);
     }
 
-    private static void placeRoad(StructureWorldAccess world, BlockPos pos, BlockState stateRoad) {
+    private static void placeRoad(WorldGenLevel world, BlockPos pos, BlockState stateRoad) {
         if (!isNotWaterBlock(world, pos)) {return;}
-        world.setBlockState(pos, stateRoad, Block.NOTIFY_NEIGHBORS);
+        world.setBlock(pos, stateRoad, Block.UPDATE_NEIGHBORS);
         //world.setBlockState(pos.up(), Blocks.AIR.getDefaultState(), Block.NOTIFY_NEIGHBORS);
     }
 
 
-    private static boolean isNotWaterBlock(StructureWorldAccess world, BlockPos pos) {
+    private static boolean isNotWaterBlock(WorldGenLevel world, BlockPos pos) {
         int cx = pos.getX() >> 4, cz = pos.getZ() >> 4;
-        if (!world.isChunkLoaded(cx, cz)) return true;
-        return !world.getBlockState(pos).getFluidState().isIn(FluidTags.WATER);
+        if (!world.hasChunk(cx, cz)) return true;
+        return !world.getBlockState(pos).getFluidState().is(FluidTags.WATER);
     }
 
 
@@ -394,7 +394,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
      * с начала и конца каждого сухого прогона (эрозия на 1).
      */
     private static List<BlockPos> collectLandPoints(
-            StructureWorldAccess world, List<BlockPos> pts, int from, int to
+            WorldGenLevel world, List<BlockPos> pts, int from, int to
     ) {
         int n = pts.size();
         // Расширяем окно на 1 с двух сторон, чтобы увидеть соседей за границей слайса
@@ -421,14 +421,14 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
     }
 
     @Override
-    public boolean generate(FeatureContext<RoadFeatureConfig> ctx) {
-        ServerWorld serverWorld = ctx.getWorld().toServerWorld();
+    public boolean place(FeaturePlaceContext<RoadFeatureConfig> ctx) {
+        ServerLevel serverWorld = ctx.level().getLevel();
         if (serverWorld == null) {
             return false;
         }
 
-        StructureWorldAccess world = ctx.getWorld();
-        ChunkPos chunk = new ChunkPos(ctx.getOrigin());
+        WorldGenLevel world = ctx.level();
+        ChunkPos chunk = new ChunkPos(ctx.origin());
 
         RoadBuilderStorage builder = RoadBuilderStorage.get(serverWorld);
         PathStorage paths = PathStorage.get(serverWorld);
@@ -441,10 +441,10 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
             orthWidth -= 1;
         }
         int halfWidth = Math.max(0, orthWidth / 2);
-        Random random = world.getRandom();
-        GenerationPhase phase = ctx.getConfig().phase();
+        RandomSource random = world.getRandom();
+        GenerationPhase phase = ctx.config().phase();
         boolean finalizePhase = phase == GenerationPhase.FINALIZE;
-        Registry<Biome> biomeRegistry = world.getRegistryManager().getOrThrow(RegistryKeys.BIOME);
+        Registry<Biome> biomeRegistry = world.registryAccess().lookupOrThrow(Registries.BIOME);
         boolean placedAny = false;
 
         for (RoadBuilderStorage.SegmentEntry entry : queue) {
@@ -513,7 +513,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
                     int prevIdx = Math.max(0, i - 2);
                     int nextIdx = Math.min(pts.size() - 1, i + 2);
-                    net.minecraft.util.math.Vec3d dir = new net.minecraft.util.math.Vec3d(
+                    net.minecraft.world.phys.Vec3 dir = new net.minecraft.world.phys.Vec3(
                             pts.get(nextIdx).getX() - pts.get(prevIdx).getX(),
                             0.0D,
                             pts.get(nextIdx).getZ() - pts.get(prevIdx).getZ()
@@ -523,7 +523,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
                     // Seed left/right deterministically by (pathKey, ordinal)
                     boolean leftFirst = PathDecorUtil.detBool(pathKey, m.k());
-                    RegistryEntry<Biome> biomeAtP = world.getBiome(p);
+                    Holder<Biome> biomeAtP = world.getBiome(p);
                     LampPostDecoration resolved = LampPostConfigResolver.resolve(world, biomeAtP, null, pathKey, m.k());
                     if (resolved != null) {
                         placeLampDet(world, p, nx, nz, halfWidth, resolved, leftFirst, random);
@@ -545,7 +545,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                     // direction
                     int prevIdx = Math.max(0, i - 2);
                     int nextIdx = Math.min(pts.size() - 1, i + 2);
-                    Vec3d dir = new Vec3d(
+                    Vec3 dir = new Vec3(
                             pts.get(nextIdx).getX() - pts.get(prevIdx).getX(),
                             0.0D,
                             pts.get(nextIdx).getZ() - pts.get(prevIdx).getZ()
@@ -564,7 +564,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                     boolean leftSide = PathDecorUtil.detBool(pathKey, m.k());
                     int length = 1 + PathDecorUtil.detInt(pathKey, m.k() ^ 0x55AA55AAL, 3);
 
-                    placeSideDet(world, p, nx, nz, halfWidth, chosen, leftSide, length, net.minecraft.util.math.random.Random.create(m.k() ^ pathKey.hashCode()));
+                    placeSideDet(world, p, nx, nz, halfWidth, chosen, leftSide, length, net.minecraft.util.RandomSource.create(m.k() ^ pathKey.hashCode()));
                 }
             }
         }

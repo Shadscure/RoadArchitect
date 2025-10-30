@@ -5,10 +5,10 @@ import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.gui.registry.GuiRegistry;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
 import net.oxcodsnet.roadarchitect.config.defaults.BopRoadStyleDefaults;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
 import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
@@ -234,7 +234,7 @@ public final class RAConfigFabricBridge {
         holder.registerSaveListener((h, cfg) -> {
             RoadPipelineController.refreshStructureSelectorCache();
             LOG.info("[RoadArchitect] config reloaded");
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         });
 
         LOG.info("[RoadArchitect] cloth-config bridge initialized");
@@ -251,7 +251,7 @@ public final class RAConfigFabricBridge {
             registry.registerPredicateProvider(
                     (name, field, config, defaults, guiRegistry) -> java.util.List.of(
                             ConfigEntryBuilder.create()
-                                    .startTextDescription(Text.translatable("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint"))
+                                    .startTextDescription(Component.translatable("text.autoconfig.roadarchitect.option.bopRoadStyles.installHint"))
                                     .build()
                     ),
                     field -> field.getDeclaringClass() == RoadArchitectConfigData.class

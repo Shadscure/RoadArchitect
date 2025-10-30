@@ -5,8 +5,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.oxcodsnet.roadarchitect.handlers.RoadPipelineController;
 import net.oxcodsnet.roadarchitect.handlers.compat.DhCompat;
 import net.oxcodsnet.roadarchitect.util.DebugLog;
@@ -31,7 +31,7 @@ public final class RoadPipelineFabricEvents {
             DebugLog.info(LOGGER, "Distant Horizons detected: skipping INIT pregen; pipeline will start on player join");
         }
 
-        ServerChunkEvents.CHUNK_LOAD.register((ServerWorld world, WorldChunk chunk) -> {
+        ServerChunkEvents.CHUNK_LOAD.register((ServerLevel world, LevelChunk chunk) -> {
             if (!dhPresent) {
                 RoadPipelineController.onSpawnChunkGenerated(world, chunk);
             }

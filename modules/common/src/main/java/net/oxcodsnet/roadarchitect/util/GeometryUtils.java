@@ -1,6 +1,6 @@
 package net.oxcodsnet.roadarchitect.util;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 /**
  * Geometry helper methods for 2D segment intersection checks.

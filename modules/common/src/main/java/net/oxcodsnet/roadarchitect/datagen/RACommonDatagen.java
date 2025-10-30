@@ -1,7 +1,7 @@
 package net.oxcodsnet.roadarchitect.datagen;
 
-import net.minecraft.registry.RegistryBuilder;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.core.RegistrySetBuilder;
+import net.minecraft.core.registries.Registries;
 import net.oxcodsnet.roadarchitect.worldgen.RoadFeatureRegistry;
 
 /**
@@ -12,8 +12,8 @@ public final class RACommonDatagen {
     private RACommonDatagen() {
     }
 
-    public static void buildRegistries(RegistryBuilder builder) {
-        builder.addRegistry(RegistryKeys.CONFIGURED_FEATURE, RoadFeatureRegistry::bootstrapConfigured);
-        builder.addRegistry(RegistryKeys.PLACED_FEATURE, RoadFeatureRegistry::bootstrapPlaced);
+    public static void buildRegistries(RegistrySetBuilder builder) {
+        builder.add(Registries.CONFIGURED_FEATURE, RoadFeatureRegistry::bootstrapConfigured);
+        builder.add(Registries.PLACED_FEATURE, RoadFeatureRegistry::bootstrapPlaced);
     }
 }

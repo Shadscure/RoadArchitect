@@ -2,9 +2,9 @@ package net.oxcodsnet.roadarchitect.fabric.events;
 
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.world.gen.GenerationStep;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.levelgen.GenerationStep;
 import net.oxcodsnet.roadarchitect.worldgen.RoadFeatureRegistry;
 
 /**
@@ -16,22 +16,22 @@ public final class RoadFeatureRegistryFabric {
     public static void register() {
         // 1) Регистрируем сам Feature (экземпляр) по ключу
         Registry.register(
-                Registries.FEATURE,
-                RoadFeatureRegistry.ROAD_FEATURE_KEY.getValue(),
+                BuiltInRegistries.FEATURE,
+                RoadFeatureRegistry.ROAD_FEATURE_KEY.location(),
                 RoadFeatureRegistry.ROAD_FEATURE
         );
 
         // 2) Втыкаем подготовительную фазу на LOCAL_MODIFICATIONS
         BiomeModifications.addFeature(
                 BiomeSelectors.all(),
-                GenerationStep.Feature.LOCAL_MODIFICATIONS,
+                GenerationStep.Decoration.LOCAL_MODIFICATIONS,
                 RoadFeatureRegistry.ROAD_PREP_PLACED_FEATURE_KEY
         );
 
         // 3) Финишный проход на VEGETAL_DECORATION
         BiomeModifications.addFeature(
                 BiomeSelectors.all(),
-                GenerationStep.Feature.VEGETAL_DECORATION,
+                GenerationStep.Decoration.VEGETAL_DECORATION,
                 RoadFeatureRegistry.ROAD_FINAL_PLACED_FEATURE_KEY
         );
     }

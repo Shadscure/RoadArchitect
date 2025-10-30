@@ -1,7 +1,3 @@
-import java.util.Locale
-import org.gradle.api.GradleException
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-
 plugins {
     id 'dev.architectury.loom' version '1.11-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
@@ -333,12 +329,8 @@ subprojects {
 
     dependencies {
         minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
-//        mappings loom.layered {
-//            officialMojangMappings()
-//        }
         mappings loom.layered {
-            it.mappings("net.fabricmc:yarn:$rootProject.yarn_mappings:v2")
-            it.mappings("dev.architectury:yarn-mappings-patch-neoforge:$rootProject.yarn_mappings_patch_neoforge_version")
+            officialMojangMappings()
         }
         testImplementation "org.junit.jupiter:junit-jupiter-api:5.10.2"
         testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.2"

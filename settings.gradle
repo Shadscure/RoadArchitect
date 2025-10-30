@@ -1,5 +1,3 @@
-import java.util.Locale
-
 pluginManagement {
     if (!settings.ext.has('loadDotEnvValues')) {
         settings.ext.dotEnvCache = null

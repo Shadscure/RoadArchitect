@@ -1,10 +1,9 @@
 package net.oxcodsnet.roadarchitect.worldgen.style;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.random.Random;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Weighted random palette of block states used for road surfaces.
@@ -22,7 +21,7 @@ public final class BlockPalette {
         return new Builder();
     }
 
-    public BlockState pick(Random random) {
+    public BlockState pick(RandomSource random) {
         if (this.entries.isEmpty()) {
             throw new IllegalStateException("BlockPalette is empty");
         }

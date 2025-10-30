@@ -2,13 +2,13 @@ package net.oxcodsnet.roadarchitect.worldgen;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.util.StringIdentifiable;
-import net.minecraft.world.gen.feature.FeatureConfig;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 
 /**
  * Configuration for {@link RoadFeature}.
  */
-public record RoadFeatureConfig(int orthWidth, int forwardLength, GenerationPhase phase) implements FeatureConfig {
+public record RoadFeatureConfig(int orthWidth, int forwardLength, GenerationPhase phase) implements FeatureConfiguration {
 
     /**
      * Codec for serialising the configuration.
@@ -24,7 +24,7 @@ public record RoadFeatureConfig(int orthWidth, int forwardLength, GenerationPhas
     /**
      * Distinguishes between the preparation pass and the finishing pass.
      */
-    public enum GenerationPhase implements StringIdentifiable {
+    public enum GenerationPhase implements StringRepresentable {
         PREPARE("prepare"),
         FINALIZE("finalize");
 
@@ -35,13 +35,13 @@ public record RoadFeatureConfig(int orthWidth, int forwardLength, GenerationPhas
         }
 
         @Override
-        public String asString() {
+        public String getSerializedName() {
             return id;
         }
 
         /**
          * Codec for serialising the enum.
          */
-        public static final Codec<GenerationPhase> CODEC = StringIdentifiable.createCodec(GenerationPhase::values);
+        public static final EnumCodec<GenerationPhase> CODEC = StringRepresentable.fromEnum(GenerationPhase::values);
     }
 }

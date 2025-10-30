@@ -1,13 +1,13 @@
 package net.oxcodsnet.roadarchitect.forge.client.hook;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.LevelLoadingScreen;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.client.gui.LoadingOverlayRenderer;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.LevelLoadingScreen;
 
 @Mod.EventBusSubscriber(modid = RoadArchitect.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public final class LoadingOverlayHook {
@@ -19,11 +19,11 @@ public final class LoadingOverlayHook {
             return;
         }
 
-        MinecraftClient mc = MinecraftClient.getInstance();
+        Minecraft mc = Minecraft.getInstance();
         LoadingOverlayRenderer.render(
                 event.getGuiGraphics(),
-                mc.getWindow().getScaledWidth(),
-                mc.getWindow().getScaledHeight()
+                mc.getWindow().getGuiScaledWidth(),
+                mc.getWindow().getGuiScaledHeight()
         );
     }
 

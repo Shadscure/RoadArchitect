@@ -1,12 +1,11 @@
 package net.oxcodsnet.roadarchitect.handlers;
 
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
-import net.minecraft.world.Heightmap;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.world.gen.noise.NoiseConfig;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.RandomState;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.PathStorage;
 import net.oxcodsnet.roadarchitect.util.AsyncExecutor;
@@ -20,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.OptionalInt;
 
 /**
  * Post-processes raw A* paths into detailed block sequences
@@ -56,9 +54,9 @@ public final class RoadPostProcessor {
     }
 
     // ====== Регистрация хуков ======
-    public static void onStartWorldTick(ServerWorld world) {
-        if (world.isClient()) return;
-        if (!RoadPipelineController.isDimensionEnabled(world.getRegistryKey())) return;
+    public static void onStartWorldTick(ServerLevel world) {
+        if (world.isClientSide()) return;
+        if (!RoadPipelineController.isDimensionEnabled(world.dimension())) return;
         processPending(world);
     }
 
@@ -100,11 +98,11 @@ public final class RoadPostProcessor {
     }
 
     // ====== refine как было ======
-    private static List<BlockPos> refine(ServerWorld world, List<BlockPos> verts) {
+    private static List<BlockPos> refine(ServerLevel world, List<BlockPos> verts) {
         if (verts.isEmpty()) return List.of();
 
-        ChunkGenerator generator = world.getChunkManager().getChunkGenerator();
-        NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
+        ChunkGenerator generator = world.getChunkSource().getGenerator();
+        RandomState noiseConfig = world.getChunkSource().randomState();
         Map<Long, Integer> resolvedHeights = new HashMap<>();
         List<BlockPos> out = new ArrayList<>(verts.size() * PathFinder.GRID_STEP);
         for (int i = 0; i < verts.size() - 1; i++) {
@@ -117,9 +115,9 @@ public final class RoadPostProcessor {
         return out;
     }
 
-    private static void interpolate(ServerWorld world,
+    private static void interpolate(ServerLevel world,
                                     ChunkGenerator generator,
-                                    NoiseConfig noiseConfig,
+                                    RandomState noiseConfig,
                                     BlockPos a,
                                     BlockPos b,
                                     Map<Long, Integer> resolvedHeights,
@@ -135,18 +133,18 @@ public final class RoadPostProcessor {
         }
     }
 
-    private static BlockPos adjustToGround(ServerWorld world,
+    private static BlockPos adjustToGround(ServerLevel world,
                                            ChunkGenerator generator,
-                                           NoiseConfig noiseConfig,
+                                           RandomState noiseConfig,
                                            Map<Long, Integer> resolvedHeights,
                                            BlockPos pos) {
         int surface = resolveSurfaceHeight(world, generator, noiseConfig, resolvedHeights, pos.getX(), pos.getZ());
         return new BlockPos(pos.getX(), surface - 1, pos.getZ());
     }
 
-    private static int resolveSurfaceHeight(ServerWorld world,
+    private static int resolveSurfaceHeight(ServerLevel world,
                                             ChunkGenerator generator,
-                                            NoiseConfig noiseConfig,
+                                            RandomState noiseConfig,
                                             Map<Long, Integer> resolvedHeights,
                                             int x,
                                             int z) {
@@ -158,13 +156,13 @@ public final class RoadPostProcessor {
 
         OptionalInt prepared = RoadFeature.lookupPreparedSurface(x, z);
         int resolved = prepared.isPresent() ? prepared.getAsInt() : CacheManager.getHeight(world, x, z);
-        int bottomGuard = world.getBottomY() + 1;
+        int bottomGuard = world.getMinBuildHeight() + 1;
         if (resolved < bottomGuard) {
             resolved = bottomGuard;
         }
 
         if (generator != null && noiseConfig != null) {
-            int generated = generator.getHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG, world, noiseConfig);
+            int generated = generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, world, noiseConfig);
             if (generated > resolved) {
                 resolved = generated;
             }
@@ -261,7 +259,7 @@ public final class RoadPostProcessor {
     }
 
     // ====== Планирование как у тебя: по одному ключу ======
-    public static void processPending(ServerWorld world) {
+    public static void processPending(ServerLevel world) {
         PathStorage storage = PathStorage.get(world);
         PipelineProfiler.increment("postprocess.invocations");
         int examined = 0;
@@ -275,7 +273,7 @@ public final class RoadPostProcessor {
         PipelineProfiler.recordValue("postprocess.entries_examined", examined);
     }
 
-    private static void processChunk(ServerWorld world, ChunkPos chunk) {
+    private static void processChunk(ServerLevel world, ChunkPos chunk) {
         PathStorage storage = PathStorage.get(world);
         for (String key : storage.getPendingForChunk(chunk)) {
             schedule(world, storage, key);
@@ -289,7 +287,7 @@ public final class RoadPostProcessor {
      * если слили -> updatePath(..., READY).
      * Никаких «скрытых» переводов статусов в finally.
      */
-    private static void schedule(ServerWorld world, PathStorage storage, String baseKey) {
+    private static void schedule(ServerLevel world, PathStorage storage, String baseKey) {
         if (!storage.tryMarkProcessing(baseKey)) return; // уже не PENDING
         PipelineProfiler.increment("postprocess.jobs_scheduled");
         final List<BlockPos> baseRawInitial = storage.getPath(baseKey);
@@ -510,7 +508,7 @@ public final class RoadPostProcessor {
     }
 
     // ====== Построение Y и persist-ствола ======
-    private static BuildResult buildY(ServerWorld world,
+    private static BuildResult buildY(ServerLevel world,
                                       String keyA, List<BlockPos> a,
                                       String keyB, List<BlockPos> b,
                                       Convergence conv) {
@@ -519,8 +517,8 @@ public final class RoadPostProcessor {
 
         int jx = (int) Math.round((pa.getX() + pb.getX()) / 2.0);
         int jz = (int) Math.round((pa.getZ() + pb.getZ()) / 2.0);
-        ChunkGenerator generator = world.getChunkManager().getChunkGenerator();
-        NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
+        ChunkGenerator generator = world.getChunkSource().getGenerator();
+        RandomState noiseConfig = world.getChunkSource().randomState();
         Map<Long, Integer> resolvedHeights = new HashMap<>();
         BlockPos J = adjustToGround(world, generator, noiseConfig, resolvedHeights, new BlockPos(jx, pa.getY(), jz));
 

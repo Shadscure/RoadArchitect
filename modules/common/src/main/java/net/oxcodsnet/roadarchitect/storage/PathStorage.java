@@ -1,13 +1,13 @@
 package net.oxcodsnet.roadarchitect.storage;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtLong;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.PersistentState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.LongTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.saveddata.SavedData;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.util.KeyUtil;
 import net.oxcodsnet.roadarchitect.util.PersistentStateUtil;
@@ -20,10 +20,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Хранит просчитанные пути между узлами как {@link PersistentState}.
- * <p>Stores computed paths between nodes as a {@link PersistentState}.</p>
+ * Хранит просчитанные пути между узлами как {@link SavedData}.
+ * <p>Stores computed paths between nodes as a {@link SavedData}.</p>
  */
-public class PathStorage extends PersistentState {
+public class PathStorage extends SavedData {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/" + PathStorage.class.getSimpleName());
     private static final String KEY = "road_paths";
     private static final String PATHS_KEY = "paths";
@@ -42,7 +42,7 @@ public class PathStorage extends PersistentState {
      * @param world серверный мир / server world
      * @return хранилище путей / path storage instance
      */
-    public static PathStorage get(ServerWorld world) {
+    public static PathStorage get(ServerLevel world) {
         return PersistentStateUtil.get(world, PathStorage::new, PathStorage::fromNbt, KEY);
     }
 
@@ -50,18 +50,18 @@ public class PathStorage extends PersistentState {
      * Восстанавливает хранилище из NBT.
      * <p>Recreates the storage from an NBT compound.</p>
      */
-    public static PathStorage fromNbt(NbtCompound tag) {
+    public static PathStorage fromNbt(CompoundTag tag) {
         PathStorage storage = new PathStorage();
-        NbtList list = tag.getList(PATHS_KEY, NbtElement.COMPOUND_TYPE);
+        ListTag list = tag.getList(PATHS_KEY, Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
-            NbtCompound entry = list.getCompound(i);
+            CompoundTag entry = list.getCompound(i);
             String from = entry.getString(FROM_KEY);
             String to = entry.getString(TO_KEY);
             String key = KeyUtil.pathKey(from, to);
-            NbtList posList = entry.getList(POS_KEY, NbtElement.LONG_TYPE);
+            ListTag posList = entry.getList(POS_KEY, Tag.TAG_LONG);
             List<BlockPos> positions = new ArrayList<>();
-            for (NbtElement nbtElement : posList) {
-                positions.add(BlockPos.fromLong(((NbtLong) nbtElement).longValue()));
+            for (Tag nbtElement : posList) {
+                positions.add(BlockPos.of(((LongTag) nbtElement).getAsLong()));
             }
             storage.paths.put(key, positions);
             Status status = net.oxcodsnet.roadarchitect.util.NbtUtils.getEnumOrDefault(entry, STATUS_KEY, Status.class, Status.READY);
@@ -75,17 +75,17 @@ public class PathStorage extends PersistentState {
      * <p>Serializes all paths into an NBT compound.</p>
      */
     @Override
-    public NbtCompound writeNbt(NbtCompound tag) {
-        NbtList list = new NbtList();
+    public CompoundTag save(CompoundTag tag) {
+        ListTag list = new ListTag();
         for (Map.Entry<String, List<BlockPos>> entry : paths.entrySet()) {
             String[] ids = KeyUtil.parsePathKey(entry.getKey());
             if (ids.length != 2) continue;
-            NbtCompound elem = new NbtCompound();
+            CompoundTag elem = new CompoundTag();
             elem.putString(FROM_KEY, ids[0]);
             elem.putString(TO_KEY, ids[1]);
-            NbtList posList = new NbtList();
+            ListTag posList = new ListTag();
             for (BlockPos pos : entry.getValue()) {
-                posList.add(NbtLong.of(pos.asLong()));
+                posList.add(LongTag.valueOf(pos.asLong()));
             }
             elem.put(POS_KEY, posList);
             Status st = statuses.getOrDefault(entry.getKey(), Status.PENDING);
@@ -104,13 +104,13 @@ public class PathStorage extends PersistentState {
         String key = KeyUtil.pathKey(from, to);
         paths.put(key, List.copyOf(path));
         statuses.put(key, status);
-        markDirty();
+        setDirty();
     }
 
     public void updatePath(String key, List<BlockPos> path, Status status) {
         paths.put(key, List.copyOf(path));
         statuses.put(key, status);
-        markDirty();
+        setDirty();
     }
 
     /**
@@ -131,7 +131,7 @@ public class PathStorage extends PersistentState {
 
     public void setStatus(String key, Status status) {
         statuses.put(key, status);
-        markDirty();
+        setDirty();
     }
 
     public Map<String, Status> allStatuses() {
@@ -145,7 +145,7 @@ public class PathStorage extends PersistentState {
                 return false;
             }
             statuses.put(key, Status.PROCESSING);
-            markDirty();
+            setDirty();
             return true;
         }
     }

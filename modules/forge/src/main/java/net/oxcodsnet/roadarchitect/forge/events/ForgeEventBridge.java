@@ -1,6 +1,6 @@
 package net.oxcodsnet.roadarchitect.forge.events;
 
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.event.level.LevelEvent;
@@ -16,7 +16,7 @@ import net.oxcodsnet.roadarchitect.util.CacheManager;
 public class ForgeEventBridge {
     @SubscribeEvent
     public static void onWorldLoad(LevelEvent.Load event) {
-        if (event.getLevel() instanceof ServerWorld world) {
+        if (event.getLevel() instanceof ServerLevel world) {
             RoadGraphStateManager.onWorldLoad(world);
             CacheManager.onWorldLoad(world);
         }
@@ -24,7 +24,7 @@ public class ForgeEventBridge {
 
     @SubscribeEvent
     public static void onWorldUnload(LevelEvent.Unload event) {
-        if (event.getLevel() instanceof ServerWorld world) {
+        if (event.getLevel() instanceof ServerLevel world) {
             RoadGraphStateManager.onWorldUnload(world);
             CacheManager.onWorldUnload(world);
         }
@@ -32,14 +32,14 @@ public class ForgeEventBridge {
 
     @SubscribeEvent
     public static void onChunkLoad(ChunkEvent.Load event) {
-        if (event.getLevel() instanceof ServerWorld world) {
+        if (event.getLevel() instanceof ServerLevel world) {
             CacheManager.onChunkLoad(world, event.getChunk());
         }
     }
 
     @SubscribeEvent
     public static void onChunkUnload(ChunkEvent.Unload event) {
-        if (event.getLevel() instanceof ServerWorld world) {
+        if (event.getLevel() instanceof ServerLevel world) {
             CacheManager.onChunkUnload(world, event.getChunk().getPos());
         }
     }
@@ -52,7 +52,7 @@ public class ForgeEventBridge {
 
     @SubscribeEvent
     public static void onStartWorldTick(TickEvent.LevelTickEvent event) {
-        if (event.level instanceof ServerWorld world) {
+        if (event.level instanceof ServerLevel world) {
             RoadPostProcessor.onStartWorldTick(world);
         }
     }

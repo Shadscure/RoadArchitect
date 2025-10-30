@@ -1,7 +1,7 @@
 package net.oxcodsnet.roadarchitect.forge.client;
 
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.KeyMapping;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -11,16 +11,16 @@ import org.lwjgl.glfw.GLFW;
 
 @Mod.EventBusSubscriber(modid = RoadArchitect.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class RAKeybinds {
-    public static KeyBinding OPEN;
+    public static KeyMapping OPEN;
 
     private RAKeybinds() {
     }
 
     @SubscribeEvent
     public static void registerKeys(RegisterKeyMappingsEvent event) {
-        OPEN = new KeyBinding(
+        OPEN = new KeyMapping(
                 "key.roadarchitect.debug",
-                InputUtil.Type.KEYSYM,
+                InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_H,
                 "category.roadarchitect"
         );

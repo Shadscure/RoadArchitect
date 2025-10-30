@@ -1,6 +1,6 @@
 package net.oxcodsnet.roadarchitect.util;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 import net.oxcodsnet.roadarchitect.storage.PathDecorStorage;
 import org.junit.jupiter.api.Test;
 

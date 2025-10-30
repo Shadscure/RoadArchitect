@@ -1,6 +1,6 @@
 package net.oxcodsnet.roadarchitect.forge.events;
 
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -20,26 +20,26 @@ public final class RoadGraphStateForgeEvents {
 
     @SubscribeEvent
     public static void onLevelLoad(LevelEvent.Load event) {
-        if (event.getLevel() instanceof ServerWorld world) {
+        if (event.getLevel() instanceof ServerLevel world) {
             RoadGraphState.get(world);
-            DebugLog.info(LOGGER, "RoadGraphState loaded for world {}", world.getRegistryKey().getValue());
+            DebugLog.info(LOGGER, "RoadGraphState loaded for world {}", world.dimension().location());
         }
     }
 
     @SubscribeEvent
     public static void onLevelUnload(LevelEvent.Unload event) {
-        if (event.getLevel() instanceof ServerWorld world) {
+        if (event.getLevel() instanceof ServerLevel world) {
             RoadGraphState state = RoadGraphState.get(world);
-            state.markDirty();
-            DebugLog.info(LOGGER, "Saved RoadGraphState for world {} on unload", world.getRegistryKey().getValue());
+            state.setDirty();
+            DebugLog.info(LOGGER, "Saved RoadGraphState for world {} on unload", world.dimension().location());
         }
     }
 
     @SubscribeEvent
     public static void onServerStopping(ServerStoppingEvent event) {
-        for (ServerWorld world : event.getServer().getWorlds()) {
+        for (ServerLevel world : event.getServer().getAllLevels()) {
             RoadGraphState state = RoadGraphState.get(world);
-            state.markDirty();
+            state.setDirty();
         }
         DebugLog.info(LOGGER, "Server stopping, all RoadGraphStates marked dirty");
     }

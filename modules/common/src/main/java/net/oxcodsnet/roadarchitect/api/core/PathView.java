@@ -1,10 +1,9 @@
 package net.oxcodsnet.roadarchitect.api.core;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-
 import java.util.List;
 import java.util.Map;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
 
 /**
  * Read-only view over computed paths and their statuses.

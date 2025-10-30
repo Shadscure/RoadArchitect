@@ -18,7 +18,7 @@ import net.oxcodsnet.roadarchitect.handlers.compat.BopCompat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static net.minecraft.text.Text.translatable;
+import static net.minecraft.network.chat.Component.translatable;
 
 /**
  * Bridges Cloth Config with the common {@link RAConfigHolder} on NeoForge.

@@ -1,8 +1,8 @@
 package net.oxcodsnet.roadarchitect.handlers;
 
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.RoadBuilderStorage;
 import net.oxcodsnet.roadarchitect.util.DebugLog;
@@ -24,7 +24,7 @@ public class RoadBuilderManager {
      * Формирует задачи на строительство для переданных путей.
      * <p>Queues building tasks for the given paths.</p>
      */
-    static void queueSegments(ServerWorld world, Map<String, List<BlockPos>> paths) {
+    static void queueSegments(ServerLevel world, Map<String, List<BlockPos>> paths) {
         RoadBuilderStorage storage = RoadBuilderStorage.get(world);
 
         for (Map.Entry<String, List<BlockPos>> entry : paths.entrySet()) {

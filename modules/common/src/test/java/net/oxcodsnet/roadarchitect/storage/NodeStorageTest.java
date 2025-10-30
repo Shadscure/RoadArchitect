@@ -1,8 +1,7 @@
 package net.oxcodsnet.roadarchitect.storage;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.ListTag;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +25,7 @@ class NodeStorageTest {
         Node n1 = s.add(new BlockPos(0, 64, 0), "village");
         Node n2 = s.add(new BlockPos(100, 64, 100), "shipwreck");
 
-        NbtList list = s.toNbt();
+        ListTag list = s.toNbt();
         assertEquals(2, list.size());
 
         NodeStorage restored = NodeStorage.fromNbt(list);

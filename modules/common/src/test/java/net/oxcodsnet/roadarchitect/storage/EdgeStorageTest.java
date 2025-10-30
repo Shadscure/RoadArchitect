@@ -1,7 +1,7 @@
 package net.oxcodsnet.roadarchitect.storage;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
 import org.junit.jupiter.api.Test;
 
@@ -39,7 +39,7 @@ class EdgeStorageTest {
         Node b = new Node("b", new BlockPos(10, 64, 10), "village");
         assertTrue(s.add(a, b));
 
-        NbtCompound tag = s.toNbt();
+        CompoundTag tag = s.toNbt();
         EdgeStorage restored = EdgeStorage.fromNbt(tag, 64.0);
 
         assertEquals(s.allWithStatus(), restored.allWithStatus());

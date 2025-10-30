@@ -1,11 +1,11 @@
 package net.oxcodsnet.roadarchitect.storage;
 
-import net.minecraft.datafixer.DataFixTypes;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateType;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.util.PersistentStateUtil;
 import net.oxcodsnet.roadarchitect.util.NbtUtils;
@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentMap;
  * - Water-interior mask (tri-state: 0=unknown, 1=interior water, 2=not)
  * - Simple checksum of path positions for invalidation
  */
-public final class PathDecorStorage extends PersistentState {
+public final class PathDecorStorage extends SavedData {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/" + PathDecorStorage.class.getSimpleName());
 
     private static final String KEY = "road_path_decor";
@@ -36,12 +36,12 @@ public final class PathDecorStorage extends PersistentState {
     private static final String GROUND_KEY = "G";
     private static final String WATER_INNER_KEY = "W";
 
-    public static final PersistentStateType<PathDecorStorage> TYPE = new PersistentStateType<>(
+    public static final SavedDataType<PathDecorStorage> TYPE = new SavedDataType<>(
             KEY,
             ctx -> new PathDecorStorage(),
-            ctx -> NbtCompound.CODEC.xmap(
-                    tag -> fromNbt(tag, ctx.world().getRegistryManager()),
-                    storage -> storage.writeNbt(new NbtCompound(), ctx.world().getRegistryManager())
+            ctx -> CompoundTag.CODEC.xmap(
+                    tag -> fromNbt(tag, ctx.level().registryAccess()),
+                    storage -> storage.writeNbt(new CompoundTag(), ctx.level().registryAccess())
             ),
             DataFixTypes.SAVED_DATA_SCOREBOARD
     );
@@ -51,18 +51,18 @@ public final class PathDecorStorage extends PersistentState {
     private final ConcurrentMap<String, byte[]> waterInteriorMask = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Long> checksums = new ConcurrentHashMap<>();
 
-    public static PathDecorStorage get(ServerWorld world) {
+    public static PathDecorStorage get(ServerLevel world) {
         return PersistentStateUtil.get(world, TYPE);
     }
 
-    public static PathDecorStorage fromNbt(NbtCompound tag, net.minecraft.registry.RegistryWrapper.WrapperLookup lookup) {
+    public static PathDecorStorage fromNbt(CompoundTag tag, net.minecraft.core.HolderLookup.Provider lookup) {
         PathDecorStorage storage = new PathDecorStorage();
-        NbtList list = tag.getListOrEmpty(ENTRIES_KEY);
+        ListTag list = tag.getListOrEmpty(ENTRIES_KEY);
         for (int i = 0; i < list.size(); i++) {
-            NbtCompound e = list.getCompoundOrEmpty(i);
-            String key = e.getString(PATH_KEY, "");
+            CompoundTag e = list.getCompoundOrEmpty(i);
+            String key = e.getStringOr(PATH_KEY, "");
             if (key.isEmpty()) continue;
-            long sum = e.getLong(CHECKSUM_KEY, 0L);
+            long sum = e.getLongOr(CHECKSUM_KEY, 0L);
             storage.checksums.put(key, sum);
 
             // doubles
@@ -76,11 +76,11 @@ public final class PathDecorStorage extends PersistentState {
         return storage;
     }
 
-    public NbtCompound writeNbt(NbtCompound tag, net.minecraft.registry.RegistryWrapper.WrapperLookup lookup) {
-        NbtList out = new NbtList();
+    public CompoundTag writeNbt(CompoundTag tag, net.minecraft.core.HolderLookup.Provider lookup) {
+        ListTag out = new ListTag();
         for (Map.Entry<String, double[]> e : prefix.entrySet()) {
             String key = e.getKey();
-            NbtCompound obj = new NbtCompound();
+            CompoundTag obj = new CompoundTag();
             obj.putString(PATH_KEY, key);
             obj.putLong(CHECKSUM_KEY, checksums.getOrDefault(key, 0L));
 
@@ -115,20 +115,20 @@ public final class PathDecorStorage extends PersistentState {
             prefix.put(pathKey, new double[n]);
             groundMask.put(pathKey, new byte[n]);
             waterInteriorMask.put(pathKey, new byte[n]);
-            markDirty();
+            setDirty();
         }
     }
 
     public void updateChecksum(String pathKey, long sum) {
         Long prev = checksums.put(pathKey, sum);
         if (prev == null || prev.longValue() != sum) {
-            markDirty();
+            setDirty();
         }
     }
 
     public void setPrefix(String pathKey, double[] S) {
         prefix.put(pathKey, S);
-        markDirty();
+        setDirty();
     }
 
     public void clearMasks(String pathKey) {
@@ -136,11 +136,11 @@ public final class PathDecorStorage extends PersistentState {
         byte[] w = waterInteriorMask.get(pathKey);
         if (g != null) Arrays.fill(g, (byte) 0);
         if (w != null) Arrays.fill(w, (byte) 0);
-        markDirty();
+        setDirty();
     }
 
     /** Exposes dirty mark as public for helpers. */
     public void touch() {
-        markDirty();
+        setDirty();
     }
 }

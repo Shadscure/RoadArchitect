@@ -1,10 +1,9 @@
 package net.oxcodsnet.roadarchitect.api.core;
 
-import net.minecraft.util.math.BlockPos;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import net.minecraft.core.BlockPos;
 
 /**
  * Safe, read-only view over the current road graph (nodes + edges).

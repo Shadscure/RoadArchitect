@@ -7,6 +7,9 @@ plugins {
     id "co.uzzu.dotenv.gradle" version "4.0.0"
 }
 
+apply from: "gradle/repository-config.gradle"
+apply from: "gradle/config.gradle"
+
 architectury {
     minecraft = project.minecraft_version
 }
@@ -16,115 +19,273 @@ allprojects {
     version = rootProject.mod_version
 }
 
+ext.resolveConfigValue = { Object... rawKeys ->
+    List<String> flattened = rawKeys.flatten().findAll { it != null }.collect { it.toString() }
+    if (flattened.isEmpty()) {
+        return null
+    }
+
+    List<String> keys = []
+    flattened.each { original ->
+        if (!keys.contains(original)) {
+            keys << original
+        }
+        def lower = original.toLowerCase(Locale.ROOT)
+        if (!keys.contains(lower)) {
+            keys << lower
+        }
+        def upper = original.toUpperCase(Locale.ROOT)
+        if (!keys.contains(upper)) {
+            keys << upper
+        }
+    }
+
+    def envExtension = rootProject.extensions.findByName("env")
+    def fetchFromEnvExtension = { ext, key ->
+        if (ext == null) {
+            return null
+        }
+        if (ext.metaClass.respondsTo(ext, "isPresent", String) && ext.isPresent(key)) {
+            return ext.fetch(key)
+        }
+        return null
+    }
+
+    for (String key : keys) {
+        def value = System.getenv(key)
+        if (value != null) {
+            def trimmed = value.toString().trim()
+            if (!trimmed.isEmpty()) {
+                return trimmed
+            }
+        }
+    }
+
+    if (envExtension != null) {
+        for (String key : keys) {
+            def value = fetchFromEnvExtension(envExtension, key)
+            if (value != null) {
+                def trimmed = value.toString().trim()
+                if (!trimmed.isEmpty()) {
+                    return trimmed
+                }
+            }
+        }
+    }
+
+    for (String key : keys) {
+        if (rootProject.hasProperty(key)) {
+            def value = rootProject.property(key)
+            if (value != null) {
+                def trimmed = value.toString().trim()
+                if (!trimmed.isEmpty()) {
+                    return trimmed
+                }
+            }
+        }
+    }
+
+    return null
+}
+
+ext.resolveMirrorRepositoryUrl = {
+    def mirrorConfig = rootProject.ext.standardRepositoryConfig?.mirror ?: [:]
+    def keys = mirrorConfig.envKeys ?: []
+    rootProject.ext.resolveConfigValue(keys) ?: mirrorConfig.defaultUrl
+}
+
+ext.configureStandardRepositories = { handler, Map options = [:] ->
+    def includeGradlePortal = options.containsKey('gradlePluginPortal') ? options.gradlePluginPortal : false
+    def includeMavenLocal = options.containsKey('mavenLocal') ? options.mavenLocal : true
+    def includeMavenCentral = options.containsKey('mavenCentral') ? options.mavenCentral : true
+
+    def repoConfig = rootProject.ext.standardRepositoryConfig ?: [:]
+
+    def configureCredentials = { MavenArtifactRepository repo, Map credentials ->
+        if (!repo || !credentials) {
+            return
+        }
+        def user = credentials.username
+        def pass = credentials.password
+        def token = credentials.token
+        if ((user && pass) || token) {
+            repo.credentials {
+                username = user ?: 'token'
+                password = pass ?: token
+            }
+        }
+    }
+
+    def addMavenRepo = { Map spec ->
+        def resolvedUrl = spec?.url ?: spec?.defaultUrl
+        if (!resolvedUrl) {
+            return
+        }
+        handler.maven {
+            if (spec?.name) {
+                name = spec.name
+            }
+            url = uri(resolvedUrl)
+            if (spec?.configure instanceof Closure) {
+                spec.configure.delegate = delegate
+                spec.configure.resolveStrategy = Closure.DELEGATE_FIRST
+                spec.configure.call(delegate)
+            }
+            if (spec?.credentialsProvider instanceof Closure) {
+                def creds = spec.credentialsProvider.call()
+                configureCredentials(delegate, creds)
+            } else if (spec?.useMavenCredentials) {
+                configureCredentials(delegate, rootProject.ext.envConfig?.maven?.releases)
+            }
+        }
+    }
+
+    if (repoConfig.mirror) {
+        def mirrorUrl = rootProject.ext.resolveMirrorRepositoryUrl()
+        if (mirrorUrl) {
+            addMavenRepo(repoConfig.mirror + [url: mirrorUrl])
+        }
+    }
+
+    if (includeMavenLocal && handler.metaClass.respondsTo(handler, "mavenLocal")) {
+        handler.mavenLocal()
+    }
+
+    if (includeMavenCentral && handler.metaClass.respondsTo(handler, "mavenCentral")) {
+        handler.mavenCentral()
+    }
+
+    repoConfig.each { key, spec ->
+        if (key == 'mirror') {
+            return
+        }
+        if (spec.type == 'mavenLocal' || spec.type == 'mavenCentral') {
+            return
+        }
+        addMavenRepo(spec)
+    }
+
+    if (includeGradlePortal && handler.metaClass.respondsTo(handler, "gradlePluginPortal")) {
+        handler.gradlePluginPortal()
+    }
+}
+
+ext.envConfig = [:]
+
+def resolvedMirrorUrl = rootProject.ext.resolveMirrorRepositoryUrl()
+def mavenUsername = rootProject.ext.resolveConfigValue("MAVEN_REPO_USERNAME", "MAVEN_REPO_USER", "MAVEN_USERNAME", "MAVEN_USER")
+def mavenPassword = rootProject.ext.resolveConfigValue("MAVEN_REPO_PASSWORD", "MAVEN_PASSWORD")
+def mavenToken = rootProject.ext.resolveConfigValue("MAVEN_REPO_TOKEN", "MAVEN_TOKEN")
+
+ext.envConfig.maven = [
+        releases: [
+                url     : rootProject.ext.resolveConfigValue("MAVEN_REPO_URL", "MAVEN_URL"),
+                name    : rootProject.ext.resolveConfigValue("MAVEN_REPO_NAME") ?: "private",
+                username: mavenUsername,
+                password: mavenPassword,
+                token   : mavenToken
+        ],
+        mirror  : [
+                url     : resolvedMirrorUrl,
+                username: mavenUsername,
+                password: mavenPassword,
+                token   : mavenToken
+        ]
+]
+
+ext.envConfig.curseforge = [
+        token: rootProject.ext.resolveConfigValue("CURSEFORGE_TOKEN")
+]
+
+ext.envConfig.modrinth = [
+        token: rootProject.ext.resolveConfigValue("MODRINTH_TOKEN")
+]
+
+ext.evaluateReleaseConfigValue = { value, Project moduleProject ->
+    if (value instanceof Closure) {
+        def params = value.maximumNumberOfParameters
+        if (params >= 2) {
+            return value.call(moduleProject, moduleProject.rootProject)
+        } else if (params == 1) {
+            return value.call(moduleProject)
+        } else {
+            return value.call()
+        }
+    }
+    return value
+}
+
+ext.resolveReleaseConfigValue = { String platform, String section, String key, Project moduleProject, boolean required = false, Object fallback = null ->
+    def releaseConfig = rootProject.ext.releaseConfig ?: [:]
+    def platformConfig = releaseConfig[platform]
+    if (platformConfig == null) {
+        if (required) {
+            throw new GradleException("releaseConfig.${platform} is not defined")
+        }
+        return fallback
+    }
+
+    def sectionConfig = platformConfig[section]
+    if (sectionConfig == null) {
+        if (required) {
+            throw new GradleException("releaseConfig.${platform}.${section} is not defined")
+        }
+        return fallback
+    }
+
+    def rawValue = sectionConfig[key]
+    def evaluated = rootProject.ext.evaluateReleaseConfigValue(rawValue, moduleProject)
+    if (evaluated == null && required) {
+        throw new GradleException("releaseConfig.${platform}.${section}.${key} is not defined")
+    }
+    return evaluated != null ? evaluated : fallback
+}
+
+ext.toList = { Object value ->
+    if (value == null) {
+        return []
+    }
+    if (value instanceof List) {
+        return value
+    }
+    if (value instanceof Collection) {
+        return new ArrayList(value)
+    }
+    if (value.getClass().isArray()) {
+        return value.toList()
+    }
+    return [value]
+}
+
 // ====================== Maven (.env) ====================
 // ---- helpers for Maven repository configuration ----
 ext.resolveMavenRepoUrl = {
-    def v = System.getenv("MAVEN_REPO_URL") ?: System.getenv("MAVEN_URL")
-    if (!v) {
-        def e = rootProject.extensions.findByName("env")
-        if (e != null) {
-            if (e.isPresent("MAVEN_REPO_URL")) v = e.fetch("MAVEN_REPO_URL")
-            else if (e.isPresent("MAVEN_URL"))  v = e.fetch("MAVEN_URL")
-            else if (e.isPresent("maven_repo_url")) v = e.fetch("maven_repo_url")
-            else if (e.isPresent("maven_url"))      v = e.fetch("maven_url")
-        }
-    }
-    if (!v && rootProject.hasProperty("MAVEN_REPO_URL")) v = rootProject.property("MAVEN_REPO_URL")?.toString()
-    if (!v && rootProject.hasProperty("MAVEN_URL"))      v = rootProject.property("MAVEN_URL")?.toString()
-    return v
+    rootProject.ext.envConfig.maven.releases.url
 }
 
 ext.resolveMavenRepoUsername = {
-    def v = System.getenv("MAVEN_REPO_USERNAME") ?: System.getenv("MAVEN_REPO_USER") ?: System.getenv("MAVEN_USERNAME") ?: System.getenv("MAVEN_USER")
-    if (!v) {
-        def e = rootProject.extensions.findByName("env")
-        if (e != null) {
-            ["MAVEN_REPO_USERNAME","MAVEN_REPO_USER","MAVEN_USERNAME","MAVEN_USER","maven_repo_username","maven_repo_user","maven_username","maven_user"].find {
-                if (e.isPresent(it)) { v = e.fetch(it); return true }
-                return false
-            }
-        }
-    }
-    if (!v) {
-        ["MAVEN_REPO_USERNAME","MAVEN_REPO_USER","MAVEN_USERNAME","MAVEN_USER"].find {
-            if (rootProject.hasProperty(it)) { v = rootProject.property(it)?.toString(); return true }
-            return false
-        }
-    }
-    return v
+    rootProject.ext.envConfig.maven.releases.username
 }
 
 ext.resolveMavenRepoPassword = {
-    def v = System.getenv("MAVEN_REPO_PASSWORD") ?: System.getenv("MAVEN_PASSWORD")
-    if (!v) {
-        def e = rootProject.extensions.findByName("env")
-        if (e != null) {
-            ["MAVEN_REPO_PASSWORD","MAVEN_PASSWORD","maven_repo_password","maven_password"].find {
-                if (e.isPresent(it)) { v = e.fetch(it); return true }
-                return false
-            }
-        }
-    }
-    if (!v) {
-        ["MAVEN_REPO_PASSWORD","MAVEN_PASSWORD"].find {
-            if (rootProject.hasProperty(it)) { v = rootProject.property(it)?.toString(); return true }
-            return false
-        }
-    }
-    return v
+    rootProject.ext.envConfig.maven.releases.password
 }
 
 ext.resolveMavenRepoToken = {
-    def v = System.getenv("MAVEN_REPO_TOKEN") ?: System.getenv("MAVEN_TOKEN")
-    if (!v) {
-        def e = rootProject.extensions.findByName("env")
-        if (e != null) {
-            ["MAVEN_REPO_TOKEN","MAVEN_TOKEN","maven_repo_token","maven_token"].find {
-                if (e.isPresent(it)) { v = e.fetch(it); return true }
-                return false
-            }
-        }
-    }
-    if (!v) {
-        ["MAVEN_REPO_TOKEN","MAVEN_TOKEN"].find {
-            if (rootProject.hasProperty(it)) { v = rootProject.property(it)?.toString(); return true }
-            return false
-        }
-    }
-    return v
+    rootProject.ext.envConfig.maven.releases.token
 }
 
 ext.resolveMavenRepoName = {
-    def v = System.getenv("MAVEN_REPO_NAME")
-    if (!v) {
-        def e = rootProject.extensions.findByName("env")
-        if (e != null) {
-            if (e.isPresent("MAVEN_REPO_NAME")) v = e.fetch("MAVEN_REPO_NAME")
-            else if (e.isPresent("maven_repo_name")) v = e.fetch("maven_repo_name")
-        }
-    }
-    if (!v && rootProject.hasProperty("MAVEN_REPO_NAME")) v = rootProject.property("MAVEN_REPO_NAME")?.toString()
-    return v ?: "private"
+    rootProject.ext.envConfig.maven.releases.name ?: "private"
 }
 
 // ====================== CurseForge ====================
 ext.resolveCurseforgeToken = {
-    def t = System.getenv("CURSEFORGE_TOKEN")
-    if (!t) {
-        def e = rootProject.extensions.findByName("env")
-        if (e != null) {
-            if (e.isPresent("CURSEFORGE_TOKEN")) t = e.fetch("CURSEFORGE_TOKEN")
-            else if (e.isPresent("curseforge_token")) t = e.fetch("curseforge_token")
-        }
-    }
-    if (!t && rootProject.hasProperty("CURSEFORGE_TOKEN")) {
-        t = rootProject.property("CURSEFORGE_TOKEN")?.toString()
-    }
-    return t
+    rootProject.ext.envConfig.curseforge.token
 }
 
 tasks.register("publishCurseForgeAll") {
-    ["fabric","forge"].each { plat ->
+    ["fabric", "forge"].each { plat ->
         if (findProject(":modules:${plat}") != null) {
             dependsOn(":modules:${plat}:curseforge")
         }
@@ -134,22 +295,11 @@ tasks.register("publishCurseForgeAll") {
 
 // ====================== Modrinth ====================
 ext.resolveModrinthToken = {
-    def t = System.getenv("MODRINTH_TOKEN")
-    if (!t) {
-        def e = rootProject.extensions.findByName("env")
-        if (e != null) {
-            if (e.isPresent("MODRINTH_TOKEN"))      t = e.fetch("MODRINTH_TOKEN")
-            else if (e.isPresent("modrinth_token")) t = e.fetch("modrinth_token")
-        }
-    }
-    if (!t && rootProject.hasProperty("MODRINTH_TOKEN")) {
-        t = rootProject.property("MODRINTH_TOKEN")?.toString()
-    }
-    return t
+    rootProject.ext.envConfig.modrinth.token
 }
 
 tasks.register("publishModrinthAll") {
-    ["fabric","forge"].each { plat ->
+    ["fabric", "forge"].each { plat ->
         if (findProject(":modules:${plat}") != null) {
             dependsOn(":modules:${plat}:modrinth")
         }
@@ -173,11 +323,8 @@ subprojects {
         archivesName = "$rootProject.archives_name-$project.name"
     }
 
-    repositories {
-        mavenLocal()
-        maven { url = uri('https://maven.wispforest.io')}
-        maven { url = uri('https://maven.terraformersmc.com/') }
-        maven { url = uri('https://maven.shedaniel.me/') }
+    repositories { repoHandler ->
+        rootProject.ext.configureStandardRepositories(repoHandler)
     }
 
     dependencies {
@@ -297,7 +444,7 @@ subprojects {
 
 // Aggregate task to publish all platform modules to Maven
 tasks.register("publishMavenAll") {
-    ["common", "fabric","forge"].each { plat ->
+    ["common", "fabric", "forge"].each { plat ->
         if (findProject(":modules:${plat}") != null) {
             dependsOn(":modules:${plat}:publish")
         }

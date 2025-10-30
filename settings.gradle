@@ -1,15 +1,170 @@
 pluginManagement {
-    repositories {
-        maven { url "https://maven.fabricmc.net/" }
-        maven { url "https://maven.architectury.dev/" }
-        maven { url "https://files.minecraftforge.net/maven/" }
-        gradlePluginPortal()
+    if (!settings.ext.has('loadDotEnvValues')) {
+        settings.ext.dotEnvCache = null
+        settings.ext.loadDotEnvValues = {
+            if (settings.ext.dotEnvCache != null) {
+                return settings.ext.dotEnvCache
+            }
+            Map<String, String> values = [:]
+            def envFile = file('.env')
+            if (envFile.exists()) {
+                envFile.eachLine { line ->
+                    def trimmed = line.trim()
+                    if (trimmed && !trimmed.startsWith('#')) {
+                        int idx = trimmed.indexOf('=')
+                        if (idx > 0) {
+                            def key = trimmed.substring(0, idx).trim()
+                            def value = trimmed.substring(idx + 1).trim()
+                            if (!key.isEmpty()) {
+                                values[key] = value
+                            }
+                        }
+                    }
+                }
+            }
+            settings.ext.dotEnvCache = values
+            values
+        }
+    }
+
+    if (!settings.ext.has('resolveConfigValue')) {
+        settings.ext.resolveConfigValue = { Collection<String> keys, String fallback = null ->
+            if (!keys) {
+                return fallback
+            }
+
+            List<String> variants = []
+            keys.each { key ->
+                if (key) {
+                    String original = key.toString()
+                    if (!variants.contains(original)) {
+                        variants << original
+                    }
+                    String lower = original.toLowerCase(Locale.ROOT)
+                    if (!variants.contains(lower)) {
+                        variants << lower
+                    }
+                    String upper = original.toUpperCase(Locale.ROOT)
+                    if (!variants.contains(upper)) {
+                        variants << upper
+                    }
+                }
+            }
+
+            for (String variant : variants) {
+                def envValue = System.getenv(variant)
+                if (envValue) {
+                    String trimmed = envValue.toString().trim()
+                    if (!trimmed.isEmpty()) {
+                        return trimmed
+                    }
+                }
+            }
+
+            def envMap = settings.ext.loadDotEnvValues.call()
+            for (String variant : variants) {
+                if (envMap.containsKey(variant)) {
+                    String trimmed = envMap[variant].toString().trim()
+                    if (!trimmed.isEmpty()) {
+                        return trimmed
+                    }
+                }
+            }
+
+            fallback
+        }
+    }
+
+    if (!settings.ext.has('getMavenCredentials')) {
+        settings.ext.mavenCredentialCache = null
+        settings.ext.getMavenCredentials = {
+            if (settings.ext.mavenCredentialCache == null) {
+                settings.ext.mavenCredentialCache = [
+                        username: settings.ext.resolveConfigValue.call(['MAVEN_REPO_USERNAME', 'MAVEN_REPO_USER', 'MAVEN_USERNAME', 'MAVEN_USER']),
+                        password: settings.ext.resolveConfigValue.call(['MAVEN_REPO_PASSWORD', 'MAVEN_PASSWORD']),
+                        token   : settings.ext.resolveConfigValue.call(['MAVEN_REPO_TOKEN', 'MAVEN_TOKEN'])
+                ]
+            }
+            settings.ext.mavenCredentialCache
+        }
+    }
+
+    if (!settings.ext.has('applyMavenCredentials')) {
+        settings.ext.applyMavenCredentials = { repo ->
+            def creds = settings.ext.getMavenCredentials.call()
+            def user = creds.username
+            def pass = creds.password
+            def token = creds.token
+            if ((user && pass) || token) {
+                repo.credentials {
+                    username = user ?: 'token'
+                    password = pass ?: token
+                }
+            }
+        }
+    }
+
+    if (!settings.ext.has('ensureStandardRepositoryConfig')) {
+        settings.ext.ensureStandardRepositoryConfig = {
+            if (!settings.ext.has('standardRepositoryConfig')) {
+                apply from: file('gradle/repository-config.gradle')
+            }
+            settings.ext.standardRepositoryConfig ?: [:]
+        }
+    }
+
+    if (!settings.ext.has('configureSettingsRepositories')) {
+        settings.ext.configureSettingsRepositories = { handler, boolean includePluginPortal = false ->
+            def repoConfig = settings.ext.ensureStandardRepositoryConfig.call()
+
+            def addMavenRepo = { Map spec, String urlValue ->
+                if (!urlValue) {
+                    return
+                }
+                handler.maven {
+                    if (spec?.name) {
+                        name = spec.name
+                    }
+                    url = uri(urlValue)
+                    if (spec?.useMavenCredentials) {
+                        settings.ext.applyMavenCredentials.call(delegate)
+                    }
+                }
+            }
+
+            def mirrorConfig = repoConfig.mirror
+            if (mirrorConfig) {
+                def mirrorUrl = settings.ext.resolveConfigValue.call(mirrorConfig.envKeys ?: [], mirrorConfig.defaultUrl)
+                addMavenRepo(mirrorConfig, mirrorUrl)
+            }
+
+            if (repoConfig.mavenCentral && handler.metaClass.respondsTo(handler, "mavenCentral")) {
+                handler.mavenCentral()
+            }
+
+            repoConfig.each { key, spec ->
+                if (key in ['mirror', 'mavenCentral', 'mavenLocal']) {
+                    return
+                }
+                addMavenRepo(spec, spec?.url)
+            }
+
+            if (includePluginPortal && handler.metaClass.respondsTo(handler, "gradlePluginPortal")) {
+                handler.gradlePluginPortal()
+            }
+        }
+    }
+
+    repositories { repoHandler ->
+        settings.ext.configureSettingsRepositories.call(repoHandler, true)
     }
 }
+
+settings.ext.ensureStandardRepositoryConfig.call()
 
 rootProject.name = 'roadarchitect'
 include(
         ":modules:common",
         ":modules:fabric",
-        ":modules:forge",
+        ":modules:forge"
 )

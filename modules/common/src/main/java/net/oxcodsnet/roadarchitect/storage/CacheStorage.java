@@ -48,7 +48,7 @@ public class CacheStorage extends SavedData {
         java.util.HashMap<Long, String> biomeIds = new java.util.HashMap<>(bList.size());
         NbtUtils.fillLongStringMap(bList, biomeIds);
         HolderLookup.RegistryLookup<Biome> registry = lookup.lookupOrThrow(Registries.BIOME);
-        for (Map.Entry<Long, String> e : biomeIds.entrySet()) {
+        for (java.util.Map.Entry<Long, String> e : biomeIds.entrySet()) {
             ResourceLocation id = ResourceLocation.tryParse(e.getValue());
             if (id == null) continue;
             ResourceKey<Biome> key = ResourceKey.create(Registries.BIOME, id);

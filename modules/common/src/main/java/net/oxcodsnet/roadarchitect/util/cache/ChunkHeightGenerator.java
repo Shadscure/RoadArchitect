@@ -208,12 +208,12 @@ public final class ChunkHeightGenerator {
     private static final class LazyBeardifyingHolder {
         private static final DensityFunctions.BeardifierOrMarker INSTANCE = new DensityFunctions.BeardifierOrMarker() {
             @Override
-            public double compute(FunctionContext pos) {
+            public double compute(DensityFunction.FunctionContext pos) {
                 return 0.0D;
             }
 
             @Override
-            public void fillArray(double[] densities, ContextProvider applier) {
+            public void fillArray(double[] densities, DensityFunction.ContextProvider applier) {
                 Arrays.fill(densities, 0.0D);
             }
 

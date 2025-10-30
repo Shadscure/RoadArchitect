@@ -62,7 +62,7 @@ public final class RoadArchitect {
         }
 
         @Override
-        public List<String> structureSelectors() {
+        public java.util.List<String> structureSelectors() {
             return RAConfigHolder.get().structureSelectors();
         }
 
@@ -142,17 +142,17 @@ public final class RoadArchitect {
         }
 
         @Override
-        public List<net.oxcodsnet.roadarchitect.config.LampPostConfigEntry> lampPostOverrides() {
+        public java.util.List<net.oxcodsnet.roadarchitect.config.LampPostConfigEntry> lampPostOverrides() {
             return RAConfigHolder.get().lampPostOverrides();
         }
 
         @Override
-        public List<RoadStyleConfigEntry> roadStyleOverrides() {
+        public java.util.List<RoadStyleConfigEntry> roadStyleOverrides() {
             return RAConfigHolder.get().roadStyleOverrides();
         }
 
         @Override
-        public List<RoadStyleConfigEntry> bopRoadStyleOverrides() {
+        public java.util.List<RoadStyleConfigEntry> bopRoadStyleOverrides() {
             return RAConfigHolder.get().bopRoadStyleOverrides();
         }
 

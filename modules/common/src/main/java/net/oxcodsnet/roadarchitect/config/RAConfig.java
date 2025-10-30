@@ -65,7 +65,7 @@ public interface RAConfig {
     double coastProximityPenalty();
 
     // Pathfinding: forbidden biomes (block traversal)
-    List<String> forbiddenBiomeSelectors();
+    java.util.List<String> forbiddenBiomeSelectors();
     int forbiddenBiomeBufferBlocks();
     double forbiddenBiomeProximityPenalty();
 

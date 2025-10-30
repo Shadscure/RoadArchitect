@@ -33,7 +33,7 @@ public final class NbtUtils {
     public static net.minecraft.nbt.ListTag toLongIntList(java.util.Map<Long, Integer> map) {
         net.minecraft.nbt.ListTag list = new net.minecraft.nbt.ListTag();
         for (java.util.Map.Entry<Long, Integer> e : map.entrySet()) {
-            CompoundTag elem = new CompoundTag();
+            net.minecraft.nbt.CompoundTag elem = new net.minecraft.nbt.CompoundTag();
             elem.putLong(K, e.getKey());
             elem.putInt(V, e.getValue());
             list.add(elem);
@@ -43,7 +43,7 @@ public final class NbtUtils {
 
     public static void fillLongIntMap(net.minecraft.nbt.ListTag list, java.util.Map<Long, Integer> out) {
         for (int i = 0; i < list.size(); i++) {
-            CompoundTag elem = list.getCompound(i);
+            net.minecraft.nbt.CompoundTag elem = list.getCompound(i);
             out.put(elem.getLong(K), elem.getInt(V));
         }
     }
@@ -51,7 +51,7 @@ public final class NbtUtils {
     public static net.minecraft.nbt.ListTag toLongDoubleList(java.util.Map<Long, Double> map) {
         net.minecraft.nbt.ListTag list = new net.minecraft.nbt.ListTag();
         for (java.util.Map.Entry<Long, Double> e : map.entrySet()) {
-            CompoundTag elem = new CompoundTag();
+            net.minecraft.nbt.CompoundTag elem = new net.minecraft.nbt.CompoundTag();
             elem.putLong(K, e.getKey());
             elem.putDouble(V, e.getValue());
             list.add(elem);
@@ -61,7 +61,7 @@ public final class NbtUtils {
 
     public static void fillLongDoubleMap(net.minecraft.nbt.ListTag list, java.util.Map<Long, Double> out) {
         for (int i = 0; i < list.size(); i++) {
-            CompoundTag elem = list.getCompound(i);
+            net.minecraft.nbt.CompoundTag elem = list.getCompound(i);
             out.put(elem.getLong(K), elem.getDouble(V));
         }
     }
@@ -69,7 +69,7 @@ public final class NbtUtils {
     public static net.minecraft.nbt.ListTag toLongStringList(java.util.Map<Long, String> map) {
         net.minecraft.nbt.ListTag list = new net.minecraft.nbt.ListTag();
         for (java.util.Map.Entry<Long, String> e : map.entrySet()) {
-            CompoundTag elem = new CompoundTag();
+            net.minecraft.nbt.CompoundTag elem = new net.minecraft.nbt.CompoundTag();
             elem.putLong(K, e.getKey());
             elem.putString(V, e.getValue());
             list.add(elem);
@@ -79,7 +79,7 @@ public final class NbtUtils {
 
     public static void fillLongStringMap(net.minecraft.nbt.ListTag list, java.util.Map<Long, String> out) {
         for (int i = 0; i < list.size(); i++) {
-            CompoundTag elem = list.getCompound(i);
+            net.minecraft.nbt.CompoundTag elem = list.getCompound(i);
             out.put(elem.getLong(K), elem.getString(V));
         }
     }

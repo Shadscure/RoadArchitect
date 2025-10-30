@@ -513,7 +513,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
                     int prevIdx = Math.max(0, i - 2);
                     int nextIdx = Math.min(pts.size() - 1, i + 2);
-                    Vec3 dir = new Vec3(
+                    net.minecraft.world.phys.Vec3 dir = new net.minecraft.world.phys.Vec3(
                             pts.get(nextIdx).getX() - pts.get(prevIdx).getX(),
                             0.0D,
                             pts.get(nextIdx).getZ() - pts.get(prevIdx).getZ()
@@ -555,7 +555,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
 
                     // collect non-lamp decos for this biome
                     RoadStyle styleAtP = RoadStyles.forBiome(biomeRegistry, world.getBiome(p));
-                    ArrayList<Decoration> sideDecos = new ArrayList<>();
+                    java.util.ArrayList<Decoration> sideDecos = new java.util.ArrayList<>();
                     for (Decoration d : styleAtP.decorations()) if (!(d instanceof LampPostDecoration)) sideDecos.add(d);
                     if (sideDecos.isEmpty()) continue;
 
@@ -564,7 +564,7 @@ public final class RoadFeature extends Feature<RoadFeatureConfig> {
                     boolean leftSide = PathDecorUtil.detBool(pathKey, m.k());
                     int length = 1 + PathDecorUtil.detInt(pathKey, m.k() ^ 0x55AA55AAL, 3);
 
-                    placeSideDet(world, p, nx, nz, halfWidth, chosen, leftSide, length, RandomSource.create(m.k() ^ pathKey.hashCode()));
+                    placeSideDet(world, p, nx, nz, halfWidth, chosen, leftSide, length, net.minecraft.util.RandomSource.create(m.k() ^ pathKey.hashCode()));
                 }
             }
         }

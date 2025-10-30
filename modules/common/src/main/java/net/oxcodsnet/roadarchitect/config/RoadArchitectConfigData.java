@@ -122,7 +122,7 @@ public final class RoadArchitectConfigData implements ConfigData {
         public boolean enabled = true;
 
         @ConfigEntry.Gui.Tooltip
-        public List<LampPostDefinition> overrides = LampPostDefaults.createDefinitionCopies();
+        public java.util.List<LampPostDefinition> overrides = LampPostDefaults.createDefinitionCopies();
     }
 
     public static final class RoadStyleSettings {
@@ -130,7 +130,7 @@ public final class RoadArchitectConfigData implements ConfigData {
         public boolean enabled = true;
 
         @ConfigEntry.Gui.Tooltip
-        public List<RoadStyleDefinition> overrides = RoadStyleDefaults.createDefinitionCopies();
+        public java.util.List<RoadStyleDefinition> overrides = RoadStyleDefaults.createDefinitionCopies();
     }
 
     public static final class BopRoadStyleSettings {
@@ -138,7 +138,7 @@ public final class RoadArchitectConfigData implements ConfigData {
         public boolean enabled = true;
 
         @ConfigEntry.Gui.Tooltip
-        public List<RoadStyleDefinition> overrides = BopRoadStyleDefaults.createDefinitionCopies();
+        public java.util.List<RoadStyleDefinition> overrides = BopRoadStyleDefaults.createDefinitionCopies();
     }
 
     public static final class RoadStyleDefinition {
@@ -146,10 +146,10 @@ public final class RoadArchitectConfigData implements ConfigData {
         public List<String> biomeSelectors = new java.util.ArrayList<>();
 
         @ConfigEntry.Gui.Tooltip
-        public List<RoadPaletteEntry> palette = new java.util.ArrayList<>();
+        public java.util.List<RoadPaletteEntry> palette = new java.util.ArrayList<>();
 
         @ConfigEntry.Gui.Tooltip
-        public List<RoadDecorationEntry> decorations = new java.util.ArrayList<>();
+        public java.util.List<RoadDecorationEntry> decorations = new java.util.ArrayList<>();
     }
 
     public static final class RoadPaletteEntry {
@@ -190,7 +190,7 @@ public final class RoadArchitectConfigData implements ConfigData {
 
     public static final class ForbiddenBiomeSettings {
         @ConfigEntry.Gui.Tooltip
-        public List<String> selectors = List.of(
+        public java.util.List<String> selectors = java.util.List.of(
                 "#minecraft:is_ocean",
                 "#minecraft:is_deep_ocean"
         );

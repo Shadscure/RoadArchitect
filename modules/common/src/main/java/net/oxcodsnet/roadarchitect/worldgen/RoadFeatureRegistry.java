@@ -71,7 +71,7 @@ public final class RoadFeatureRegistry {
      *
      * @param ctx registerable context for placed features
      */
-    public static void bootstrapPlaced(BootstrapContext<PlacedFeature> ctx) {
+    public static void bootstrapPlaced(net.minecraft.data.worldgen.BootstrapContext<PlacedFeature> ctx) {
         HolderGetter<ConfiguredFeature<?, ?>> lookup = ctx.lookup(Registries.CONFIGURED_FEATURE);
         ctx.register(ROAD_PREP_PLACED_FEATURE_KEY,
                 new PlacedFeature(lookup.getOrThrow(ROAD_PREP_CONFIGURED_FEATURE_KEY), java.util.List.of(InSquarePlacement.spread())));

@@ -30,7 +30,7 @@ public class PathFinderManager {
     );
 
     /**
-     * Computes paths for all NEW edges and saves them into {@link PathStorage}.
+     * Computes paths for all NEW edges and saves them into {@link net.oxcodsnet.roadarchitect.storage.PathStorage}.
      *
      * @param world            server world
      * @param preFillCacheZone half-size of the prefill square area in blocks (unused by default)

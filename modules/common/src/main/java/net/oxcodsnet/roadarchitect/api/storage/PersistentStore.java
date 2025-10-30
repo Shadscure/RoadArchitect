@@ -1,22 +1,21 @@
 package net.oxcodsnet.roadarchitect.api.storage;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.Identifier;
-
 import java.util.Optional;
 import java.util.Set;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Minimal key-value persistent storage for addons, scoped per world and addon id.
- * Values are stored as NBT compounds keyed by {@link Identifier}.
+ * Values are stored as NBT compounds keyed by {@link ResourceLocation}.
  */
 public interface PersistentStore {
-    Optional<NbtCompound> get(Identifier key);
+    Optional<CompoundTag> get(ResourceLocation key);
 
-    void put(Identifier key, NbtCompound value);
+    void put(ResourceLocation key, CompoundTag value);
 
-    void remove(Identifier key);
+    void remove(ResourceLocation key);
 
-    Set<Identifier> keys();
+    Set<ResourceLocation> keys();
 }
 

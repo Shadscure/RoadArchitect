@@ -1,11 +1,11 @@
 package net.oxcodsnet.roadarchitect.api.addon;
 
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.api.storage.PersistentStore;
 import net.oxcodsnet.roadarchitect.api.core.CoreApi;
@@ -45,7 +45,7 @@ public final class RoadAddons {
 
     // ===== Pipeline hooks (invoked by common when path becomes READY) =====
 
-    public static void onPathReady(ServerWorld world, String pathKey, List<BlockPos> refinedPath) {
+    public static void onPathReady(ServerLevel world, String pathKey, List<BlockPos> refinedPath) {
         for (RoadAddon addon : ADDONS) {
             try {
                 addon.onPathReady(world, pathKey, refinedPath);
@@ -73,7 +73,7 @@ public final class RoadAddons {
     /**
      * Called from platform events on chunk load. Forwards to addons.
      */
-    public static void onChunkLoad(ServerWorld world, ChunkPos pos) {
+    public static void onChunkLoad(ServerLevel world, ChunkPos pos) {
         for (RoadAddon addon : ADDONS) {
             try {
                 addon.onChunkLoad(world, pos);
@@ -95,18 +95,18 @@ public final class RoadAddons {
     /**
      * Returns the persistent store for the given addon in the given world.
      */
-    public static PersistentStore persistent(Identifier addonId, ServerWorld world) {
+    public static PersistentStore persistent(ResourceLocation addonId, ServerLevel world) {
         AddonPersistentStorage state = AddonPersistentStorage.get(world, addonId);
         return new StoreView(state);
     }
 
-    private record ContextImpl(Identifier addonId) implements AddonContext {
-        private static Logger makeLogger(Identifier id) {
+    private record ContextImpl(ResourceLocation addonId) implements AddonContext {
+        private static Logger makeLogger(ResourceLocation id) {
             return LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/addons/" + id);
         }
 
         @Override
-        public PersistentStore persistent(ServerWorld world) {
+        public PersistentStore persistent(ServerLevel world) {
             return RoadAddons.persistent(addonId, world);
         }
 
@@ -129,24 +129,24 @@ public final class RoadAddons {
         }
 
         @Override
-        public Optional<NbtCompound> get(Identifier key) {
+        public Optional<CompoundTag> get(ResourceLocation key) {
             return state.get(key);
         }
 
         @Override
-        public void put(Identifier key, NbtCompound value) {
+        public void put(ResourceLocation key, CompoundTag value) {
             state.put(key, value);
-            state.markDirty();
+            state.setDirty();
         }
 
         @Override
-        public void remove(Identifier key) {
+        public void remove(ResourceLocation key) {
             state.remove(key);
-            state.markDirty();
+            state.setDirty();
         }
 
         @Override
-        public Set<Identifier> keys() {
+        public Set<ResourceLocation> keys() {
             return state.keys();
         }
     }

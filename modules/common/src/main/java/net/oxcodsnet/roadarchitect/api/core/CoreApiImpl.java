@@ -1,8 +1,8 @@
 package net.oxcodsnet.roadarchitect.api.core;
 
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.oxcodsnet.roadarchitect.storage.*;
 import net.oxcodsnet.roadarchitect.storage.EdgeStorage.Edge;
 
@@ -17,7 +17,7 @@ public final class CoreApiImpl implements CoreApi {
     private CoreApiImpl() {}
 
     @Override
-    public RoadGraphView graph(ServerWorld world) {
+    public RoadGraphView graph(ServerLevel world) {
         RoadGraphState state = RoadGraphState.get(world);
         return new RoadGraphView() {
             @Override
@@ -79,7 +79,7 @@ public final class CoreApiImpl implements CoreApi {
     }
 
     @Override
-    public PathView paths(ServerWorld world) {
+    public PathView paths(ServerLevel world) {
         PathStorage ps = PathStorage.get(world);
         return new PathView() {
             @Override
@@ -110,7 +110,7 @@ public final class CoreApiImpl implements CoreApi {
     }
 
     @Override
-    public BuildQueueView buildQueue(ServerWorld world) {
+    public BuildQueueView buildQueue(ServerLevel world) {
         RoadBuilderStorage rbs = RoadBuilderStorage.get(world);
         return chunk -> {
             List<BuildSegment> out = new ArrayList<>();
@@ -122,7 +122,7 @@ public final class CoreApiImpl implements CoreApi {
     }
 
     @Override
-    public DecorView decor(ServerWorld world) {
+    public DecorView decor(ServerLevel world) {
         PathDecorStorage ds = PathDecorStorage.get(world);
         return new DecorView() {
             @Override

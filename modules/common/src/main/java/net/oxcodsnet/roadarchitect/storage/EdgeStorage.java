@@ -1,10 +1,10 @@
 package net.oxcodsnet.roadarchitect.storage;
 
-import net.minecraft.nbt.NbtCompound;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
 import net.oxcodsnet.roadarchitect.util.KeyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.minecraft.nbt.CompoundTag;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.util.NbtUtils;
 
@@ -38,10 +38,10 @@ public class EdgeStorage {
         this.radius = radius;
     }
 
-    public static EdgeStorage fromNbt(NbtCompound tag, double radius) {
+    public static EdgeStorage fromNbt(CompoundTag tag, double radius) {
         EdgeStorage storage = new EdgeStorage(radius);
-        for (String edgeId : tag.getKeys()) {
-            NbtCompound entry = tag.getCompound(edgeId);
+        for (String edgeId : tag.getAllKeys()) {
+            CompoundTag entry = tag.getCompound(edgeId);
             String a = entry.getString("a");
             String b = entry.getString("b");
             Status status = NbtUtils.getEnumOrDefault(entry, "status", Status.class, Status.NEW);
@@ -128,10 +128,10 @@ public class EdgeStorage {
         return Collections.unmodifiableMap(map);
     }
 
-    public NbtCompound toNbt() {
-        NbtCompound tag = new NbtCompound();
+    public CompoundTag toNbt() {
+        CompoundTag tag = new CompoundTag();
         for (Edge edge : edges.values()) {
-            NbtCompound entry = new NbtCompound();
+            CompoundTag entry = new CompoundTag();
             entry.putString("a", edge.nodeA());
             entry.putString("b", edge.nodeB());
             entry.putString("status", edge.status().name());

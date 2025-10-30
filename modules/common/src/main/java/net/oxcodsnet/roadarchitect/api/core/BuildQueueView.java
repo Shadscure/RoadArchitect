@@ -1,8 +1,7 @@
 package net.oxcodsnet.roadarchitect.api.core;
 
-import net.minecraft.util.math.ChunkPos;
-
 import java.util.List;
+import net.minecraft.world.level.ChunkPos;
 
 /**
  * Read-only access to queued build segments per chunk.

@@ -1,7 +1,7 @@
 package net.oxcodsnet.roadarchitect.util.cache;
 
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.oxcodsnet.roadarchitect.storage.CacheStorage;
 
 import java.util.concurrent.CompletableFuture;
@@ -16,9 +16,9 @@ public final class WorldCacheState {
     private final ConcurrentHashMap<Long, CompletableFuture<ChunkHeightSnapshot>> chunkComputations = new ConcurrentHashMap<>();
     private final int minWorldY;
 
-    public WorldCacheState(ServerWorld world, CacheStorage storage) {
+    public WorldCacheState(ServerLevel world, CacheStorage storage) {
         this.storage = storage;
-        this.minWorldY = world.getBottomY();
+        this.minWorldY = world.getMinY();
     }
 
     public CacheStorage storage() {
@@ -40,7 +40,7 @@ public final class WorldCacheState {
     public Integer lookupHeight(long key, int chunkSide) {
         int x = (int) (key >> 32);
         int z = (int) key;
-        long chunkKey = ChunkPos.toLong(x >> 4, z >> 4);
+        long chunkKey = ChunkPos.asLong(x >> 4, z >> 4);
         ChunkHeightSnapshot snapshot = chunkHeights.get(chunkKey);
         if (snapshot == null) {
             return null;

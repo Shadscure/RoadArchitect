@@ -1,6 +1,6 @@
 package net.oxcodsnet.roadarchitect.storage.components;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 /**
  * Представляет узел точки интереса.

@@ -1,0 +1,57 @@
+def sharedProjects = [
+        modrinth  : 'dLRvLyY3',
+        curseforge: '1326434'
+]
+
+ext.releaseConfig = [
+        fabric  : [
+                modrinth : [
+                        projectId    : sharedProjects.modrinth,
+                        versionNumber: { project -> "${project.version}-fabric" },
+                        versionName  : { project, root -> "RoadArchitect v${project.version}+${root.minecraft_version} [Fabric/Quilt]" },
+                        versionType  : 'release',
+                        loaders      : ['fabric', 'quilt'],
+                        gameVersions : { project, root -> [root.minecraft_version] },
+                        dependencies : [
+                                requiredProjects: ['cloth-config'],
+                                optionalProjects: []
+                        ]
+                ],
+                curseforge: [
+                        projectId  : sharedProjects.curseforge,
+                        displayName : { project, root -> "RoadArchitect v${project.version}+${root.minecraft_version} [Fabric/Quilt]" },
+                        releaseType : 'release',
+                        modLoaders  : ['Fabric', 'Quilt'],
+                        environments: ['Client', 'Server'],
+                        javaVersions: ['Java 21'],
+                        gameVersions: { project, root -> [root.minecraft_version] },
+                        requirements: ['cloth-config'],
+                        optionals   : []
+                ]
+        ],
+        neoforge: [
+                modrinth : [
+                        projectId    : sharedProjects.modrinth,
+                        versionNumber: { project -> "${project.version}-neoforge" },
+                        versionName  : { project, root -> "RoadArchitect v${project.version}+${root.minecraft_version} [NeoForge]" },
+                        versionType  : 'release',
+                        loaders      : ['neoforge'],
+                        gameVersions : { project, root -> [root.minecraft_version] },
+                        dependencies : [
+                                requiredProjects: ['cloth-config'],
+                                optionalProjects: []
+                        ]
+                ],
+                curseforge: [
+                        projectId  : sharedProjects.curseforge,
+                        displayName : { project, root -> "RoadArchitect v${project.version}+${root.minecraft_version} [NeoForge]" },
+                        releaseType : 'release',
+                        modLoaders  : ['NeoForge'],
+                        environments: ['Client', 'Server'],
+                        javaVersions: ['Java 21'],
+                        gameVersions: { project, root -> [root.minecraft_version] },
+                        requirements: ['cloth-config'],
+                        optionals   : ['catalogue']
+                ]
+        ]
+]

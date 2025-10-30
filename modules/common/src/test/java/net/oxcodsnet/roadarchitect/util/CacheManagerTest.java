@@ -1,9 +1,10 @@
 package net.oxcodsnet.roadarchitect.util;
 
-import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import net.minecraft.core.BlockPos;
 
 class CacheManagerTest {
 

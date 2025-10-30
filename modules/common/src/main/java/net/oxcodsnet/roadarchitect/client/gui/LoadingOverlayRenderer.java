@@ -1,13 +1,13 @@
 package net.oxcodsnet.roadarchitect.client.gui;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.text.Text;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 // Если у тебя PipelineRunner в common — удобно подтягивать прямо отсюда.
 // Иначе пробрасывай Text stage параметром из «клея».
 import net.oxcodsnet.roadarchitect.handlers.PipelineRunner;
+import net.oxcodsnet.roadarchitect.handlers.PipelineStage;
 
 public final class LoadingOverlayRenderer {
     private LoadingOverlayRenderer() {}
@@ -16,19 +16,19 @@ public final class LoadingOverlayRenderer {
     private static final int BAR_W = 260, BAR_H = 8, GLOW_W = 80, PERIOD_MS = 2400;
 
     /** Отрисовать прогресс-бар и подпись стадии внизу экрана */
-    public static void render(DrawContext ctx, int screenWidth, int screenHeight) {
-        Text stage = resolveStageLabel();
+    public static void render(GuiGraphics ctx, int screenWidth, int screenHeight) {
+        Component stage = resolveStageLabel();
         render(ctx, screenWidth, screenHeight, stage);
     }
 
     /** Перегрузка, если хочешь подставлять свой текст стадии извне */
-    public static void render(DrawContext ctx, int screenWidth, int screenHeight, Text stage) {
+    public static void render(GuiGraphics ctx, int screenWidth, int screenHeight, Component stage) {
         final int x = (screenWidth - BAR_W) / 2;
         final int y = screenHeight - 24;
 
         // трек
         ctx.fill(x, y, x + BAR_W, y + BAR_H, 0xFF20242A);
-        ctx.drawBorder(x, y, BAR_W, BAR_H, 0xFFB0B8C0); // тонкая рамка (в DrawContext есть drawBorder) :contentReference[oaicite:0]{index=0}
+        ctx.renderOutline(x, y, BAR_W, BAR_H, 0xFFB0B8C0); // тонкая рамка (в DrawContext есть drawBorder) :contentReference[oaicite:0]{index=0}
 
         // "бегущий" сегмент (индетерминированный)
         long now = System.currentTimeMillis();
@@ -43,17 +43,17 @@ public final class LoadingOverlayRenderer {
         }
 
         // подпись стадии по центру
-        MinecraftClient mc = MinecraftClient.getInstance();
-        TextRenderer font = mc.textRenderer;
-        int textX = (screenWidth - font.getWidth(stage)) / 2;
-        ctx.drawText(font, stage, textX, y - 12, 0xFFFFFFFF, true);
+        Minecraft mc = Minecraft.getInstance();
+        Font font = mc.font;
+        int textX = (screenWidth - font.width(stage)) / 2;
+        ctx.drawString(font, stage, textX, y - 12, 0xFFFFFFFF, true);
     }
 
-    private static Text resolveStageLabel() {
+    private static Component resolveStageLabel() {
         try {
             var stage = PipelineRunner.getCurrentStage();
             if (stage != null) return stage.label();
         } catch (Throwable ignored) {}
-        return Text.literal("Loading…");
+        return Component.literal("Loading…");
     }
 }

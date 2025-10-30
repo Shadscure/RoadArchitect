@@ -1,6 +1,6 @@
 package net.oxcodsnet.roadarchitect.neoforge.events;
 
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.ChunkEvent;
@@ -22,7 +22,7 @@ public final class NeoForgeEventBridge {
 
     @SubscribeEvent
     private static void onWorldLoad(LevelEvent.Load event) {
-        if (event.getLevel() instanceof ServerWorld world) {
+        if (event.getLevel() instanceof ServerLevel world) {
             RoadGraphStateManager.onWorldLoad(world);
             CacheManager.onWorldLoad(world);
         }
@@ -30,7 +30,7 @@ public final class NeoForgeEventBridge {
 
     @SubscribeEvent
     private static void onWorldUnload(LevelEvent.Unload event) {
-        if (event.getLevel() instanceof ServerWorld world) {
+        if (event.getLevel() instanceof ServerLevel world) {
             RoadGraphStateManager.onWorldUnload(world);
             CacheManager.onWorldUnload(world);
         }
@@ -38,14 +38,14 @@ public final class NeoForgeEventBridge {
 
     @SubscribeEvent
     private static void onChunkLoad(ChunkEvent.Load event) {
-        if (event.getLevel() instanceof ServerWorld world) {
+        if (event.getLevel() instanceof ServerLevel world) {
             CacheManager.onChunkLoad(world, event.getChunk());
         }
     }
 
     @SubscribeEvent
     private static void onChunkUnload(ChunkEvent.Unload event) {
-        if (event.getLevel() instanceof ServerWorld world) {
+        if (event.getLevel() instanceof ServerLevel world) {
             CacheManager.onChunkUnload(world, event.getChunk().getPos());
         }
     }
@@ -58,7 +58,7 @@ public final class NeoForgeEventBridge {
 
     @SubscribeEvent
     private static void onLevelTick(LevelTickEvent.Pre event) {
-        if (event.getLevel() instanceof ServerWorld world) {
+        if (event.getLevel() instanceof ServerLevel world) {
             RoadPostProcessor.onStartWorldTick(world);
         }
     }

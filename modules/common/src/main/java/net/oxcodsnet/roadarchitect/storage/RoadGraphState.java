@@ -1,12 +1,11 @@
 package net.oxcodsnet.roadarchitect.storage;
 
-import net.minecraft.datafixer.DataFixTypes;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
 import net.oxcodsnet.roadarchitect.util.GeometryUtils;
@@ -14,21 +13,21 @@ import net.oxcodsnet.roadarchitect.util.KeyUtil;
 import net.oxcodsnet.roadarchitect.util.PersistentStateUtil;
 
 /**
- * Сохраняет узлы и рёбра дорог как {@link PersistentState}.
- * <p>Stores road nodes and edges as a {@link PersistentState}.</p>
+ * Сохраняет узлы и рёбра дорог как {@link SavedData}.
+ * <p>Stores road nodes and edges as a {@link SavedData}.</p>
  */
-public class RoadGraphState extends PersistentState {
+public class RoadGraphState extends SavedData {
     private static final String KEY = "road_graph";
     private static final String NODES_KEY = "nodes";
     private static final String EDGES_KEY = "edges";
     private static final String RADIUS_KEY = "radius";
 
-    public static final PersistentStateType<RoadGraphState> TYPE = new PersistentStateType<>(
+    public static final SavedDataType<RoadGraphState> TYPE = new SavedDataType<>(
             KEY,
             ctx -> new RoadGraphState(RoadArchitect.CONFIG.maxConnectionDistance()),
-            ctx -> NbtCompound.CODEC.xmap(
-                    tag -> fromNbt(tag, ctx.world().getRegistryManager()),
-                    state -> state.writeNbt(new NbtCompound(), ctx.world().getRegistryManager())
+            ctx -> CompoundTag.CODEC.xmap(
+                    tag -> fromNbt(tag, ctx.level().registryAccess()),
+                    state -> state.writeNbt(new CompoundTag(), ctx.level().registryAccess())
             ),
             DataFixTypes.SAVED_DATA_SCOREBOARD
     );
@@ -58,7 +57,7 @@ public class RoadGraphState extends PersistentState {
      * Получает или создает состояние графа для мира.
      * <p>Gets or creates the road graph state for the given world.</p>
      */
-    public static RoadGraphState get(ServerWorld world) {
+    public static RoadGraphState get(ServerLevel world) {
         return PersistentStateUtil.get(world, TYPE);
     }
 
@@ -68,8 +67,8 @@ public class RoadGraphState extends PersistentState {
      * Восстанавливает состояние графа из NBT.
      * <p>Restores the road graph state from NBT.</p>
      */
-    public static RoadGraphState fromNbt(NbtCompound tag, net.minecraft.registry.RegistryWrapper.WrapperLookup lookup) {
-        double radius = tag.getDouble(RADIUS_KEY, 0.0);
+    public static RoadGraphState fromNbt(CompoundTag tag, net.minecraft.core.HolderLookup.Provider lookup) {
+        double radius = tag.getDoubleOr(RADIUS_KEY, 0.0);
         NodeStorage nodes = NodeStorage.fromNbt(tag.getListOrEmpty(NODES_KEY));
         EdgeStorage edges = EdgeStorage.fromNbt(tag.getCompoundOrEmpty(EDGES_KEY), radius);
         return new RoadGraphState(nodes, edges);
@@ -104,7 +103,7 @@ public class RoadGraphState extends PersistentState {
                 connect(newNode, other);
             }
         }
-        this.markDirty();
+        this.setDirty();
         return newNode;
     }
 
@@ -148,14 +147,14 @@ public class RoadGraphState extends PersistentState {
 
         // 4) всё чисто — делегируем фактическое создание
         boolean added = edgeStorage.add(nodeA, nodeB);
-        if (added) this.markDirty();
+        if (added) this.setDirty();
     }
 
     /**
      * Сохраняет состояние в NBT.
      * <p>Writes this state into an NBT compound.</p>
      */
-    public NbtCompound writeNbt(NbtCompound tag, net.minecraft.registry.RegistryWrapper.WrapperLookup lookup) {
+    public CompoundTag writeNbt(CompoundTag tag, net.minecraft.core.HolderLookup.Provider lookup) {
         tag.putDouble(RADIUS_KEY, edgeStorage.radius());
         tag.put(NODES_KEY, nodeStorage.toNbt());
         tag.put(EDGES_KEY, edgeStorage.toNbt());

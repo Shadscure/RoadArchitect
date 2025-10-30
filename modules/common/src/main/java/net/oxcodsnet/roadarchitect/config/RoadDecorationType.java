@@ -1,11 +1,11 @@
 package net.oxcodsnet.roadarchitect.config;
 
-import net.minecraft.util.StringIdentifiable;
+import net.minecraft.util.StringRepresentable;
 
 /**
  * Supported decoration kinds for configurable road styles.
  */
-public enum RoadDecorationType implements StringIdentifiable {
+public enum RoadDecorationType implements StringRepresentable {
     NONE("none"),
     FENCE("fence");
 
@@ -16,7 +16,7 @@ public enum RoadDecorationType implements StringIdentifiable {
     }
 
     @Override
-    public String asString() {
+    public String getSerializedName() {
         return this.id;
     }
 

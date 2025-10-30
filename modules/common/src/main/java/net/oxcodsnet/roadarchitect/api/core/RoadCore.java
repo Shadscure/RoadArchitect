@@ -1,6 +1,6 @@
 package net.oxcodsnet.roadarchitect.api.core;
 
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * Static convenience facade to obtain core read-only views.
@@ -8,19 +8,19 @@ import net.minecraft.server.world.ServerWorld;
 public final class RoadCore {
     private RoadCore() {}
 
-    public static RoadGraphView graph(ServerWorld world) {
+    public static RoadGraphView graph(ServerLevel world) {
         return CoreApiImpl.INSTANCE.graph(world);
     }
 
-    public static PathView paths(ServerWorld world) {
+    public static PathView paths(ServerLevel world) {
         return CoreApiImpl.INSTANCE.paths(world);
     }
 
-    public static BuildQueueView buildQueue(ServerWorld world) {
+    public static BuildQueueView buildQueue(ServerLevel world) {
         return CoreApiImpl.INSTANCE.buildQueue(world);
     }
 
-    public static DecorView decor(ServerWorld world) {
+    public static DecorView decor(ServerLevel world) {
         return CoreApiImpl.INSTANCE.decor(world);
     }
 }

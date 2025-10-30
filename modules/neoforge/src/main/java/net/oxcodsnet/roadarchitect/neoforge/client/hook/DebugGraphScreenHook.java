@@ -1,6 +1,9 @@
 package net.oxcodsnet.roadarchitect.neoforge.client.hook;
 
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.oxcodsnet.roadarchitect.client.gui.RoadGraphDebugScreenVanilla;
 import net.oxcodsnet.roadarchitect.storage.EdgeStorage;
@@ -14,32 +17,28 @@ import java.util.List;
 
 import static net.oxcodsnet.roadarchitect.neoforge.client.RAKeybinds.OPEN;
 
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.World;
-
 public final class DebugGraphScreenHook {
     private DebugGraphScreenHook() {
     }
 
     public static void onKey(InputEvent.Key event) {
-        if (OPEN == null || !OPEN.wasPressed()) {
+        if (OPEN == null || !OPEN.consumeClick()) {
             return;
         }
-        MinecraftClient mc = MinecraftClient.getInstance();
+        Minecraft mc = Minecraft.getInstance();
 
-        if (mc.currentScreen instanceof RoadGraphDebugScreenVanilla) {
+        if (mc.screen instanceof RoadGraphDebugScreenVanilla) {
             mc.setScreen(null);
             return;
         }
 
-        if (mc.getServer() == null || mc.world == null) {
+        if (mc.getSingleplayerServer() == null || mc.level == null) {
             return;
         }
 
         List<RoadGraphDebugScreenVanilla.DimensionLayer> layers = new ArrayList<>();
-        for (RegistryKey<World> key : mc.getServer().getWorldRegistryKeys()) {
-            ServerWorld world = mc.getServer().getWorld(key);
+        for (ResourceKey<Level> key : mc.getSingleplayerServer().levelKeys()) {
+            ServerLevel world = mc.getSingleplayerServer().getLevel(key);
             if (world == null) {
                 continue;
             }
@@ -53,8 +52,8 @@ public final class DebugGraphScreenHook {
             return;
         }
 
-        layers.sort(Comparator.comparing(layer -> layer.dimension().getValue().toString()));
-        RegistryKey<World> currentDim = mc.world.getRegistryKey();
+        layers.sort(Comparator.comparing(layer -> layer.dimension().location().toString()));
+        ResourceKey<Level> currentDim = mc.level.dimension();
         int idx = -1;
         for (int i = 0; i < layers.size(); i++) {
             if (layers.get(i).dimension().equals(currentDim)) {

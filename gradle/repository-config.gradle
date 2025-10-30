@@ -3,10 +3,10 @@ ext.standardRepositoryConfig = [
         mirror       : [name: 'PackexMirror', envKeys: ['MAVEN_REPO_MIRROR_URL'], defaultUrl: '', useMavenCredentials: true],
         modrinth     : [name: 'Modrinth', url: 'https://api.modrinth.com/maven'],
         fabric       : [name: 'FabricMC', url: 'https://maven.fabricmc.net/'],
-        architectury : [name: 'Architectury', url: 'https://maven.architectury.dev/'],
         neoforged    : [name: 'NeoForged', url: 'https://maven.neoforged.net/releases'],
+        shedaniel    : [name: 'Shedaniel', url: 'https://maven.shedaniel.me/'],
         wispforest   : [name: 'WispForest', url: 'https://maven.wispforest.io'],
         terraformers : [name: 'TerraformersMC', url: 'https://maven.terraformersmc.com/'],
-        shedaniel    : [name: 'Shedaniel', url: 'https://maven.shedaniel.me/'],
+        architectury : [name: 'Architectury', url: 'https://maven.architectury.dev/'],
         mavenCentral : [type: 'mavenCentral'],
 ]

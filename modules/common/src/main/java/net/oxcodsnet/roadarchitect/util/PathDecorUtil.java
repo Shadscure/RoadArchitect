@@ -1,12 +1,12 @@
 package net.oxcodsnet.roadarchitect.util;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.StructureWorldAccess;
-import net.minecraft.registry.tag.FluidTags;
 import net.oxcodsnet.roadarchitect.storage.PathDecorStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.minecraft.core.BlockPos;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldGenLevel;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 
 import java.util.ArrayList;
@@ -100,7 +100,7 @@ public final class PathDecorUtil {
     }
 
     /** Updates ground mask (land/water) for indices [from,to). */
-    public static void fillGroundMask(PathDecorStorage storage, String key, StructureWorldAccess world,
+    public static void fillGroundMask(PathDecorStorage storage, String key, WorldGenLevel world,
                                       List<BlockPos> pts, int from, int to) {
         byte[] mask = storage.getGroundMask(key);
         if (mask == null) return;
@@ -116,7 +116,7 @@ public final class PathDecorUtil {
     }
 
     /** Updates water-interior mask (8-neighborhood) for indices [from,to). */
-    public static void fillWaterInteriorMask(PathDecorStorage storage, String key, StructureWorldAccess world,
+    public static void fillWaterInteriorMask(PathDecorStorage storage, String key, WorldGenLevel world,
                                              List<BlockPos> pts, int from, int to) {
         byte[] mask = storage.getWaterInteriorMask(key);
         if (mask == null) return;
@@ -132,7 +132,7 @@ public final class PathDecorUtil {
             }
             boolean interior = true;
             for (int[] d : OFFSETS_8) {
-                BlockPos q = p.add(d[0], 0, d[1]);
+                BlockPos q = p.offset(d[0], 0, d[1]);
                 if (safeIsNotWaterBlock(world, q)) { interior = false; break; }
             }
             mask[i] = interior ? BOOL_TRUE : BOOL_FALSE;
@@ -141,10 +141,10 @@ public final class PathDecorUtil {
     }
 
     /** Chunk-safe water check that never loads chunks. */
-    public static boolean safeIsNotWaterBlock(StructureWorldAccess world, BlockPos pos) {
+    public static boolean safeIsNotWaterBlock(WorldGenLevel world, BlockPos pos) {
         ChunkPos cp = new ChunkPos(pos);
-        if (!world.isChunkLoaded(cp.x, cp.z)) return true; // treat as land to avoid loads
-        return !world.getBlockState(pos).getFluidState().isIn(FluidTags.WATER);
+        if (!world.hasChunk(cp.x, cp.z)) return true; // treat as land to avoid loads
+        return !world.getBlockState(pos).getFluidState().is(FluidTags.WATER);
     }
 
     /**

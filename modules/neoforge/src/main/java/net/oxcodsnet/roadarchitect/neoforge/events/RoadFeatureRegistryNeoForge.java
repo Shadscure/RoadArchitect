@@ -1,7 +1,6 @@
 package net.oxcodsnet.roadarchitect.neoforge.events;
 
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.world.gen.GenerationStep;
+import net.minecraft.core.registries.Registries;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.oxcodsnet.roadarchitect.worldgen.RoadFeatureRegistry;
 
@@ -16,7 +15,7 @@ public final class RoadFeatureRegistryNeoForge {
      * Registers the road feature and injects the placed feature into all biomes.
      */
     public static void register(RegisterEvent event) {
-        event.register(RegistryKeys.FEATURE,
+        event.register(Registries.FEATURE,
                 helper -> helper.register(RoadFeatureRegistry.ROAD_FEATURE_KEY, RoadFeatureRegistry.ROAD_FEATURE));
     }
 }

@@ -1,10 +1,9 @@
 package net.oxcodsnet.roadarchitect.api.addon;
 
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-
 import java.util.List;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * Addon contract for Road Architect.
@@ -14,7 +13,7 @@ public interface RoadAddon {
     /**
      * Unique addon id, e.g. {@code roadarchitect:ambush}.
      */
-    Identifier id();
+    ResourceLocation id();
 
     /**
      * Called once during addon bootstrap to perform setup.
@@ -35,7 +34,7 @@ public interface RoadAddon {
      * @param pathKey key used by PathStorage
      * @param refinedPath final refined path points
      */
-    default void onPathReady(ServerWorld world, String pathKey, List<BlockPos> refinedPath) {
+    default void onPathReady(ServerLevel world, String pathKey, List<BlockPos> refinedPath) {
         // optional
     }
 
@@ -49,7 +48,7 @@ public interface RoadAddon {
     /**
      * Called when a chunk is loaded.
      */
-    default void onChunkLoad(ServerWorld world, net.minecraft.util.math.ChunkPos pos) {
+    default void onChunkLoad(ServerLevel world, net.minecraft.world.level.ChunkPos pos) {
         // optional
     }
 }

@@ -1,7 +1,7 @@
 package net.oxcodsnet.roadarchitect.api.addon;
 
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.oxcodsnet.roadarchitect.api.core.CoreApi;
 import net.oxcodsnet.roadarchitect.api.storage.PersistentStore;
 import org.slf4j.Logger;
@@ -14,13 +14,13 @@ public interface AddonContext {
     /**
      * The id of the addon being initialized.
      */
-    Identifier addonId();
+    ResourceLocation addonId();
 
     /**
      * Returns a world-scoped persistent store that is isolated for this addon.
      * Data stored here is saved with the world and only accessible via this API.
      */
-    PersistentStore persistent(ServerWorld world);
+    PersistentStore persistent(ServerLevel world);
 
     /**
      * A logger namespaced to the addon.

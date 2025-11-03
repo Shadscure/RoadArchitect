@@ -30,6 +30,7 @@
   <img alt="Fabric" src="https://img.shields.io/badge/Available%20for-Fabric-d2b48c?style=flat">
   <img alt="Quilt" src="https://img.shields.io/badge/Available%20for-Quilt-6b4ca5?style=flat">
   <img alt="NeoForge" src="https://img.shields.io/badge/Available%20for-NeoForge-ea6e24?style=flat">
+  <img alt="Forge" src="https://img.shields.io/badge/Available%20for-Forge-1e2d44?style=flat">
 </p>
 
 <p align="center">

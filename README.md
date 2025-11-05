@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
- <img alt="Latest release" src="https://img.shields.io/github/v/release/Shadscure/RoadArchitect?display_name=release&sort=semver&style=flat">
+ <img alt="Latest release" src="https://img.shields.io/github/v/release/Shadscure/RoadArchitect?display_name=release&sort=semver&style=flat-square&color=00ae5d">
 </p>
 
 # RoadArchitect

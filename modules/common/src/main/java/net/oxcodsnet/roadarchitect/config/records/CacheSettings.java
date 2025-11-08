@@ -32,7 +32,7 @@ public record CacheSettings(
             128,
             256,
             128,
-            false,
+            true,
             2048,
             true,
             true,

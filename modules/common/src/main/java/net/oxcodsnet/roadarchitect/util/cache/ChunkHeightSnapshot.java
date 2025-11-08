@@ -19,4 +19,12 @@ public final class ChunkHeightSnapshot {
     public int chunkSide() {
         return chunkSide;
     }
+
+    public int columns() {
+        return heights.length;
+    }
+
+    public int weightBytes() {
+        return Math.max(1, heights.length) * Integer.BYTES + 32;
+    }
 }

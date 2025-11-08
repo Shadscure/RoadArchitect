@@ -332,6 +332,7 @@ subprojects {
         mappings loom.layered {
             officialMojangMappings()
         }
+        implementation "com.github.ben-manes.caffeine:caffeine:${rootProject.caffeine_version}"
         testImplementation "org.junit.jupiter:junit-jupiter-api:5.10.2"
         testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.2"
         testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.10.2"
@@ -414,23 +415,6 @@ subprojects {
             }
         }
     }
-
-    // ---- добавляем dev (shadowJar) как доп. артефакт к mavenJava
-    plugins.withId('com.gradleup.shadow') {
-        publishing {
-            publications {
-                named('mavenJava', MavenPublication) {
-                    if (tasks.findByName('shadowJar')) {
-                        artifact(tasks.named('shadowJar')) {
-                            classifier = "dev"        // без MC (он уже в artifactId)
-                            builtBy(tasks.named('shadowJar'))
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     // Ensure JUnit 5 tests are discovered and executed
     tasks.withType(Test).configureEach {
         useJUnitPlatform()

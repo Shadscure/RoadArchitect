@@ -219,6 +219,12 @@ public final class RoadArchitectConfigData implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean enablePipelineProfiler = false;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean enableCacheLogs = false;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean showCacheStatsOverlay = false;
     }
 
     public static final class CacheSection {

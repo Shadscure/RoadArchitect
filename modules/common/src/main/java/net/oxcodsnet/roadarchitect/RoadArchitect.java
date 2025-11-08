@@ -168,6 +168,16 @@ public final class RoadArchitect {
         }
 
         @Override
+        public boolean debugCacheLogs() {
+            return RAConfigHolder.get().debugCacheLogs();
+        }
+
+        @Override
+        public boolean debugCacheOverlay() {
+            return RAConfigHolder.get().debugCacheOverlay();
+        }
+
+        @Override
         public CacheSettings cache() {
             return RAConfigHolder.get().cache();
         }

@@ -56,7 +56,7 @@ public final class CacheStorage {
     }
 
     public static CacheStorage open(ServerLevel world) {
-        CacheSettings settings = RAConfigHolder.get().cache();
+        CacheSettings settings = RAConfigHolder.get().cache().clampToRuntime();
         return new CacheStorage(world, settings);
     }
 
@@ -134,6 +134,10 @@ public final class CacheStorage {
         return runtime.policy().eviction()
                 .map(eviction -> eviction.weightedSize().orElse(0L))
                 .orElseGet(() -> runtime.estimatedSize() * 32L);
+    }
+
+    public long regionWeightBytes() {
+        return regionStore.weightBytes();
     }
 
     private ColumnRecord getOrLoad(long key) {

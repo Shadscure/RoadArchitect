@@ -41,6 +41,7 @@ final class RegionColumnStore {
     private final boolean persistBiomes;
     private final int regionSizeChunks;
     private final Cache<Long, RegionData> regions;
+    private final long budgetBytes;
 
     RegionColumnStore(ServerLevel world,
                       boolean persistHeights,
@@ -54,7 +55,8 @@ final class RegionColumnStore {
         this.persistStabilities = persistStabilities;
         this.persistBiomes = persistBiomes;
         this.regionSizeChunks = Math.max(4, regionSizeChunks);
-        long maxWeight = Math.max(persistedBudgetBytes, 32L * 1024L * 1024L);
+        this.budgetBytes = Math.max(persistedBudgetBytes, 32L * 1024L * 1024L);
+        long maxWeight = this.budgetBytes;
         this.regions = Caffeine.newBuilder()
                 .maximumWeight(maxWeight)
                 .weigher((Long key, RegionData value) -> value.weightBytes())
@@ -76,6 +78,12 @@ final class RegionColumnStore {
 
     void flush() {
         regions.asMap().forEach(this::flushRegion);
+    }
+
+    long weightBytes() {
+        return regions.policy().eviction()
+                .map(eviction -> eviction.weightedSize().orElse(0L))
+                .orElseGet(() -> Math.max(1L, regions.estimatedSize()) * 512L);
     }
 
     private void onRegionRemoval(Long key, RegionData value, RemovalCause cause) {

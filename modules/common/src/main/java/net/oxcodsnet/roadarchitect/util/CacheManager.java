@@ -17,7 +17,6 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.config.CacheSettings;
-import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.storage.CacheStorage;
 import net.oxcodsnet.roadarchitect.util.cache.ChunkHeightGenerator;
 import net.oxcodsnet.roadarchitect.util.cache.ChunkHeightSnapshot;
@@ -87,16 +86,20 @@ public final class CacheManager {
     private static WorldCacheState state(ServerLevel world) {
         return STATES.computeIfAbsent(world.dimension(), k -> {
             CacheStorage storage = CacheStorage.open(world);
-            CacheSettings settings = RAConfigHolder.get().cache();
-            return new WorldCacheState(world, storage, settings);
+            return new WorldCacheState(world, storage, storage.settings());
         });
     }
 
     private static void load(ServerLevel world) {
         CacheStorage storage = CacheStorage.open(world);
-        CacheSettings settings = RAConfigHolder.get().cache();
+        CacheSettings settings = storage.settings();
         STATES.put(world.dimension(), new WorldCacheState(world, storage, settings));
         DebugLog.info(LOGGER, "Cache loaded for world {}", world.dimension().location());
+        DebugLog.cache(LOGGER, "Cache budgets for {} -> runtime={}MiB snapshot={}MiB persisted={}MiB",
+                world.dimension().location(),
+                settings.runtimeBudgetMb(),
+                settings.snapshotBudgetMb(),
+                settings.persistedBudgetMb());
     }
 
     private static void save(ServerLevel world) {
@@ -104,6 +107,7 @@ public final class CacheManager {
         if (state != null) {
             state.flush();
             DebugLog.info(LOGGER, "Cache saved for world {}", world.dimension().location());
+            DebugLog.cache(LOGGER, "Cache flushed for world {}", world.dimension().location());
         }
     }
 
@@ -117,17 +121,19 @@ public final class CacheManager {
      * @param maxZ  max Z (blocks)
      */
     public static void prefill(ServerLevel world, int minX, int minZ, int maxX, int maxZ) {
-        CacheSettings cacheSettings = RAConfigHolder.get().cache();
-        if (!cacheSettings.enablePrefill()) {
-            DebugLog.info(LOGGER, "Skipping prefill for {} because it is disabled via config", world.dimension().location());
-            return;
-        }
         WorldCacheState state = state(world);
         CacheStorage storage = state.storage();
+        CacheSettings cacheSettings = storage.settings();
+        if (!cacheSettings.enablePrefill()) {
+            DebugLog.info(LOGGER, "Skipping prefill for {} because it is disabled via config", world.dimension().location());
+            DebugLog.cache(LOGGER, "Prefill skipped for {}: disabled", world.dimension().location());
+            return;
+        }
         long runtimeBudget = cacheSettings.runtimeBudgetBytes();
         long current = storage.runtimeWeightBytes();
         if (current >= runtimeBudget * 0.9) {
             DebugLog.info(LOGGER, "Skipping prefill for {} because runtime cache is at {} of {}", world.dimension().location(), current, runtimeBudget);
+            DebugLog.cache(LOGGER, "Prefill skipped for {}: runtime usage {} of {}", world.dimension().location(), current, runtimeBudget);
             return;
         }
 
@@ -142,6 +148,7 @@ public final class CacheManager {
         int limit = cacheSettings.clampedPrefillMaxChunks();
         if (limit <= 0 || totalChunks <= 0) {
             DebugLog.info(LOGGER, "Prefill skipped: no chunks selected or limit is zero");
+            DebugLog.cache(LOGGER, "Prefill skipped for {}: no eligible chunks (limit={})", world.dimension().location(), limit);
             return;
         }
         int target = Math.min(totalChunks, limit);
@@ -164,6 +171,8 @@ public final class CacheManager {
         }
         DebugLog.info(LOGGER, "Scheduled {} chunk prefill tasks within [{}..{}]×[{}..{}]",
                 scheduled, minX, maxX, minZ, maxZ);
+        DebugLog.cache(LOGGER, "Prefill scheduled {} chunks for {} (limit={}, runtime={}MiB)",
+                scheduled, world.dimension().location(), limit, cacheSettings.runtimeBudgetMb());
     }
 
     private static void warmChunk(ServerLevel world, WorldCacheState state, CacheStorage storage, ChunkPos pos) {
@@ -360,6 +369,7 @@ public final class CacheManager {
         }
 
         state.putChunkSnapshot(pos.toLong(), new ChunkHeightSnapshot(snapshot, CHUNK_SIDE));
+        DebugLog.cache(LOGGER, "Chunk snapshot refreshed for {} ({})", pos, world.dimension().location());
     }
 
     /**
@@ -372,6 +382,7 @@ public final class CacheManager {
         WorldCacheState state = STATES.get(world.dimension());
         if (state != null) {
             state.removeChunkSnapshot(pos.toLong());
+            DebugLog.cache(LOGGER, "Chunk snapshot released for {} ({})", pos, world.dimension().location());
         }
     }
 
@@ -408,7 +419,10 @@ public final class CacheManager {
                     CHUNK_SIDE,
                     COLUMNS_PER_CHUNK
             );
-            state.putChunkSnapshot(chunkKey, generated);
+            if (generated != null) {
+                state.putChunkSnapshot(chunkKey, generated);
+                DebugLog.cache(LOGGER, "Snapshot computed for chunk {} ({} columns)", chunkPos, generated.columns());
+            }
             future.complete(generated);
             return generated;
         } catch (RuntimeException e) {
@@ -419,5 +433,47 @@ public final class CacheManager {
             state.chunkComputations().remove(chunkKey);
         }
     }
+    public static CacheStats stats(ServerLevel world) {
+        WorldCacheState state = STATES.get(world.dimension());
+        if (state == null) {
+            return CacheStats.UNAVAILABLE;
+        }
+        CacheStorage storage = state.storage();
+        CacheSettings settings = storage.settings();
+        return new CacheStats(
+                true,
+                storage.runtimeWeightBytes(),
+                settings.runtimeBudgetBytes(),
+                state.snapshotWeightBytes(),
+                settings.snapshotBudgetBytes(),
+                storage.regionWeightBytes(),
+                settings.persistedBudgetBytes(),
+                settings.enablePrefill(),
+                settings.clampedPrefillMaxChunks()
+        );
+    }
 
+    public record CacheStats(
+            boolean available,
+            long runtimeUsedBytes,
+            long runtimeBudgetBytes,
+            long snapshotUsedBytes,
+            long snapshotBudgetBytes,
+            long persistedUsedBytes,
+            long persistedBudgetBytes,
+            boolean prefillEnabled,
+            int prefillMaxChunks
+    ) {
+        public static final CacheStats UNAVAILABLE = new CacheStats(
+                false,
+                0L,
+                0L,
+                0L,
+                0L,
+                0L,
+                0L,
+                false,
+                0
+        );
+    }
 }

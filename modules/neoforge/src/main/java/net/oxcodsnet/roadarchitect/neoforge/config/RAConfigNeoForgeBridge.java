@@ -229,6 +229,18 @@ public final class RAConfigNeoForgeBridge {
             }
 
             @Override
+            public boolean debugCacheLogs() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings != null && settings.enableCacheLogs;
+            }
+
+            @Override
+            public boolean debugCacheOverlay() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings != null && settings.showCacheStatsOverlay;
+            }
+
+            @Override
             public CacheSettings cache() {
                 RoadArchitectConfigData.CacheSection section = holder.getConfig().cache;
                 if (section == null) {

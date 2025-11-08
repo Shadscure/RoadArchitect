@@ -24,6 +24,9 @@ public record CacheSettings(
         boolean persistStabilities,
         boolean persistBiomes
 ) {
+    private static final double HEAP_FRACTION = 0.45;
+    private static final int MIN_CACHE_MB = 16;
+
     public static final CacheSettings DEFAULT = new CacheSettings(
             256,
             64,
@@ -54,6 +57,32 @@ public record CacheSettings(
 
     public int clampedPrefillMaxChunks() {
         return Math.max(0, prefillMaxChunks);
+    }
+
+    public CacheSettings clampToRuntime() {
+        long heapBytes = Runtime.getRuntime().maxMemory();
+        long heapMb = Math.max(128, heapBytes / (1024L * 1024L));
+        long capMb = Math.max(64, (long) Math.floor(heapMb * HEAP_FRACTION));
+        return new CacheSettings(
+                clampBudget(runtimeBudgetMb, capMb),
+                clampBudget(snapshotBudgetMb, capMb),
+                clampBudget(persistedBudgetMb, capMb),
+                clampedRegionSize(),
+                enablePrefill,
+                clampedPrefillMaxChunks(),
+                persistHeights,
+                persistStabilities,
+                persistBiomes
+        );
+    }
+
+    private static int clampBudget(int configuredMb, long capMb) {
+        int sanitized = Math.max(MIN_CACHE_MB, configuredMb);
+        long clamped = Math.min(sanitized, capMb);
+        if (clamped > Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+        return (int) clamped;
     }
 
     private static long megabytesToBytes(int value) {

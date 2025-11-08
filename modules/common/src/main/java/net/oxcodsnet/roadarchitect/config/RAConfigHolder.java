@@ -204,6 +204,16 @@ public final class RAConfigHolder {
         }
 
         @Override
+        public boolean debugCacheLogs() {
+            return false;
+        }
+
+        @Override
+        public boolean debugCacheOverlay() {
+            return false;
+        }
+
+        @Override
         public CacheSettings cache() {
             return CacheSettings.DEFAULT;
         }

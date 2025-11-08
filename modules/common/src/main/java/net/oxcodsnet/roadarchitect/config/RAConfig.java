@@ -109,6 +109,16 @@ public interface RAConfig {
     boolean debugPipelineProfiler();
 
     /**
+     * Whether verbose cache-specific logging should be emitted.
+     */
+    boolean debugCacheLogs();
+
+    /**
+     * Whether cache metrics should be rendered on the debug (F3) screen.
+     */
+    boolean debugCacheOverlay();
+
+    /**
      * Memory and persistence configuration for caches.
      */
     CacheSettings cache();

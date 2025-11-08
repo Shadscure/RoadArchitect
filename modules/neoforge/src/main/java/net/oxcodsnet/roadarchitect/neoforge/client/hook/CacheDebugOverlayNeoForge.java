@@ -1,23 +1,30 @@
 package net.oxcodsnet.roadarchitect.neoforge.client.hook;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderGuiOverlayEvent;
-import net.neoforged.neoforge.client.gui.VanillaGuiOverlay;
+import net.neoforged.neoforge.client.event.CustomizeGuiOverlayEvent.DebugText;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.client.gui.CacheDebugOverlayRenderer;
 
-@EventBusSubscriber(modid = RoadArchitect.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
+import java.util.List;
+
+@EventBusSubscriber(modid = RoadArchitect.MOD_ID, value = Dist.CLIENT)
 public final class CacheDebugOverlayNeoForge {
     private CacheDebugOverlayNeoForge() {
     }
 
     @SubscribeEvent
-    public static void onRenderOverlay(RenderGuiOverlayEvent.Post event) {
-        if (!event.getOverlay().id().equals(VanillaGuiOverlay.DEBUG_TEXT.id())) {
+    public static void onDebugText(DebugText event) {
+        Minecraft mc = Minecraft.getInstance();
+        List<Component> lines = CacheDebugOverlayRenderer.collectLines(mc);
+        if (lines.isEmpty()) {
             return;
         }
-        CacheDebugOverlayRenderer.render(event.getGuiGraphics());
+        lines.stream()
+                .map(Component::getString)
+                .forEach(event.getRight()::add);
     }
 }

@@ -24,7 +24,10 @@ public final class CacheDebugOverlayRenderer {
         if (mc == null || mc.level == null) {
             return;
         }
-        if (!mc.options.renderDebug || !RoadArchitect.CONFIG.debugCacheOverlay()) {
+        if (!RoadArchitect.CONFIG.debugCacheOverlay()) {
+            return;
+        }
+        if (mc.gui == null || !mc.gui.getDebugOverlay().showDebugScreen()) {
             return;
         }
         List<Component> lines = collectLines(mc);
@@ -40,7 +43,13 @@ public final class CacheDebugOverlayRenderer {
         }
     }
 
-    private static List<Component> collectLines(Minecraft mc) {
+    public static List<Component> collectLines(Minecraft mc) {
+        if (mc == null || mc.level == null) {
+            return List.of();
+        }
+        if (!RoadArchitect.CONFIG.debugCacheOverlay()) {
+            return List.of();
+        }
         if (mc.getSingleplayerServer() == null) {
             return List.of(Component.literal("RoadArchitect cache: remote server"));
         }
@@ -58,8 +67,7 @@ public final class CacheDebugOverlayRenderer {
         lines.add(Component.literal("  runtime: " + formatUsage(stats.runtimeUsedBytes(), stats.runtimeBudgetBytes())));
         lines.add(Component.literal("  snapshots: " + formatUsage(stats.snapshotUsedBytes(), stats.snapshotBudgetBytes())));
         lines.add(Component.literal("  pages: " + formatUsage(stats.persistedUsedBytes(), stats.persistedBudgetBytes())));
-        lines.add(Component.literal("  prefill: " + (stats.prefillEnabled() ? "ON" : "OFF")
-                + " limit=" + stats.prefillMaxChunks()));
+        lines.add(Component.literal("  prefill: " + (stats.prefillEnabled() ? "ON" : "OFF") + " limit=" + stats.prefillMaxChunks()));
         return lines;
     }
 

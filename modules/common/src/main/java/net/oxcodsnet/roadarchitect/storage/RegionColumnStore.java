@@ -12,7 +12,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -104,26 +103,34 @@ final class RegionColumnStore {
             if (tag == null) {
                 return data;
             }
-            ListTag list = tag.getList(LIST_KEY, Tag.TAG_COMPOUND);
-            for (int i = 0; i < list.size(); i++) {
-                CompoundTag entry = list.getCompound(i);
-                long columnKey = entry.getLong("k");
-                Integer height = persistHeights && entry.contains("h", Tag.TAG_INT) ? entry.getInt("h") : null;
-                Double stability = persistStabilities && entry.contains("s", Tag.TAG_DOUBLE)
-                        ? entry.getDouble("s") : null;
-                Holder<Biome> biome = null;
-                if (persistBiomes && entry.contains("b", Tag.TAG_STRING)) {
-                    ResourceLocation id = ResourceLocation.tryParse(entry.getString("b"));
-                    if (id != null) {
-                        ResourceKey<Biome> key = ResourceKey.create(Registries.BIOME, id);
-                        biome = biomeRegistry.get(key).orElse(null);
-                    }
+            tag.getList(LIST_KEY).ifPresent(list -> {
+                for (int i = 0; i < list.size(); i++) {
+                    list.getCompound(i).ifPresent(entry -> {
+                        Long columnKeyBoxed = entry.getLong("k").orElse(null);
+                        if (columnKeyBoxed == null) {
+                            return;
+                        }
+                        long columnKey = columnKeyBoxed;
+                        Integer height = persistHeights ? entry.getInt("h").orElse(null) : null;
+                        Double stability = persistStabilities ? entry.getDouble("s").orElse(null) : null;
+                        Holder<Biome> biome = null;
+                        if (persistBiomes) {
+                            String biomeId = entry.getString("b").orElse(null);
+                            if (biomeId != null) {
+                                ResourceLocation id = ResourceLocation.tryParse(biomeId);
+                                if (id != null) {
+                                    ResourceKey<Biome> key = ResourceKey.create(Registries.BIOME, id);
+                                    biome = biomeRegistry.get(key).orElse(null);
+                                }
+                            }
+                        }
+                        ColumnRecord record = new ColumnRecord(height, stability, biome);
+                        if (!record.isEmpty()) {
+                            data.putLoaded(columnKey, record);
+                        }
+                    });
                 }
-                ColumnRecord record = new ColumnRecord(height, stability, biome);
-                if (!record.isEmpty()) {
-                    data.putLoaded(columnKey, record);
-                }
-            }
+            });
         } catch (IOException e) {
             LOGGER.error("Failed to load cached region {}", path, e);
         }

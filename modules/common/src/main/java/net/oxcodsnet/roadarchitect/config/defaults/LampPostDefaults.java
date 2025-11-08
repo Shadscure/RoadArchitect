@@ -1,6 +1,6 @@
 package net.oxcodsnet.roadarchitect.config.defaults;
 
-import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
+import net.oxcodsnet.roadarchitect.config.records.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RoadArchitectConfigData;
 
 import java.util.ArrayList;

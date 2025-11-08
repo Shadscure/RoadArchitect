@@ -25,6 +25,9 @@ configurations {
 }
 
 dependencies {
+    include "com.github.ben-manes.caffeine:caffeine:${rootProject.caffeine_version}"
+    forgeRuntimeLibrary "com.github.ben-manes.caffeine:caffeine:${rootProject.caffeine_version}"
+
     neoForge "net.neoforged:neoforge:$rootProject.neoforge_version"
 
     // Architectury API. This is optional, and you can comment it out if you don't need it.

@@ -70,6 +70,11 @@ public final class RoadArchitectConfigData implements ConfigData {
     @ConfigEntry.Gui.TransitiveObject
     public TerrainAnalyzerSettings terrainAnalyzer = new TerrainAnalyzerSettings();
 
+    // Cache tuning (separate tab)
+    @ConfigEntry.Category("cache")
+    @ConfigEntry.Gui.TransitiveObject
+    public CacheSection cache = new CacheSection();
+
     public static final class TerrainAnalyzerSettings {
         @ConfigEntry.Gui.Tooltip
         public boolean enabled = false;
@@ -214,5 +219,45 @@ public final class RoadArchitectConfigData implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean enablePipelineProfiler = false;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean enableCacheLogs = false;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean showCacheStatsOverlay = false;
+    }
+
+    public static final class CacheSection {
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 16, max = 4096)
+        public int runtimeBudgetMb = 256;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 16, max = 1024)
+        public int snapshotBudgetMb = 64;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 16, max = 4096)
+        public int persistedBudgetMb = 128;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 4, max = 128)
+        public int regionSizeChunks = 32;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean enablePrefill = true;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 0, max = 16384)
+        public int prefillMaxChunks = 2048;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean persistHeights = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean persistStabilities = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean persistBiomes = true;
     }
 }

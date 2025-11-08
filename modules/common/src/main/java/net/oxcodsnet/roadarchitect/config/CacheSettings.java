@@ -29,10 +29,10 @@ public record CacheSettings(
 
     public static final CacheSettings DEFAULT = new CacheSettings(
             256,
-            64,
             128,
-            32,
-            true,
+            256,
+            128,
+            false,
             2048,
             true,
             true,

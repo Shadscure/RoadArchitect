@@ -5,13 +5,12 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
+import net.oxcodsnet.roadarchitect.config.records.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.config.defaults.LampPostDefaults;
@@ -23,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -127,17 +125,12 @@ public final class LampPostConfigResolver {
             LOGGER.warn("Lamp post override {} '{}' is not a valid identifier", role, raw);
             return null;
         }
-        return getBlock(id)
+        return BuiltInRegistries.BLOCK.getOptional(id)
                 .map(Block::defaultBlockState)
                 .orElseGet(() -> {
                     LOGGER.warn("Lamp post override {} '{}' is not registered", role, raw);
                     return null;
                 });
-    }
-
-    private static Optional<Block> getBlock(ResourceLocation id) {
-        return BuiltInRegistries.BLOCK.get(ResourceKey.create(Registries.BLOCK, id))
-                .map(Holder.Reference::value);
     }
 
     private record Override(List<String> selectors, LampPostDecoration decoration) {

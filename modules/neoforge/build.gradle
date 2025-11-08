@@ -24,34 +24,10 @@ configurations {
     }
 }
 
-repositories {
-    maven {
-        name = 'NeoForged'
-        url = 'https://maven.neoforged.net/releases'
-    }
-}
-
-//def generatedResources = file("src/generated/resources")
-//
-//sourceSets {
-//    main {
-//        resources {
-//            srcDir "src/generated/resources"
-//        }
-//    }
-//}
-//loom {
-//    runs {
-//        // Конфигурация раннера датагена для NeoForge 1.21–1.21.1
-//        data {
-//            data() // включить режим датагена
-//            // Аргументы такие же, как в оф. доке NeoForge
-//            programArgs "--mod", "roadarchitect", "--output", generatedResources.absolutePath
-//        }
-//    }
-//}
-
 dependencies {
+    include "com.github.ben-manes.caffeine:caffeine:${rootProject.caffeine_version}"
+    forgeRuntimeLibrary "com.github.ben-manes.caffeine:caffeine:${rootProject.caffeine_version}"
+
     neoForge "net.neoforged:neoforge:$rootProject.neoforge_version"
 
     // Architectury API. This is optional, and you can comment it out if you don't need it.
@@ -95,26 +71,47 @@ remapJar {
     archiveFileName.set("roadarchitect-${project.version}-neoforge+${rootProject.minecraft_version}.jar")
 }
 
+def releaseValue = { String section, String key, boolean required = false ->
+    rootProject.ext.resolveReleaseConfigValue("neoforge", section, key, project, required)
+}
+def releaseList = { String section, String key, boolean required = false ->
+    rootProject.ext.toList(releaseValue(section, key, required))
+}
+
 // =========== Modrith =========
 apply plugin: "com.modrinth.minotaur"
-def modrinth_token = rootProject.ext.resolveModrinthToken()
+def modrinthConfig = rootProject.ext.envConfig?.modrinth ?: [:]
+def modrinth_token = modrinthConfig.token
 boolean hasModrinthToken = modrinth_token != null && !modrinth_token.toString().trim().isEmpty()
 if (!hasModrinthToken) {
     logger.warn("MODRINTH_TOKEN is not configured; using a dummy value and disabling Modrinth publishing tasks.")
     modrinth_token = "modrinth_dummy_token"
 }
 
+def modrinthProjectId = releaseValue("modrinth", "projectId", true)
+def modrinthVersionNumber = releaseValue("modrinth", "versionNumber", true)
+def modrinthVersionName = releaseValue("modrinth", "versionName", true)
+def modrinthVersionType = releaseValue("modrinth", "versionType", true)
+def modrinthLoaders = releaseList("modrinth", "loaders", true)
+def modrinthGameVersions = releaseList("modrinth", "gameVersions", true)
+def modrinthDependencies = releaseValue("modrinth", "dependencies")
+def modrinthRequiredProjects = rootProject.ext.toList(modrinthDependencies?.requiredProjects)
+def modrinthOptionalProjects = rootProject.ext.toList(modrinthDependencies?.optionalProjects)
+
 modrinth {
     token = modrinth_token
-    projectId = "dLRvLyY3"
-    versionNumber = "${project.version}-neoforge"
-    versionName   = "RoadArchitect v${project.version}+${rootProject.minecraft_version} [NeoForge]"
-    versionType   = "release"                 // или "beta"/"alpha"
-    gameVersions  = [ rootProject.minecraft_version ]
-    loaders       = [ "neoforge" ]
+    projectId = modrinthProjectId
+    versionNumber = modrinthVersionNumber
+    versionName   = modrinthVersionName
+    versionType   = modrinthVersionType
+    gameVersions  = modrinthGameVersions
+    loaders       = modrinthLoaders
     uploadFile    = remapJar                   // из Loom
     changelog     = rootProject.file("CHANGELOG.md").exists() ? rootProject.file("CHANGELOG.md").text : ""
-    dependencies { required.project "cloth-config" }
+    dependencies {
+        modrinthRequiredProjects.each { required.project(it) }
+        modrinthOptionalProjects.each { optional.project(it) }
+    }
 }
 tasks.configureEach { task ->
     if (task.name.toLowerCase().startsWith("modrinth")) {
@@ -125,21 +122,23 @@ tasks.configureEach { task ->
 // ====================== CurseForge ====================
 apply plugin: "net.darkhax.curseforgegradle"
 
-def curse_token = rootProject.ext.resolveCurseforgeToken()
+def curseforgeConfig = rootProject.ext.envConfig?.curseforge ?: [:]
+def curse_token = curseforgeConfig.token
 boolean hasCurseToken = curse_token != null && !curse_token.toString().trim().isEmpty()
 if (!hasCurseToken) {
     logger.warn("CURSEFORGE_TOKEN is not configured; using a dummy value and disabling CurseForge publishing tasks.")
     curse_token = "curseforge_dummy_token"
 }
+def curse_project_id = releaseValue("curseforge", "projectId", true)
 
-
-def curse_project_id =
-        (findProperty("curseforge_project_fabric")
-                ?: System.getenv("CURSEFORGE_PROJECT_FABRIC")
-                ?: findProperty("curseforge_project")
-                ?: System.getenv("CURSEFORGE_PROJECT_ID")
-                ?: "1326434")
-
+def curseDisplayName = releaseValue("curseforge", "displayName", true)
+def curseReleaseType = releaseValue("curseforge", "releaseType", true)
+def curseModLoaders = releaseList("curseforge", "modLoaders", true)
+def curseGameVersions = releaseList("curseforge", "gameVersions", true)
+def curseJavaVersions = releaseList("curseforge", "javaVersions")
+def curseEnvironments = releaseList("curseforge", "environments")
+def curseRequirements = releaseList("curseforge", "requirements")
+def curseOptionals = releaseList("curseforge", "optionals")
 
 tasks.register("curseforge", net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     onlyIf { hasCurseToken }
@@ -150,15 +149,15 @@ tasks.register("curseforge", net.darkhax.curseforgegradle.TaskPublishCurseForge)
     dependsOn remapJar
     def mainFile = upload(curse_project_id as String, remapJar)
 
-    mainFile.displayName = "RoadArchitect v${project.version}+${rootProject.minecraft_version} [NeoForge]"
-    mainFile.releaseType = "release"
-    mainFile.addModLoader("NeoForge")
-    mainFile.addGameVersion("${rootProject.minecraft_version}")
-    mainFile.addJavaVersion("Java 21")
-    mainFile.addEnvironment("Client", "Server")
+    mainFile.displayName = curseDisplayName
+    mainFile.releaseType = curseReleaseType
+    curseModLoaders.each { mainFile.addModLoader(it) }
+    curseGameVersions.each { mainFile.addGameVersion(it) }
+    curseJavaVersions.each { mainFile.addJavaVersion(it) }
+    curseEnvironments.each { mainFile.addEnvironment(it) }
     mainFile.changelog = rootProject.file("CHANGELOG.md"); mainFile.changelogType = "markdown"
-    mainFile.addRequirement("cloth-config")
-    mainFile.addOptional("catalogue")
+    curseRequirements.each { mainFile.addRequirement(it) }
+    curseOptionals.each { mainFile.addOptional(it) }
 }
 tasks.configureEach { task ->
     if (task.name.toLowerCase().startsWith("curseforge")) {

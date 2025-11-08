@@ -2,7 +2,7 @@ package net.oxcodsnet.roadarchitect.util;
 
 import net.oxcodsnet.roadarchitect.config.RoadArchitectConfigData;
 import net.oxcodsnet.roadarchitect.config.RoadDecorationType;
-import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
+import net.oxcodsnet.roadarchitect.config.records.RoadStyleConfigEntry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

@@ -3,6 +3,9 @@ package net.oxcodsnet.roadarchitect.config;
 import net.oxcodsnet.roadarchitect.config.defaults.BopRoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.config.defaults.LampPostDefaults;
 import net.oxcodsnet.roadarchitect.config.defaults.RoadStyleDefaults;
+import net.oxcodsnet.roadarchitect.config.records.CacheSettings;
+import net.oxcodsnet.roadarchitect.config.records.LampPostConfigEntry;
+import net.oxcodsnet.roadarchitect.config.records.RoadStyleConfigEntry;
 
 import java.util.List;
 import java.util.Objects;

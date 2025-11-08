@@ -1,4 +1,4 @@
-package net.oxcodsnet.roadarchitect.config;
+package net.oxcodsnet.roadarchitect.config.records;
 
 /**
  * Tunable cache parameters shared between runtime caches and persistence layer.
@@ -24,7 +24,7 @@ public record CacheSettings(
         boolean persistStabilities,
         boolean persistBiomes
 ) {
-    private static final double HEAP_FRACTION = 0.45;
+    private static final double HEAP_FRACTION = 0.65;
     private static final int MIN_CACHE_MB = 16;
 
     public static final CacheSettings DEFAULT = new CacheSettings(

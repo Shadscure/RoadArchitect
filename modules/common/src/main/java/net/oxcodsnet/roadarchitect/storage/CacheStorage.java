@@ -5,7 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.Biome;
-import net.oxcodsnet.roadarchitect.config.CacheSettings;
+import net.oxcodsnet.roadarchitect.config.records.CacheSettings;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,5 +1,9 @@
 package net.oxcodsnet.roadarchitect.config;
 
+import net.oxcodsnet.roadarchitect.config.records.CacheSettings;
+import net.oxcodsnet.roadarchitect.config.records.LampPostConfigEntry;
+import net.oxcodsnet.roadarchitect.config.records.RoadStyleConfigEntry;
+
 import java.util.List;
 
 /**

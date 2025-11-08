@@ -10,7 +10,7 @@ import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
+import net.oxcodsnet.roadarchitect.config.records.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.config.defaults.LampPostDefaults;

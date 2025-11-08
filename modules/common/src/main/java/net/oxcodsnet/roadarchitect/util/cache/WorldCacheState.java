@@ -4,7 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
-import net.oxcodsnet.roadarchitect.config.CacheSettings;
+import net.oxcodsnet.roadarchitect.config.records.CacheSettings;
 import net.oxcodsnet.roadarchitect.storage.CacheStorage;
 
 import java.util.concurrent.CompletableFuture;

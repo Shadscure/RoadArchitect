@@ -16,7 +16,7 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
-import net.oxcodsnet.roadarchitect.config.CacheSettings;
+import net.oxcodsnet.roadarchitect.config.records.CacheSettings;
 import net.oxcodsnet.roadarchitect.storage.CacheStorage;
 import net.oxcodsnet.roadarchitect.util.cache.ChunkHeightGenerator;
 import net.oxcodsnet.roadarchitect.util.cache.ChunkHeightSnapshot;

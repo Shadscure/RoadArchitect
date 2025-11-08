@@ -51,7 +51,7 @@ public final class CacheDebugOverlayRenderer {
         int y = computeRightColumnTop(mc);
         for (Component line : lines) {
             int width = mc.font.width(line);
-            graphics.drawString(mc.font, line, x - width, y, 0x80FFD5, false);
+            graphics.drawString(mc.font, line, x - width, y, 0xff896c, false);
             y += mc.font.lineHeight;
         }
     }

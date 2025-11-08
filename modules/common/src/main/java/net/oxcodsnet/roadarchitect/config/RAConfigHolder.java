@@ -3,6 +3,9 @@ package net.oxcodsnet.roadarchitect.config;
 import net.oxcodsnet.roadarchitect.config.defaults.BopRoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.config.defaults.LampPostDefaults;
 import net.oxcodsnet.roadarchitect.config.defaults.RoadStyleDefaults;
+import net.oxcodsnet.roadarchitect.config.records.CacheSettings;
+import net.oxcodsnet.roadarchitect.config.records.LampPostConfigEntry;
+import net.oxcodsnet.roadarchitect.config.records.RoadStyleConfigEntry;
 
 import java.util.List;
 import java.util.Objects;
@@ -201,6 +204,21 @@ public final class RAConfigHolder {
         @Override
         public boolean debugPipelineProfiler() {
             return false;
+        }
+
+        @Override
+        public boolean debugCacheLogs() {
+            return false;
+        }
+
+        @Override
+        public boolean debugCacheOverlay() {
+            return false;
+        }
+
+        @Override
+        public CacheSettings cache() {
+            return CacheSettings.DEFAULT;
         }
     }
 }

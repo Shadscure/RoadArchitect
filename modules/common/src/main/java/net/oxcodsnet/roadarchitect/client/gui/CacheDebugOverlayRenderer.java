@@ -1,0 +1,119 @@
+package net.oxcodsnet.roadarchitect.client.gui;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.oxcodsnet.roadarchitect.RoadArchitect;
+import net.oxcodsnet.roadarchitect.util.CacheManager;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+/**
+ * Renders cache diagnostics into the debug (F3) overlay when enabled.
+ */
+public final class CacheDebugOverlayRenderer {
+    private static final Method SYSTEM_INFO_METHOD;
+
+    static {
+        Method m = null;
+        try {
+            m = net.minecraft.client.gui.components.DebugScreenOverlay.class.getDeclaredMethod("getSystemInformation");
+            m.setAccessible(true);
+        } catch (ReflectiveOperationException ignored) {
+        }
+        SYSTEM_INFO_METHOD = m;
+    }
+
+    private CacheDebugOverlayRenderer() {
+    }
+
+    public static void render(GuiGraphics graphics) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc == null || mc.level == null) {
+            return;
+        }
+        if (!RoadArchitect.CONFIG.debugCacheOverlay()) {
+            return;
+        }
+        if (mc.gui == null || !mc.gui.getDebugOverlay().showDebugScreen()) {
+            return;
+        }
+        List<Component> lines = collectLines(mc);
+        if (lines.isEmpty()) {
+            return;
+        }
+        int x = graphics.guiWidth() - 4;
+        int y = computeRightColumnTop(mc);
+        for (Component line : lines) {
+            int width = mc.font.width(line);
+            graphics.drawString(mc.font, line, x - width, y, 0xff896c, false);
+            y += mc.font.lineHeight;
+        }
+    }
+
+    public static List<Component> collectLines(Minecraft mc) {
+        if (mc == null || mc.level == null) {
+            return List.of();
+        }
+        if (!RoadArchitect.CONFIG.debugCacheOverlay()) {
+            return List.of();
+        }
+        if (mc.getSingleplayerServer() == null) {
+            return List.of(Component.literal("RoadArchitect cache: remote server"));
+        }
+        ServerLevel serverLevel = mc.getSingleplayerServer().getLevel(mc.level.dimension());
+        if (serverLevel == null) {
+            return List.of(Component.literal("RoadArchitect cache: world unavailable"));
+        }
+        CacheManager.CacheStats stats = CacheManager.stats(serverLevel);
+        if (!stats.available()) {
+            return List.of(Component.literal("RoadArchitect cache: inactive"));
+        }
+        ArrayList<Component> lines = new ArrayList<>();
+        ResourceLocation dimensionId = serverLevel.dimension().location();
+        lines.add(Component.literal("RoadArchitect cache (" + dimensionId + ")"));
+        lines.add(Component.literal("  runtime: " + formatUsage(stats.runtimeUsedBytes(), stats.runtimeBudgetBytes())));
+        lines.add(Component.literal("  snapshots: " + formatUsage(stats.snapshotUsedBytes(), stats.snapshotBudgetBytes())));
+        lines.add(Component.literal("  pages: " + formatUsage(stats.persistedUsedBytes(), stats.persistedBudgetBytes())));
+        lines.add(Component.literal("  prefill: " + (stats.prefillEnabled() ? "ON" : "OFF") + " limit=" + stats.prefillMaxChunks()));
+        return lines;
+    }
+
+    private static int computeRightColumnTop(Minecraft mc) {
+        try {
+            int lineHeight = mc.font.lineHeight;
+            List<String> existing = getSystemInformation(mc);
+            if (!existing.isEmpty()) {
+                return 2 + existing.size() * lineHeight + 2;
+            }
+            return 2;
+        } catch (Throwable ignored) {
+            return 48;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<String> getSystemInformation(Minecraft mc) throws ReflectiveOperationException {
+        if (SYSTEM_INFO_METHOD == null || mc.gui == null) {
+            return List.of();
+        }
+        Object overlay = mc.gui.getDebugOverlay();
+        return (List<String>) SYSTEM_INFO_METHOD.invoke(overlay);
+    }
+
+    private static String formatUsage(long usedBytes, long budgetBytes) {
+        double used = bytesToMiB(usedBytes);
+        double budget = bytesToMiB(budgetBytes);
+        double pct = budgetBytes > 0 ? (double) usedBytes / (double) budgetBytes * 100.0 : 0.0;
+        return String.format(Locale.ROOT, "%.1f / %.1f MiB (%.0f%%)", used, budget, pct);
+    }
+
+    private static double bytesToMiB(long value) {
+        return value / 1024.0 / 1024.0;
+    }
+}

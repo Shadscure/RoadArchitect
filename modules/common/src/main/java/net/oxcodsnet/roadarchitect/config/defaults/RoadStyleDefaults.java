@@ -1,7 +1,7 @@
 package net.oxcodsnet.roadarchitect.config.defaults;
 
 import net.oxcodsnet.roadarchitect.config.RoadArchitectConfigData;
-import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
+import net.oxcodsnet.roadarchitect.config.records.RoadStyleConfigEntry;
 
 import java.util.ArrayList;
 import java.util.List;

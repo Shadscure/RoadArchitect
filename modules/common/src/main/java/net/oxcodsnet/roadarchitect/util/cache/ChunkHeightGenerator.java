@@ -156,7 +156,6 @@ public final class ChunkHeightGenerator {
             PipelineProfiler.recordValue("cache.height.loaded_value", value);
         }
 
-        boolean dirty = false;
         int writeIndex = 0;
         for (int localZ = 0; localZ < chunkSide; localZ++) {
             for (int localX = 0; localX < chunkSide; localX++, writeIndex++) {
@@ -164,14 +163,8 @@ public final class ChunkHeightGenerator {
                 int worldZ = startZ + localZ;
                 long columnKey = hash(worldX, worldZ);
                 int value = heights[writeIndex];
-                Integer previous = storage.heights().put(columnKey, value);
-                if (previous == null || previous.intValue() != value) {
-                    dirty = true;
-                }
+                storage.putHeight(columnKey, value);
             }
-        }
-        if (dirty) {
-            storage.setDirty();
         }
 
         return new ChunkHeightSnapshot(heights, chunkSide);

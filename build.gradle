@@ -414,23 +414,6 @@ subprojects {
             }
         }
     }
-
-    // ---- добавляем dev (shadowJar) как доп. артефакт к mavenJava
-    plugins.withId('com.gradleup.shadow') {
-        publishing {
-            publications {
-                named('mavenJava', MavenPublication) {
-                    if (tasks.findByName('shadowJar')) {
-                        artifact(tasks.named('shadowJar')) {
-                            classifier = "dev"        // без MC (он уже в artifactId)
-                            builtBy(tasks.named('shadowJar'))
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     // Ensure JUnit 5 tests are discovered and executed
     tasks.withType(Test).configureEach {
         useJUnitPlatform()

@@ -202,5 +202,10 @@ public final class RAConfigHolder {
         public boolean debugPipelineProfiler() {
             return false;
         }
+
+        @Override
+        public CacheSettings cache() {
+            return CacheSettings.DEFAULT;
+        }
     }
 }

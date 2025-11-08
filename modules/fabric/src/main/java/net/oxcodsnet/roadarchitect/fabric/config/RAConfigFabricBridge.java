@@ -9,6 +9,7 @@ import net.oxcodsnet.roadarchitect.config.defaults.BopRoadStyleDefaults;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
+import net.oxcodsnet.roadarchitect.config.CacheSettings;
 import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
@@ -228,6 +229,25 @@ public final class RAConfigFabricBridge {
             public boolean debugPipelineProfiler() {
                 RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
                 return settings != null && settings.enablePipelineProfiler;
+            }
+
+            @Override
+            public CacheSettings cache() {
+                RoadArchitectConfigData.CacheSection section = holder.getConfig().cache;
+                if (section == null) {
+                    return CacheSettings.DEFAULT;
+                }
+                return new CacheSettings(
+                        section.runtimeBudgetMb,
+                        section.snapshotBudgetMb,
+                        section.persistedBudgetMb,
+                        section.regionSizeChunks,
+                        section.enablePrefill,
+                        section.prefillMaxChunks,
+                        section.persistHeights,
+                        section.persistStabilities,
+                        section.persistBiomes
+                );
             }
         });
 

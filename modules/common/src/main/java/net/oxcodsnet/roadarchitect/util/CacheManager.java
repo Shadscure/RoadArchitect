@@ -16,6 +16,8 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
+import net.oxcodsnet.roadarchitect.config.CacheSettings;
+import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.storage.CacheStorage;
 import net.oxcodsnet.roadarchitect.util.cache.ChunkHeightGenerator;
 import net.oxcodsnet.roadarchitect.util.cache.ChunkHeightSnapshot;
@@ -83,20 +85,24 @@ public final class CacheManager {
     }
 
     private static WorldCacheState state(ServerLevel world) {
-        return STATES.computeIfAbsent(world.dimension(), k -> new WorldCacheState(world, CacheStorage.get(world)));
+        return STATES.computeIfAbsent(world.dimension(), k -> {
+            CacheStorage storage = CacheStorage.open(world);
+            CacheSettings settings = RAConfigHolder.get().cache();
+            return new WorldCacheState(world, storage, settings);
+        });
     }
 
     private static void load(ServerLevel world) {
-        CacheStorage storage = CacheStorage.get(world);
-        STATES.put(world.dimension(), new WorldCacheState(world, storage));
+        CacheStorage storage = CacheStorage.open(world);
+        CacheSettings settings = RAConfigHolder.get().cache();
+        STATES.put(world.dimension(), new WorldCacheState(world, storage, settings));
         DebugLog.info(LOGGER, "Cache loaded for world {}", world.dimension().location());
     }
 
     private static void save(ServerLevel world) {
         WorldCacheState state = STATES.remove(world.dimension());
         if (state != null) {
-            state.chunkHeights().clear();
-            state.storage().setDirty();
+            state.flush();
             DebugLog.info(LOGGER, "Cache saved for world {}", world.dimension().location());
         }
     }
@@ -111,33 +117,82 @@ public final class CacheManager {
      * @param maxZ  max Z (blocks)
      */
     public static void prefill(ServerLevel world, int minX, int minZ, int maxX, int maxZ) {
-        int step = PathFinder.GRID_STEP;
+        CacheSettings cacheSettings = RAConfigHolder.get().cache();
+        if (!cacheSettings.enablePrefill()) {
+            DebugLog.info(LOGGER, "Skipping prefill for {} because it is disabled via config", world.dimension().location());
+            return;
+        }
         WorldCacheState state = state(world);
         CacheStorage storage = state.storage();
-        AsyncExecutor.execute(() -> {
-            ChunkGenerator gen = world.getChunkSource().getGenerator();
-            RandomState cfg = world.getChunkSource().randomState();
-            Climate.Sampler sampler = cfg.sampler();
-            BiomeSource bsrc = gen.getBiomeSource();
+        long runtimeBudget = cacheSettings.runtimeBudgetBytes();
+        long current = storage.runtimeWeightBytes();
+        if (current >= runtimeBudget * 0.9) {
+            DebugLog.info(LOGGER, "Skipping prefill for {} because runtime cache is at {} of {}", world.dimension().location(), current, runtimeBudget);
+            return;
+        }
 
-            for (int x = minX; x <= maxX; x += step) {
-                for (int z = minZ; z <= maxZ; z += step) {
-                    long key = hash(x, z);
-                    int finalX = x;
-                    int finalZ = z;
-                    AsyncExecutor.execute(() -> {
-                        int h = gen.getBaseHeight(finalX, finalZ, Heightmap.Types.WORLD_SURFACE_WG, world, cfg);
-                        Holder<Biome> biome = bsrc.getNoiseBiome(
-                                QuartPos.fromBlock(finalX), 316,
-                                QuartPos.fromBlock(finalZ), sampler);
-                        storage.heights().put(key, h);
-                        storage.biomes().put(key, biome);
-                    });
-                }
+        int minChunkX = Math.floorDiv(minX, CHUNK_SIDE);
+        int maxChunkX = Math.floorDiv(maxX, CHUNK_SIDE);
+        int minChunkZ = Math.floorDiv(minZ, CHUNK_SIDE);
+        int maxChunkZ = Math.floorDiv(maxZ, CHUNK_SIDE);
+        if (minChunkX > maxChunkX || minChunkZ > maxChunkZ) {
+            return;
+        }
+        int totalChunks = (maxChunkX - minChunkX + 1) * (maxChunkZ - minChunkZ + 1);
+        int limit = cacheSettings.clampedPrefillMaxChunks();
+        if (limit <= 0 || totalChunks <= 0) {
+            DebugLog.info(LOGGER, "Prefill skipped: no chunks selected or limit is zero");
+            return;
+        }
+        int target = Math.min(totalChunks, limit);
+        ChunkGenerator generator = world.getChunkSource().getGenerator();
+        RandomState randomState = world.getChunkSource().randomState();
+        Climate.Sampler sampler = randomState.sampler();
+        BiomeSource biomeSource = generator.getBiomeSource();
+        int stride = Math.max(1, PathFinder.GRID_STEP);
+
+        int scheduled = 0;
+        for (int chunkX = minChunkX; chunkX <= maxChunkX && scheduled < target; chunkX++) {
+            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ && scheduled < target; chunkZ++) {
+                ChunkPos pos = new ChunkPos(chunkX, chunkZ);
+                scheduled++;
+                AsyncExecutor.execute(() -> {
+                    warmChunk(world, state, storage, pos);
+                    prefillBiomes(world, storage, biomeSource, sampler, pos, stride);
+                });
             }
-            DebugLog.info(LOGGER, "Prefill complete [{}..{}]×[{}..{}]",
-                    minX, maxX, minZ, maxZ);
-        });
+        }
+        DebugLog.info(LOGGER, "Scheduled {} chunk prefill tasks within [{}..{}]×[{}..{}]",
+                scheduled, minX, maxX, minZ, maxZ);
+    }
+
+    private static void warmChunk(ServerLevel world, WorldCacheState state, CacheStorage storage, ChunkPos pos) {
+        long key = hash(pos.getMinBlockX(), pos.getMinBlockZ());
+        ensureChunkSnapshot(world, state, storage, key);
+    }
+
+    private static void prefillBiomes(ServerLevel world,
+                                      CacheStorage storage,
+                                      BiomeSource biomeSource,
+                                      Climate.Sampler sampler,
+                                      ChunkPos pos,
+                                      int stride) {
+        int baseX = pos.getMinBlockX();
+        int baseZ = pos.getMinBlockZ();
+        for (int localX = 0; localX < CHUNK_SIDE; localX += stride) {
+            for (int localZ = 0; localZ < CHUNK_SIDE; localZ += stride) {
+                int worldX = baseX + localX;
+                int worldZ = baseZ + localZ;
+                long key = hash(worldX, worldZ);
+                if (storage.getBiome(key) != null) {
+                    continue;
+                }
+                Holder<Biome> biome = biomeSource.getNoiseBiome(
+                        QuartPos.fromBlock(worldX), 316,
+                        QuartPos.fromBlock(worldZ), sampler);
+                storage.putBiome(key, biome);
+            }
+        }
     }
 
     /**
@@ -151,14 +206,14 @@ public final class CacheManager {
         PipelineProfiler.increment("cache.height.requests");
         WorldCacheState state = state(world);
         CacheStorage storage = state.storage();
-        Integer cached = storage.heights().get(key);
+        Integer cached = storage.getHeight(key);
         if (cached != null) {
             PipelineProfiler.increment("cache.height.hits");
             return cached;
         }
         Integer chunkCached = state.lookupHeight(key, CHUNK_SIDE);
         if (chunkCached != null) {
-            storage.heights().put(key, chunkCached);
+            storage.putHeightIfAbsent(key, chunkCached);
             PipelineProfiler.increment("cache.height.hits");
             return chunkCached;
         }
@@ -169,13 +224,13 @@ public final class CacheManager {
             int localX = x & (CHUNK_SIDE - 1);
             int localZ = z & (CHUNK_SIDE - 1);
             int value = snapshot.get(localX, localZ);
-            storage.heights().putIfAbsent(key, value);
+            storage.putHeightIfAbsent(key, value);
             PipelineProfiler.increment("cache.height.hits");
             return value;
         }
         // Fast path for unloaded chunks: avoid generating full chunk snapshot.
         // Compute just this column via generator and cache it.
-        return storage.heights().computeIfAbsent(key, k -> {
+        return storage.computeHeightIfAbsent(key, () -> {
             PipelineProfiler.increment("cache.height.loads");
             try (PipelineProfiler.Section section = PipelineProfiler.openSection("cache.height.load_time")) {
                 int value = loader.getAsInt();
@@ -194,7 +249,7 @@ public final class CacheManager {
         if (prepared.isPresent()) {
             int value = prepared.getAsInt();
             WorldCacheState state = state(world);
-            state.storage().heights().putIfAbsent(key, value);
+            state.storage().putHeightIfAbsent(key, value);
             return value;
         }
         return getHeight(world, key, () -> {
@@ -211,12 +266,12 @@ public final class CacheManager {
         PipelineProfiler.increment("cache.stability.requests");
         WorldCacheState state = state(world);
         CacheStorage storage = state.storage();
-        Double cached = storage.stabilities().get(key);
+        Double cached = storage.getStability(key);
         if (cached != null) {
             PipelineProfiler.increment("cache.stability.hits");
             return cached;
         }
-        return storage.stabilities().computeIfAbsent(key, k -> {
+        return storage.computeStabilityIfAbsent(key, () -> {
             PipelineProfiler.increment("cache.stability.loads");
             try (PipelineProfiler.Section section = PipelineProfiler.openSection("cache.stability.load_time")) {
                 double value = loader.getAsDouble();
@@ -233,12 +288,12 @@ public final class CacheManager {
         PipelineProfiler.increment("cache.biome.requests");
         WorldCacheState state = state(world);
         CacheStorage storage = state.storage();
-        Holder<Biome> cached = storage.biomes().get(key);
+        Holder<Biome> cached = storage.getBiome(key);
         if (cached != null) {
             PipelineProfiler.increment("cache.biome.hits");
             return cached;
         }
-        return storage.biomes().computeIfAbsent(key, k -> {
+        return storage.computeBiomeIfAbsent(key, () -> {
             PipelineProfiler.increment("cache.biome.loads");
             try (PipelineProfiler.Section section = PipelineProfiler.openSection("cache.biome.load_time")) {
                 Holder<Biome> value = loader.get();
@@ -289,7 +344,6 @@ public final class CacheManager {
             surface = wg;
         }
         int[] snapshot = new int[COLUMNS_PER_CHUNK];
-        boolean dirty = false;
 
         CacheStorage storage = state.storage();
         for (int localZ = 0; localZ < CHUNK_SIDE; localZ++) {
@@ -301,17 +355,11 @@ public final class CacheManager {
                 }
                 snapshot[idx] = height;
                 long key = hash(startX + localX, startZ + localZ);
-                Integer previous = storage.heights().put(key, height);
-                if (previous == null || previous.intValue() != height) {
-                    dirty = true;
-                }
+                storage.putHeight(key, height);
             }
         }
 
         state.putChunkSnapshot(pos.toLong(), new ChunkHeightSnapshot(snapshot, CHUNK_SIDE));
-        if (dirty) {
-            storage.setDirty();
-        }
     }
 
     /**
@@ -335,7 +383,7 @@ public final class CacheManager {
         int z = (int) key;
         ChunkPos chunkPos = new ChunkPos(x >> 4, z >> 4);
         long chunkKey = chunkPos.toLong();
-        ChunkHeightSnapshot cached = state.chunkHeights().get(chunkKey);
+        ChunkHeightSnapshot cached = state.getChunkSnapshot(chunkKey);
         if (cached != null) {
             return cached;
         }
@@ -360,9 +408,7 @@ public final class CacheManager {
                     CHUNK_SIDE,
                     COLUMNS_PER_CHUNK
             );
-            if (generated != null) {
-                state.putChunkSnapshot(chunkKey, generated);
-            }
+            state.putChunkSnapshot(chunkKey, generated);
             future.complete(generated);
             return generated;
         } catch (RuntimeException e) {

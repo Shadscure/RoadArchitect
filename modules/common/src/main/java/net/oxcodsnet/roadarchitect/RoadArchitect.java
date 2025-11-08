@@ -1,5 +1,6 @@
 package net.oxcodsnet.roadarchitect;
 
+import net.oxcodsnet.roadarchitect.config.CacheSettings;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
@@ -164,6 +165,11 @@ public final class RoadArchitect {
         @Override
         public boolean debugPipelineProfiler() {
             return RAConfigHolder.get().debugPipelineProfiler();
+        }
+
+        @Override
+        public CacheSettings cache() {
+            return RAConfigHolder.get().cache();
         }
     };
 

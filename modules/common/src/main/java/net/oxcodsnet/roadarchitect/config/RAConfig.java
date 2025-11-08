@@ -107,4 +107,9 @@ public interface RAConfig {
      * Whether the pipeline profiler is enabled.
      */
     boolean debugPipelineProfiler();
+
+    /**
+     * Memory and persistence configuration for caches.
+     */
+    CacheSettings cache();
 }

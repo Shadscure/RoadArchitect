@@ -7,6 +7,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.util.CacheManager;
+import net.oxcodsnet.roadarchitect.util.DebugLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -17,7 +20,12 @@ import java.util.Locale;
  * Renders cache diagnostics into the debug (F3) overlay when enabled.
  */
 public final class CacheDebugOverlayRenderer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/CacheDebugOverlayRenderer");
     private static final Method SYSTEM_INFO_METHOD;
+    private static final int TEXT_COLOR = 0xFFFF896C;
+    private static boolean loggedActive;
+    private static boolean loggedEmpty;
+    private static boolean positionLogged;
 
     static {
         Method m = null;
@@ -45,13 +53,16 @@ public final class CacheDebugOverlayRenderer {
         }
         List<Component> lines = collectLines(mc);
         if (lines.isEmpty()) {
+            logEmpty();
             return;
         }
+        logActive(lines.size(), graphics.guiWidth(), graphics.guiHeight());
         int x = graphics.guiWidth() - 4;
         int y = computeRightColumnTop(mc);
+        logPosition(x, y);
         for (Component line : lines) {
             int width = mc.font.width(line);
-            graphics.drawString(mc.font, line, x - width, y, 0xff896c, false);
+            graphics.drawString(mc.font, line, x - width, y, TEXT_COLOR, false);
             y += mc.font.lineHeight;
         }
     }
@@ -82,6 +93,30 @@ public final class CacheDebugOverlayRenderer {
         lines.add(Component.literal("  pages: " + formatUsage(stats.persistedUsedBytes(), stats.persistedBudgetBytes())));
         lines.add(Component.literal("  prefill: " + (stats.prefillEnabled() ? "ON" : "OFF") + " limit=" + stats.prefillMaxChunks()));
         return lines;
+    }
+
+    private static void logEmpty() {
+        if (!loggedEmpty && DebugLog.isEnabled()) {
+            LOGGER.info("Cache debug overlay skipped: no lines to render (config={}, levelLoaded={})",
+                    RoadArchitect.CONFIG.debugCacheOverlay(),
+                    Minecraft.getInstance() != null && Minecraft.getInstance().level != null);
+            loggedEmpty = true;
+        }
+    }
+
+    private static void logActive(int lineCount, int width, int height) {
+        if (!loggedActive && DebugLog.isEnabled()) {
+            LOGGER.info("Cache debug overlay rendering {} line(s) at {}x{} surface", lineCount, width, height);
+            loggedActive = true;
+        }
+    }
+
+    private static void logPosition(int x, int y) {
+        if (!DebugLog.isEnabled() || !loggedActive || positionLogged) {
+            return;
+        }
+        LOGGER.info("Cache debug overlay start position: x={} y={}", x, y);
+        positionLogged = true;
     }
 
     private static int computeRightColumnTop(Minecraft mc) {

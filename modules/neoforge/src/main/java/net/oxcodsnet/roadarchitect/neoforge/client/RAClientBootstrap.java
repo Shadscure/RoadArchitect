@@ -5,6 +5,8 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModLoadingContext;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
+import net.oxcodsnet.roadarchitect.client.gui.CacheDebugHudEntry;
+import net.oxcodsnet.roadarchitect.neoforge.client.CacheDebugHudNeoForge;
 import net.oxcodsnet.roadarchitect.neoforge.client.hook.DebugGraphScreenHook;
 import net.oxcodsnet.roadarchitect.neoforge.client.hook.LoadingOverlaySubscriber;
 import net.oxcodsnet.roadarchitect.neoforge.config.RAConfigNeoForgeBridge;
@@ -48,6 +50,8 @@ public final class RAClientBootstrap {
     }
 
     private static void registerClientEvents(IEventBus modBus) {
+        CacheDebugHudEntry.register();
+        CacheDebugHudNeoForge.bootstrap();
         modBus.addListener(RAKeybinds::registerKeys);
         NeoForge.EVENT_BUS.addListener(DebugGraphScreenHook::onKey);
         NeoForge.EVENT_BUS.addListener(LoadingOverlaySubscriber::onRender);

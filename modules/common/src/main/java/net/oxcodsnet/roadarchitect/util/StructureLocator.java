@@ -40,7 +40,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * Параллельный локатор структур для Minecraft 1.21.1 (Yarn).
+ * Параллельный локатор структур
  * <p>
  * Архитектура в две фазы:
  * <ol>
@@ -132,7 +132,7 @@ public final class StructureLocator {
             }
 
             final int baseStep = scanRadius * 2 + 1; // чанки
-            final int step = computeGridStepChunks(index, baseStep);
+            final int step = computeGridStepChunks(index, baseStep, overallRadius);
 
             final int originChunkX = origin.getX() >> 4;
             final int originChunkZ = origin.getZ() >> 4;
@@ -147,6 +147,7 @@ public final class StructureLocator {
                 }
             }
             PipelineProfiler.recordValue("structure_locator.grid_cells", cells.size());
+            DebugLog.info(LOGGER, "Grid planning: radius={}, step={}, cells={}", overallRadius, step, cells.size());
 
             List<Candidate> planned;
             try (PipelineProfiler.Section planning = PipelineProfiler.openSection("structure_locator.plan_candidates")) {
@@ -157,6 +158,7 @@ public final class StructureLocator {
                 ).join();
             }
             PipelineProfiler.recordValue("structure_locator.planned_candidates", planned.size());
+            DebugLog.info(LOGGER, "Candidate planning: planned={} (selectors={})", planned.size(), compiledSelectors.size());
 
             List<Pair<BlockPos, String>> found;
             try (PipelineProfiler.Section resolve = PipelineProfiler.openSection("structure_locator.resolve_candidates")) {
@@ -180,6 +182,8 @@ public final class StructureLocator {
 
     private static PlacementIndex buildPlacementIndex(ServerLevel world, List<HolderSet<Structure>> compiledSelectors) {
         ChunkGeneratorStructureState calc = world.getChunkSource().getGeneratorState();
+        // 1.21.9 made placement tables lazy; make sure they are fully populated before we start sampling.
+        calc.ensureStructuresGenerated();
 
         Map<RandomSpreadStructurePlacement, Set<Holder<Structure>>> randomGroups = new HashMap<>();
         Map<ConcentricRingsStructurePlacement, Set<Holder<Structure>>> ringGroups = new HashMap<>();
@@ -290,6 +294,7 @@ public final class StructureLocator {
             }
 
             boolean needChunk = false;
+            boolean foundViaPresence = false;
             PipelineProfiler.recordValue("structure_locator.structures_per_candidate", c.structs.size());
             // Быстрый проход по presence
             for (Holder<Structure> s : c.structs) {
@@ -311,6 +316,7 @@ public final class StructureLocator {
                     }
                     // Не добавляем в негативный кэш — тут как раз что-то есть
                     needChunk = false; // на всякий случай
+                    foundViaPresence = true;
                     continue;
                 }
                 if (presence != StructureCheckResult.START_NOT_PRESENT) {
@@ -319,9 +325,8 @@ public final class StructureLocator {
                 }
             }
 
-            if (!needChunk) {
-                neg.add(negKey);
-                PipelineProfiler.increment("structure_locator.negative_cache_store");
+            if (foundViaPresence) {
+                // Кандидат уже дал структуру через быстрый путь, дополнительные проверки не нужны.
                 continue;
             }
 
@@ -424,12 +429,16 @@ public final class StructureLocator {
     /**
      * Вычисляет оптимальный шаг сетки (в чанках) с учётом минимального spacing среди RandomSpread-плейсментов.
      */
-    private static int computeGridStepChunks(PlacementIndex index, int fallbackStep) {
+    private static int computeGridStepChunks(PlacementIndex index, int fallbackStep, int overallRadius) {
         int minSpacing = Integer.MAX_VALUE;
         for (RandomSpreadStructurePlacement rsp : index.randomGroups.keySet()) {
             minSpacing = Math.min(minSpacing, rsp.spacing());
         }
         if (minSpacing != Integer.MAX_VALUE) {
+            if (overallRadius < minSpacing) {
+                DebugLog.info(LOGGER, "Grid step fallback: radius={} < spacing={}, using dense step={}", overallRadius, minSpacing, fallbackStep);
+                return fallbackStep;
+            }
             int step = Math.max(fallbackStep, minSpacing);
             DebugLog.info(LOGGER, "Grid step optimization: fallbackStep={}, minSpacing={}, chosenStep={}", fallbackStep, minSpacing, step);
             return step;

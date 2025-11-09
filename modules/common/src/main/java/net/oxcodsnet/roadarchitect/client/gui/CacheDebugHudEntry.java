@@ -5,6 +5,8 @@ import net.minecraft.client.gui.components.debug.DebugEntryCategory;
 import net.minecraft.client.gui.components.debug.DebugScreenDisplayer;
 import net.minecraft.client.gui.components.debug.DebugScreenEntries;
 import net.minecraft.client.gui.components.debug.DebugScreenEntry;
+import net.minecraft.client.gui.components.debug.DebugScreenEntryStatus;
+import net.minecraft.client.gui.components.debug.DebugScreenEntryStatus;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
@@ -30,6 +32,7 @@ public final class CacheDebugHudEntry implements DebugScreenEntry {
     private static final Method REGISTER_LOCATION = findRegisterMethod(ResourceLocation.class);
     private static final Method REGISTER_STRING = findRegisterMethod(String.class);
     private static volatile boolean registered;
+    private static volatile boolean boundToDebugList;
 
     private CacheDebugHudEntry() {
     }
@@ -48,6 +51,33 @@ public final class CacheDebugHudEntry implements DebugScreenEntry {
             }
             LOGGER.warn("Failed to register cache debug HUD entry {}; no compatible API found", ENTRY_ID);
         }
+    }
+
+    /**
+     * Ensures the new entry is marked as visible in the vanilla debug overlay registry.
+     * Mojang stores visibility in {@link net.minecraft.client.gui.components.debug.DebugScreenEntryList},
+     * so we flip the toggle there once the Minecraft client is ready.
+     *
+     * @return {@code true} once the entry is bound and ready, {@code false} if Minecraft
+     *         hasn't finished booting yet.
+     */
+    public static boolean bindToDebugList() {
+        if (boundToDebugList) {
+            return true;
+        }
+        if (!registered) {
+            return false;
+        }
+        Minecraft mc = Minecraft.getInstance();
+        if (mc == null || mc.debugEntries == null) {
+            return false;
+        }
+        DebugScreenEntryStatus status = mc.debugEntries.getStatus(ENTRY_ID);
+        if (status != DebugScreenEntryStatus.IN_F3) {
+            mc.debugEntries.setStatus(ENTRY_ID, DebugScreenEntryStatus.IN_F3);
+        }
+        boundToDebugList = true;
+        return true;
     }
 
     private static Method findRegisterMethod(Class<?> identifierType) {

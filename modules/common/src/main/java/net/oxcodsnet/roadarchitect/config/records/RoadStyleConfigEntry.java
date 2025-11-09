@@ -1,4 +1,6 @@
-package net.oxcodsnet.roadarchitect.config;
+package net.oxcodsnet.roadarchitect.config.records;
+
+import net.oxcodsnet.roadarchitect.config.RoadDecorationType;
 
 import java.util.ArrayList;
 import java.util.List;

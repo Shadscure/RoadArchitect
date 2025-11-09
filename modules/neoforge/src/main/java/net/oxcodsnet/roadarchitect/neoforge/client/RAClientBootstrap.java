@@ -20,16 +20,36 @@ import java.util.function.Supplier;
  */
 public final class RAClientBootstrap {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/" + RAClientBootstrap.class.getSimpleName());
-    public static void init(ModContainer container) {
+
+    private RAClientBootstrap() {
+    }
+
+    public static void init(IEventBus modBus, ModContainer container) {
+        registerConfigScreen(container);
+        registerClientEvents(modBus);
+    }
+
+    private static void registerConfigScreen(ModContainer container) {
         LOGGER.info("I'll try to register the configuration screen");
         try {
             Class<?> factoryClass = Class.forName("net.neoforged.neoforge.client.gui.IConfigScreenFactory");
-            Object factory = Proxy.newProxyInstance(factoryClass.getClassLoader(), new Class[]{factoryClass}, (proxy, method, args) -> RAConfigNeoForgeBridge.createScreen(args[1]));
-            ModLoadingContext.get().registerExtensionPoint((Class) factoryClass, (java.util.function.Supplier) () -> factory);
+            Object factory = Proxy.newProxyInstance(
+                    factoryClass.getClassLoader(),
+                    new Class[]{factoryClass},
+                    (proxy, method, args) -> RAConfigNeoForgeBridge.createScreen(args[1])
+            );
+            @SuppressWarnings({"rawtypes", "unchecked"})
+            Supplier supplier = () -> factory;
+            ModLoadingContext.get().registerExtensionPoint((Class) factoryClass, supplier);
             LOGGER.info("The configuration screen is successfully registered");
         } catch (ReflectiveOperationException e) {
             LOGGER.warn("The configuration screen is not registered due to error:", e);
         }
+    }
 
+    private static void registerClientEvents(IEventBus modBus) {
+        modBus.addListener(RAKeybinds::registerKeys);
+        NeoForge.EVENT_BUS.addListener(DebugGraphScreenHook::onKey);
+        NeoForge.EVENT_BUS.addListener(LoadingOverlaySubscriber::onRender);
     }
 }

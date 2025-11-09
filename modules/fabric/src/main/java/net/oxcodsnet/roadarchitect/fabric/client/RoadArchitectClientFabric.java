@@ -2,7 +2,7 @@ package net.oxcodsnet.roadarchitect.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.KeyMapping;
-import net.oxcodsnet.roadarchitect.fabric.client.hook.CacheDebugOverlayHook;
+import net.oxcodsnet.roadarchitect.client.gui.CacheDebugHudEntry;
 import net.oxcodsnet.roadarchitect.fabric.client.hook.DebugGraphScreenHook;
 import net.oxcodsnet.roadarchitect.fabric.client.hook.LoadingOverlayHook;
 
@@ -18,6 +18,6 @@ public class RoadArchitectClientFabric implements ClientModInitializer {
     public void onInitializeClient() {
         LoadingOverlayHook.init();
         DebugGraphScreenHook.init();
-        CacheDebugOverlayHook.init();
+        CacheDebugHudEntry.register();
     }
 }

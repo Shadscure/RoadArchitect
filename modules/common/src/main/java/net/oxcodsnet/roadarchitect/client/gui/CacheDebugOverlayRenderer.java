@@ -1,70 +1,22 @@
 package net.oxcodsnet.roadarchitect.client.gui;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.util.CacheManager;
-import net.oxcodsnet.roadarchitect.util.DebugLog;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 /**
- * Renders cache diagnostics into the debug (F3) overlay when enabled.
+ * Collects cache diagnostics for the debug (F3) overlay when enabled.
  */
 public final class CacheDebugOverlayRenderer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RoadArchitect.MOD_ID + "/CacheDebugOverlayRenderer");
-    private static final Method SYSTEM_INFO_METHOD;
     private static final int TEXT_COLOR = 0xFFFF896C;
-    private static boolean loggedActive;
-    private static boolean loggedEmpty;
-    private static boolean positionLogged;
-
-    static {
-        Method m = null;
-        try {
-            m = net.minecraft.client.gui.components.DebugScreenOverlay.class.getDeclaredMethod("getSystemInformation");
-            m.setAccessible(true);
-        } catch (ReflectiveOperationException ignored) {
-        }
-        SYSTEM_INFO_METHOD = m;
-    }
 
     private CacheDebugOverlayRenderer() {
-    }
-
-    public static void render(GuiGraphics graphics) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc == null || mc.level == null) {
-            return;
-        }
-        if (!RoadArchitect.CONFIG.debugCacheOverlay()) {
-            return;
-        }
-        if (mc.gui == null || !mc.gui.getDebugOverlay().showDebugScreen()) {
-            return;
-        }
-        List<Component> lines = collectLines(mc);
-        if (lines.isEmpty()) {
-            logEmpty();
-            return;
-        }
-        logActive(lines.size(), graphics.guiWidth(), graphics.guiHeight());
-        int x = graphics.guiWidth() - 4;
-        int y = computeRightColumnTop(mc);
-        logPosition(x, y);
-        for (Component line : lines) {
-            int width = mc.font.width(line);
-            graphics.drawString(mc.font, line, x - width, y, TEXT_COLOR, false);
-            y += mc.font.lineHeight;
-        }
     }
 
     public static List<Component> collectLines(Minecraft mc) {
@@ -87,58 +39,12 @@ public final class CacheDebugOverlayRenderer {
         }
         ArrayList<Component> lines = new ArrayList<>();
         ResourceLocation dimensionId = serverLevel.dimension().location();
-        lines.add(Component.literal("RoadArchitect cache (" + dimensionId + ")"));
-        lines.add(Component.literal("  runtime: " + formatUsage(stats.runtimeUsedBytes(), stats.runtimeBudgetBytes())));
-        lines.add(Component.literal("  snapshots: " + formatUsage(stats.snapshotUsedBytes(), stats.snapshotBudgetBytes())));
-        lines.add(Component.literal("  pages: " + formatUsage(stats.persistedUsedBytes(), stats.persistedBudgetBytes())));
-        lines.add(Component.literal("  prefill: " + (stats.prefillEnabled() ? "ON" : "OFF") + " limit=" + stats.prefillMaxChunks()));
+        lines.add(colored("RoadArchitect cache (" + dimensionId + ")"));
+        lines.add(colored("  runtime: " + formatUsage(stats.runtimeUsedBytes(), stats.runtimeBudgetBytes())));
+        lines.add(colored("  snapshots: " + formatUsage(stats.snapshotUsedBytes(), stats.snapshotBudgetBytes())));
+        lines.add(colored("  pages: " + formatUsage(stats.persistedUsedBytes(), stats.persistedBudgetBytes())));
+        lines.add(colored("  prefill: " + (stats.prefillEnabled() ? "ON" : "OFF") + " limit=" + stats.prefillMaxChunks()));
         return lines;
-    }
-
-    private static void logEmpty() {
-        if (!loggedEmpty && DebugLog.isEnabled()) {
-            LOGGER.info("Cache debug overlay skipped: no lines to render (config={}, levelLoaded={})",
-                    RoadArchitect.CONFIG.debugCacheOverlay(),
-                    Minecraft.getInstance() != null && Minecraft.getInstance().level != null);
-            loggedEmpty = true;
-        }
-    }
-
-    private static void logActive(int lineCount, int width, int height) {
-        if (!loggedActive && DebugLog.isEnabled()) {
-            LOGGER.info("Cache debug overlay rendering {} line(s) at {}x{} surface", lineCount, width, height);
-            loggedActive = true;
-        }
-    }
-
-    private static void logPosition(int x, int y) {
-        if (!DebugLog.isEnabled() || !loggedActive || positionLogged) {
-            return;
-        }
-        LOGGER.info("Cache debug overlay start position: x={} y={}", x, y);
-        positionLogged = true;
-    }
-
-    private static int computeRightColumnTop(Minecraft mc) {
-        try {
-            int lineHeight = mc.font.lineHeight;
-            List<String> existing = getSystemInformation(mc);
-            if (!existing.isEmpty()) {
-                return 2 + existing.size() * lineHeight + 2;
-            }
-            return 2;
-        } catch (Throwable ignored) {
-            return 48;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<String> getSystemInformation(Minecraft mc) throws ReflectiveOperationException {
-        if (SYSTEM_INFO_METHOD == null || mc.gui == null) {
-            return List.of();
-        }
-        Object overlay = mc.gui.getDebugOverlay();
-        return (List<String>) SYSTEM_INFO_METHOD.invoke(overlay);
     }
 
     private static String formatUsage(long usedBytes, long budgetBytes) {
@@ -150,5 +56,9 @@ public final class CacheDebugOverlayRenderer {
 
     private static double bytesToMiB(long value) {
         return value / 1024.0 / 1024.0;
+    }
+
+    private static Component colored(String text) {
+        return Component.literal(text).withStyle(style -> style.withColor(TEXT_COLOR));
     }
 }

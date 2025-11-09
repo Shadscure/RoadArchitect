@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -27,7 +28,7 @@ public final class DebugGraphScreenHook {
                 "key.roadarchitect.debug",
                 InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_H,
-                "category.roadarchitect"
+                KeyMapping.Category.register(ResourceLocation.parse("category.roadarchitect"))
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {

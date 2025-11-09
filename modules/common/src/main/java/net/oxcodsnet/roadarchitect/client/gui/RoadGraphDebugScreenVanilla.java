@@ -27,6 +27,7 @@ import java.util.function.Supplier;
  * Ванильный экран отладки графа (без owo-lib).
  * Поддерживает: сетка, пан/зум, легенда, тултипы, клик для телепорта (в одиночке).
  */
+
 public class RoadGraphDebugScreenVanilla extends Screen {
 
     private static final int RADIUS = 4;

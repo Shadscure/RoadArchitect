@@ -5,7 +5,6 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
@@ -15,7 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.config.RoadDecorationType;
-import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
+import net.oxcodsnet.roadarchitect.config.records.RoadStyleConfigEntry;
 import net.oxcodsnet.roadarchitect.config.defaults.RoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.handlers.compat.BopCompat;
 import net.oxcodsnet.roadarchitect.util.BiomeSelectorUtil;
@@ -199,7 +198,7 @@ public final class RoadStyles {
                     LOGGER.warn("Road style palette block '{}' is invalid", raw);
                     continue;
                 }
-                Optional<Block> optional = getBlock(id);
+                Optional<Block> optional = BuiltInRegistries.BLOCK.getOptional(id);
                 if (optional.isEmpty()) {
                     LOGGER.warn("Road style palette block '{}' is not registered", raw);
                     continue;
@@ -273,7 +272,7 @@ public final class RoadStyles {
             LOGGER.warn("Road style {} '{}' is invalid", role, raw);
             return null;
         }
-        Optional<Block> optional = getBlock(id);
+        Optional<Block> optional = BuiltInRegistries.BLOCK.getOptional(id);
         if (optional.isEmpty()) {
             LOGGER.warn("Road style {} '{}' is not registered", role, raw);
             return null;
@@ -288,10 +287,5 @@ public final class RoadStyles {
     }
 
     private record CacheEntry(int version, List<CompiledStyle> styles) {
-    }
-
-    private static Optional<Block> getBlock(ResourceLocation id) {
-        return BuiltInRegistries.BLOCK.get(ResourceKey.create(Registries.BLOCK, id))
-                .map(Holder.Reference::value);
     }
 }

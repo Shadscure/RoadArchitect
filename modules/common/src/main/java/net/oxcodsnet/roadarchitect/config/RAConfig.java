@@ -1,5 +1,9 @@
 package net.oxcodsnet.roadarchitect.config;
 
+import net.oxcodsnet.roadarchitect.config.records.CacheSettings;
+import net.oxcodsnet.roadarchitect.config.records.LampPostConfigEntry;
+import net.oxcodsnet.roadarchitect.config.records.RoadStyleConfigEntry;
+
 import java.util.List;
 
 /**
@@ -107,4 +111,19 @@ public interface RAConfig {
      * Whether the pipeline profiler is enabled.
      */
     boolean debugPipelineProfiler();
+
+    /**
+     * Whether verbose cache-specific logging should be emitted.
+     */
+    boolean debugCacheLogs();
+
+    /**
+     * Whether cache metrics should be rendered on the debug (F3) screen.
+     */
+    boolean debugCacheOverlay();
+
+    /**
+     * Memory and persistence configuration for caches.
+     */
+    CacheSettings cache();
 }

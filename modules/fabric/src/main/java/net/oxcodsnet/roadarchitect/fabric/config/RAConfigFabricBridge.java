@@ -9,12 +9,13 @@ import net.oxcodsnet.roadarchitect.config.defaults.BopRoadStyleDefaults;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
-import net.oxcodsnet.roadarchitect.config.LampPostConfigEntry;
+import net.oxcodsnet.roadarchitect.config.records.CacheSettings;
+import net.oxcodsnet.roadarchitect.config.records.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.config.RoadArchitectConfigData;
 import net.oxcodsnet.roadarchitect.config.defaults.LampPostDefaults;
-import net.oxcodsnet.roadarchitect.config.RoadStyleConfigEntry;
+import net.oxcodsnet.roadarchitect.config.records.RoadStyleConfigEntry;
 import net.oxcodsnet.roadarchitect.config.defaults.RoadStyleDefaults;
 import net.oxcodsnet.roadarchitect.handlers.RoadPipelineController;
 import net.oxcodsnet.roadarchitect.handlers.compat.BopCompat;
@@ -228,6 +229,37 @@ public final class RAConfigFabricBridge {
             public boolean debugPipelineProfiler() {
                 RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
                 return settings != null && settings.enablePipelineProfiler;
+            }
+
+            @Override
+            public boolean debugCacheLogs() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings != null && settings.enableCacheLogs;
+            }
+
+            @Override
+            public boolean debugCacheOverlay() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings != null && settings.showCacheStatsOverlay;
+            }
+
+            @Override
+            public CacheSettings cache() {
+                RoadArchitectConfigData.CacheSection section = holder.getConfig().cache;
+                if (section == null) {
+                    return CacheSettings.DEFAULT;
+                }
+                return new CacheSettings(
+                        section.runtimeBudgetMb,
+                        section.snapshotBudgetMb,
+                        section.persistedBudgetMb,
+                        section.regionSizeChunks,
+                        section.enablePrefill,
+                        section.prefillMaxChunks,
+                        section.persistHeights,
+                        section.persistStabilities,
+                        section.persistBiomes
+                );
             }
         });
 

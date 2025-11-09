@@ -16,7 +16,6 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "Dimension");
                 add.accept("screen.roadarchitect.debug.dimension_label", "Dimension: %s");
                 add.accept("category.roadarchitect", "Road Architect");
-                add.accept("key.category.minecraft.category.roadarchitect", "Road Architect");
                 add.accept("text.autoconfig.roadarchitect.category.default", "General Settings");
                 add.accept("roadarchitect.stage.initialisation", "Initialising");
                 add.accept("roadarchitect.stage.scanning", "Scanning Structures");
@@ -139,6 +138,36 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock", "Lamp Block Identifier");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock.@Tooltip",
                         "Block identifier used for the hanging light (must support hanging lantern placement).");
+
+                // Cache tuning
+                add.accept("text.autoconfig.roadarchitect.category.cache", "Cache");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb", "Runtime Cache Budget (MB)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb.@Tooltip",
+                        "Heap budget dedicated to the in-memory column cache before entries are evicted to disk.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb", "Snapshot Cache Budget (MB)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb.@Tooltip",
+                        "RAM reserved for chunk snapshot data used by the generation pipeline.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb", "Persisted Page Budget (MB)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb.@Tooltip",
+                        "Memory cap for the paged region buffer that mirrors on-disk cache pages.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks", "Region Page Size (chunks)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks.@Tooltip",
+                        "Edge length of each paged region stored on disk. Larger pages reduce lookups but increase I/O bursts.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill", "Enable Async Prefill");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill.@Tooltip",
+                        "Allows a background worker to prefetch cache data instead of building everything on demand.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks", "Prefill Chunk Cap");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks.@Tooltip",
+                        "Maximum number of chunks a single prefill pass is allowed to touch.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights", "Persist Height Columns");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights.@Tooltip",
+                        "Stores resolved height columns on disk so they survive reloads.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities", "Persist Stability Samples");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities.@Tooltip",
+                        "Writes terrain stability metrics to disk alongside other cache data.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes", "Persist Biome Lookups");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes.@Tooltip",
+                        "Caches biome lookup results on disk for faster warmups.");
                 // Terrain Analyzer (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Terrain Analyzer (Beta)");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Enable Terrain Analyzer");
@@ -186,6 +215,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "Enable Pipeline Profiler");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
                         "Runs the pipeline profiler during road generation to collect detailed timing information.");
+
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs", "Enable Cache Logs");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs.@Tooltip",
+                        "Emits cache-specific debug lines for prefill, loads, and saves.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "Show Cache Stats Overlay");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
+                        "Adds Road Architect cache usage statistics to the F3 debug screen.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Forbidden Biome Selectors");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "List of biome selectors (IDs or #tags) that roads cannot traverse.");
@@ -204,7 +240,6 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "Измерение");
                 add.accept("screen.roadarchitect.debug.dimension_label", "Измерение: %s");
                 add.accept("category.roadarchitect", "Архитектор дорог");
-                add.accept("key.category.minecraft.category.roadarchitect", "Архитектор дорог");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Основные настройки");
                 add.accept("roadarchitect.stage.initialisation", "Инициализация");
                 add.accept("roadarchitect.stage.scanning", "Сканирование структур");
@@ -337,6 +372,36 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock", "Идентификатор блока фонаря");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock.@Tooltip",
                         "Блок подвесного света (должен поддерживать подвешенный фонарь).");
+
+                // Настройки кэша
+                add.accept("text.autoconfig.roadarchitect.category.cache", "Кэш");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb", "Бюджет кэша в памяти (МБ)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb.@Tooltip",
+                        "Объем ОЗУ, выделенный под колонковый кэш до выгрузки на диск.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb", "Бюджет кэша снимков (МБ)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb.@Tooltip",
+                        "RAM для данных снимков чанков, которые использует конвейер.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb", "Бюджет страниц на диске (МБ)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb.@Tooltip",
+                        "Ограничение памяти для буфера страниц, зеркалирующего данные на диске.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks", "Размер страницы региона (чанки)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks.@Tooltip",
+                        "Длина ребра региональной страницы на диске: большие страницы дают меньше обращений, но более крупные I/O.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill", "Включить асинхронный предзапуск");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill.@Tooltip",
+                        "Позволяет фоновому воркеру заранее подготавливать данные кэша.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks", "Лимит чанков предзагрузки");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks.@Tooltip",
+                        "Максимальное число чанков за один проход предзапуска.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights", "Сохранять высотные колонки");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights.@Tooltip",
+                        "Записывает рассчитанные высоты на диск, чтобы они переживали перезапуски.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities", "Сохранять показатели стабильности");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities.@Tooltip",
+                        "Сохраняет метрики стабильности рельефа на диск.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes", "Сохранять данные биомов");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes.@Tooltip",
+                        "Кэширует результаты поиска биомов на диск для быстрого прогрева.");
                 // Анализ рельефа (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Анализ рельефа (Бета)");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Включить анализ рельефа");
@@ -384,6 +449,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "Включить профайлер пайплайна");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
                         "Запускает профайлер пайплайна во время генерации дорог и собирает подробные тайминги.");
+
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs", "Включить логи кэша");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs.@Tooltip",
+                        "Пишет отладочные строки CacheManager о предзагрузке, чтении и сохранении.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "Показывать оверлей статистики кэша");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
+                        "Добавляет статистику кэша RoadArchitect на экран F3.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селекторы запрещённых биомов");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Список селекторов биомов (ID или #теги), по которым дороги не строятся.");
@@ -402,7 +474,6 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "Dimensión");
                 add.accept("screen.roadarchitect.debug.dimension_label", "Dimensión: %s");
                 add.accept("category.roadarchitect", "Arquitecto de Carreteras");
-                add.accept("key.category.minecraft.category.roadarchitect", "Arquitecto de Carreteras");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Configuración general");
                 add.accept("roadarchitect.stage.initialisation", "Inicialización");
                 add.accept("roadarchitect.stage.scanning", "Escaneando estructuras");
@@ -462,6 +533,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "Activar el perfilador del pipeline");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
                         "Ejecuta el perfilador del pipeline durante la generación de carreteras para recopilar tiempos detallados.");
+
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs", "Activar registros de caché");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs.@Tooltip",
+                        "Emite líneas de depuración de CacheManager sobre precarga, lecturas y guardados.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "Mostrar superposición de estadísticas de caché");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
+                        "Añade las métricas de caché de RoadArchitect a la pantalla F3.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selectores de biomas prohibidos");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Lista de selectores de biomas (IDs o #etiquetas) por los que las carreteras no pueden pasar.");
@@ -574,6 +652,36 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock", "Identificador del bloque de la lámpara");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock.@Tooltip",
                         "Bloque usado para la luz colgante (debe admitir linternas colgantes).");
+
+                // Ajustes de caché
+                add.accept("text.autoconfig.roadarchitect.category.cache", "Caché");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb", "Presupuesto de caché en memoria (MB)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb.@Tooltip",
+                        "Cantidad de RAM reservada para la caché de columnas antes de volcarla a disco.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb", "Presupuesto de caché de instantáneas (MB)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb.@Tooltip",
+                        "RAM dedicada a los datos de instantáneas de chunks que usa la canalización.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb", "Presupuesto de páginas persistentes (MB)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb.@Tooltip",
+                        "Límite de memoria para el búfer paginado que refleja los datos en disco.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks", "Tamaño de página regional (chunks)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks.@Tooltip",
+                        "Longitud de borde de cada página almacenada en disco; páginas grandes reducen consultas pero aumentan las ráfagas de E/S.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill", "Activar precarga asíncrona");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill.@Tooltip",
+                        "Permite que un proceso en segundo plano prepare los datos de caché por adelantado.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks", "Límite de chunks por precarga");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks.@Tooltip",
+                        "Número máximo de chunks que puede tocar cada pasada de precarga.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights", "Persistir columnas de altura");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights.@Tooltip",
+                        "Guarda las columnas calculadas en disco para que sobrevivan a los reinicios.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities", "Persistir muestras de estabilidad");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities.@Tooltip",
+                        "Guarda en disco las métricas de estabilidad del terreno.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes", "Persistir consultas de biomas");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes.@Tooltip",
+                        "Almacena en disco los resultados de biomas para acelerar futuros arranques.");
                 // Analizador de Terreno (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Analizador de Terreno (Beta)");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Activar analizador de terreno");
@@ -600,7 +708,6 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "Dimension");
                 add.accept("screen.roadarchitect.debug.dimension_label", "Dimension : %s");
                 add.accept("category.roadarchitect", "Architecte routier");
-                add.accept("key.category.minecraft.category.roadarchitect", "Architecte routier");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Paramètres généraux");
                 add.accept("roadarchitect.stage.initialisation", "Initialisation");
                 add.accept("roadarchitect.stage.scanning", "Analyse des structures");
@@ -660,6 +767,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "Activer le profileur du pipeline");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
                         "Lance le profileur du pipeline pendant la génération des routes pour collecter des mesures détaillées.");
+
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs", "Activer les journaux du cache");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs.@Tooltip",
+                        "Écrit des messages de débogage CacheManager sur les préchargements, lectures et écritures.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "Afficher la superposition de stats du cache");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
+                        "Ajoute les statistiques de cache de RoadArchitect à l’écran F3.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Sélecteurs de biomes interdits");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Liste des sélecteurs de biomes (IDs ou #tags) que les routes ne peuvent pas traverser.");
@@ -772,6 +886,36 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock", "Identifiant du bloc de lampe");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock.@Tooltip",
                         "Bloc utilisé pour la lumière suspendue (doit supporter les lanternes suspendues).");
+
+                // Cache
+                add.accept("text.autoconfig.roadarchitect.category.cache", "Cache");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb", "Budget du cache en mémoire (Mo)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb.@Tooltip",
+                        "Quantité de RAM réservée au cache de colonnes avant éviction sur disque.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb", "Budget du cache des instantanés (Mo)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb.@Tooltip",
+                        "Mémoire dédiée aux instantanés de chunks utilisés par le pipeline.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb", "Budget des pages persistantes (Mo)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb.@Tooltip",
+                        "Plafond mémoire du tampon paginé qui reflète les données sur disque.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks", "Taille de page régionale (chunks)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks.@Tooltip",
+                        "Longueur du bord d’une page régionale sur disque. Plus grande = moins d’accès, mais des rafales d’E/S.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill", "Activer le préremplissage asynchrone");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill.@Tooltip",
+                        "Autorise un travailleur en arrière-plan à préparer la cache à l’avance.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks", "Limite de chunks pour le préremplissage");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks.@Tooltip",
+                        "Nombre maximal de chunks traités par passe de préremplissage.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights", "Persister les colonnes de hauteur");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights.@Tooltip",
+                        "Enregistre les colonnes calculées sur disque pour les conserver entre redémarrages.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities", "Persister les mesures de stabilité");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities.@Tooltip",
+                        "Sauvegarde les métriques de stabilité du terrain sur disque.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes", "Persister les recherches de biomes");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes.@Tooltip",
+                        "Met en cache sur disque les résultats de recherche de biomes pour des démarrages plus rapides.");
                 // Analyse du relief (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Analyse du relief (Bêta)");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Activer l’analyse du relief");
@@ -798,7 +942,6 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "Dimension");
                 add.accept("screen.roadarchitect.debug.dimension_label", "Dimension: %s");
                 add.accept("category.roadarchitect", "Straßenarchitekt");
-                add.accept("key.category.minecraft.category.roadarchitect", "Straßenarchitekt");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Allgemeine Einstellungen");
                 add.accept("roadarchitect.stage.initialisation", "Initialisierung");
                 add.accept("roadarchitect.stage.scanning", "Strukturen scannen");
@@ -931,6 +1074,36 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock", "Blockkennung für Lampe");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock.@Tooltip",
                         "Block für die hängende Leuchte (muss hängende Laternen unterstützen).");
+
+                // Cache
+                add.accept("text.autoconfig.roadarchitect.category.cache", "Cache");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb", "Arbeitsspeicherbudget des Laufzeit-Caches (MB)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb.@Tooltip",
+                        "RAM, die für den Spaltencache reserviert ist, bevor auf die Festplatte ausgelagert wird.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb", "Budget des Snapshot-Caches (MB)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb.@Tooltip",
+                        "RAM-Budget für Chunk-Snapshots, die der Pipeline dienen.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb", "Budget für persistente Seiten (MB)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb.@Tooltip",
+                        "Speicherlimit für den paginierten Regionspuffer, der die Daten auf der Festplatte spiegelt.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks", "Seitengröße pro Region (Chunks)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks.@Tooltip",
+                        "Kantenlänge der auf der Festplatte gespeicherten Region. Größer = weniger Nachschlagen, aber größere IO-Bursts.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill", "Asynchrones Vorabladen aktivieren");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill.@Tooltip",
+                        "Erlaubt einem Hintergrundthread, Cache-Daten vorab zu füllen.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks", "Chunk-Limit pro Vorablauf");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks.@Tooltip",
+                        "Maximale Chunk-Anzahl, die ein Vorablauf verarbeiten darf.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights", "Höhenkolonnen persistent speichern");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights.@Tooltip",
+                        "Schreibt berechnete Höhen auf die Festplatte, damit sie Neustarts überleben.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities", "Stabilitätsdaten persistent speichern");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities.@Tooltip",
+                        "Sichert die Stabilitätsmetriken des Terrains.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes", "Biomabfragen persistent speichern");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes.@Tooltip",
+                        "Zwischenspeichert Biom-Suchergebnisse auf der Festplatte für schnellere Warmups.");
                 // Reliefanalyse (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Reliefanalyse (Beta)");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Reliefanalyse aktivieren");
@@ -978,6 +1151,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "Pipeline-Profiler aktivieren");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
                         "Startet den Pipeline-Profiler während der Straßengenerierung und erfasst detaillierte Laufzeiten.");
+
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs", "Cache-Logs aktivieren");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs.@Tooltip",
+                        "Gibt zusätzliche CacheManager-Debugmeldungen zu Vorabläufen, Laden und Speichern aus.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "Cache-Statistik im Overlay anzeigen");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
+                        "Erweitert den F3-Screen um die Cache-Nutzung von RoadArchitect.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selektoren verbotener Biome");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Liste von Biom-Selektoren (IDs oder #Tags), durch die keine Straßen verlaufen dürfen.");
@@ -996,7 +1176,6 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "维度");
                 add.accept("screen.roadarchitect.debug.dimension_label", "维度：%s");
                 add.accept("category.roadarchitect", "道路架构师");
-                add.accept("key.category.minecraft.category.roadarchitect", "道路架构师");
                 add.accept("text.autoconfig.roadarchitect.category.default", "常规设置");
                 add.accept("roadarchitect.stage.initialisation", "初始化");
                 add.accept("roadarchitect.stage.scanning", "扫描结构");
@@ -1119,6 +1298,36 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock", "灯体方块标识符");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock.@Tooltip",
                         "用于悬挂灯的方块（必须支持悬挂灯笼）。");
+
+                // 缓存
+                add.accept("text.autoconfig.roadarchitect.category.cache", "缓存");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb", "运行时缓存预算 (MB)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb.@Tooltip",
+                        "为内存列缓存预留的堆空间，超出后会写入磁盘。");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb", "快照缓存预算 (MB)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb.@Tooltip",
+                        "为管线使用的区块快照保留的内存。");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb", "持久化页预算 (MB)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb.@Tooltip",
+                        "镜像磁盘数据的分页区域缓冲区的内存上限。");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks", "区域页尺寸 (区块)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks.@Tooltip",
+                        "写入磁盘的区域页边长。尺寸越大，查找越少但单次 I/O 越大。");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill", "启用异步预填充");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill.@Tooltip",
+                        "允许后台线程提前生成缓存数据，而不是按需计算。");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks", "预填充区块上限");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks.@Tooltip",
+                        "每次预填充循环允许处理的区块数量上限。");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights", "持久化高度列");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights.@Tooltip",
+                        "将已计算的高度列写入磁盘，重启后直接复用。");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities", "持久化稳定性数据");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities.@Tooltip",
+                        "把地形稳定性指标存到磁盘。");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes", "持久化生物群系查询");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes.@Tooltip",
+                        "把生物群系查询结果缓存到磁盘，加快二次启动。");
                 // 地形分析 (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "地形分析（测试版）");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "启用地形分析");
@@ -1166,6 +1375,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "启用管线分析器");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
                         "在道路生成时运行管线分析器并收集详细的耗时信息。");
+
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs", "启用缓存日志");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs.@Tooltip",
+                        "输出 CacheManager 在预填充、加载和保存时的调试日志。");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "显示缓存统计覆盖层");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
+                        "在 F3 界面中加入 RoadArchitect 的缓存使用统计。");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "禁止生物群系选择器");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "生物群系选择器列表（ID 或 #标签），道路不能穿过这些群系。");
@@ -1184,7 +1400,6 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension", "Вимір");
                 add.accept("screen.roadarchitect.debug.dimension_label", "Вимір: %s");
                 add.accept("category.roadarchitect", "Road Architect");
-                add.accept("key.category.minecraft.category.roadarchitect", "Road Architect");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Загальні налаштування");
                 add.accept("roadarchitect.stage.initialisation", "Ініціалізація…");
                 add.accept("roadarchitect.stage.scanning", "Сканування структур…");
@@ -1307,6 +1522,36 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock", "Ідентифікатор блока ліхтаря");
                 add.accept("text.autoconfig.roadarchitect.option.LampPostDefinition.lampBlock.@Tooltip",
                         "Блок підвісного світла (має підтримувати підвішені ліхтарі).");
+
+                // Налаштування кешу
+                add.accept("text.autoconfig.roadarchitect.category.cache", "Кеш");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb", "Бюджет кешу в пам'яті (МБ)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb.@Tooltip",
+                        "Обсяг ОЗП, виділений під колонковий кеш до вивантаження на диск.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb", "Бюджет кешу знімків (МБ)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb.@Tooltip",
+                        "Пам'ять для даних знімків чанків, які використовує конвеєр.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb", "Бюджет персистентних сторінок (МБ)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb.@Tooltip",
+                        "Ліміт пам'яті для пагінованого буфера регіонів, що відображає дані на диску.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks", "Розмір сторінки регіону (чанки)");
+                add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks.@Tooltip",
+                        "Довжина ребра сторінки, яку зберігаємо на диску: більше сторінка — менше звернень, але більші I/O-сплески.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill", "Увімкнути асинхронне попереднє заповнення");
+                add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill.@Tooltip",
+                        "Дозволяє фоновому воркеру готувати кеш заздалегідь.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks", "Ліміт чанків на попереднє заповнення");
+                add.accept("text.autoconfig.roadarchitect.option.cache.prefillMaxChunks.@Tooltip",
+                        "Максимум чанків, які обробляє один прохід попереднього заповнення.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights", "Зберігати висотні колонки");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights.@Tooltip",
+                        "Пише розраховані висоти на диск, щоб вони переживали перезапуски.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities", "Зберігати показники стабільності");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities.@Tooltip",
+                        "Зберігає метрики стабільності рельєфу на диск.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes", "Зберігати результати біомів");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes.@Tooltip",
+                        "Кешує результати пошуку біомів на диск для швидшого прогріву.");
                 // Аналіз рельєфу (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Аналіз рельєфу (Бета)");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Увімкнути аналіз рельєфу");
@@ -1354,6 +1599,13 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "Увімкнути профайлер пайплайна");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
                         "Запускає профайлер пайплайна під час генерації доріг, щоб зібрати докладні часові вимірювання.");
+
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs", "Увімкнути логи кешу");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs.@Tooltip",
+                        "Виводить додаткові повідомлення CacheManager про передзавантаження, читання та збереження.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "Показувати оверлей статистики кешу");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
+                        "Додає статистику кешу RoadArchitect до екрана F3.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селектори заборонених біомів");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Список селекторів біомів (ID або #теги), через які дороги не прокладаються.");

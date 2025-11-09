@@ -2,6 +2,21 @@
   <img src="https://cdn.modrinth.com/data/cached_images/5e3cf4526c4f1ff191f1c98debe19db5e23161de_0.webp" width="128" height="128" alt="RoadArchitect icon">
 </p>
 
+<p align="center" style="display:flex;justify-content:center;gap:8px;margin:6px 0;">
+  <a href="https://modrinth.com/mod/roadarchitect">
+    <img alt="Modrinth" height="48" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy-minimal/available/modrinth_vector.svg">
+  </a>&nbsp;
+  <a href="https://curseforge.com/minecraft/mc-mods/roadarchitect">
+    <img alt="CurseForge" height="48" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy-minimal/available/curseforge_vector.svg">
+  </a>&nbsp;
+  <a href="https://discord.gg/9JRb3JMAD3">
+    <img alt="Discord" height="48" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy-minimal/social/discord-plural_vector.svg">
+  </a>&nbsp;
+  <a href="https://github.com/Shadscure/RoadArchitect">
+    <img alt="GitHub" height="48" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy-minimal/available/github_vector.svg">
+  </a>
+</p>
+
 <p align="center">
   <a href="https://modrinth.com/mod/roadarchitect">
     <img alt="Modrinth Downloads" src="https://img.shields.io/modrinth/dt/dLRvLyY3?style=flat&logo=modrinth">
@@ -11,36 +26,14 @@
   </a>
 </p>
 
-<p align="center" style="display: flex; justify-content: center; gap: 6px;">
-    <a href="https://modrinth.com/mod/roadarchitect/versions?l=fabric">
-        <img src="https://cdn.modrinth.com/data/cached_images/d8a8d9852fb6e55292d6f5ecc1842fd7bc8c3c9e.webp" alt="Available on Fabric">
-    </a>
-    <a href="https://modrinth.com/mod/roadarchitect/versions?l=quilt">
-        <img src="https://cdn.modrinth.com/data/cached_images/77e67c2eae40b638430d5959e9a0d0ef60f76f41.webp" alt="Available on Quilt">
-    </a>
-   <a href="https://modrinth.com/mod/roadarchitect/versions?l=neoforge">
-    <img src="https://cdn.modrinth.com/data/cached_images/ecbd0303728027761730760800f9354e14f38d31.webp" alt="Available on NeoForge">
-  </a>
+<p align="center">
+ <img alt="Latest release" src="https://img.shields.io/github/v/release/Shadscure/RoadArchitect?display_name=release&sort=semver&style=flat-square&color=00ae5d">
 </p>
-<p align="center" style="display:flex;justify-content:center;gap:8px;margin:6px 0;">
-  <a href="https://boosty.to/0xcodsnet" target="_blank" rel="noopener">
-    <img alt="Boosty — Support" src="https://img.shields.io/badge/Boosty-Support-F15F2C?style=for-the-badge&logo=boosty&logoColor=white">
-  </a>
-</p>
-
-<p align="center" style="display:flex;justify-content:center;gap:8px;margin:6px 0;">
-  <a href="https://discord.gg/9JRb3JMAD3" target="_blank" rel="noopener">
-    <img alt="discord-plural" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy-minimal/social/discord-plural_vector.svg">
-  </a>
-</p>
-
 
 # RoadArchitect
 
-**RoadArchitect** is a **Fabric / Quilt / NeoForge** mod for **Minecraft1.20.1, 1.21–1.21.10** that automatically scans the world for villages and other structures and connects them with roads to form a persistent travel network.  
+**RoadArchitect** is a mod that automatically scans the world for villages and other structures and connects them with roads to form a persistent travel network.  
 Roads adapt their style to the biome, and the network is saved between game sessions.
-
-> **Current version:** `v1.6.1`
 
 > **Wiki:** <a href="https://github.com/0xCoDSnet/RoadArchitect/wiki">RoadArchitect Wiki</a>
 

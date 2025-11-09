@@ -3,26 +3,29 @@ package net.oxcodsnet.roadarchitect.neoforge.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import org.lwjgl.glfw.GLFW;
 
-@EventBusSubscriber(
-        modid = RoadArchitect.MOD_ID,
-        value = Dist.CLIENT
-)
 public final class RAKeybinds {
+    private static final ResourceLocation CATEGORY_ID = ResourceLocation.fromNamespaceAndPath(
+            RoadArchitect.MOD_ID, "category.roadarchitect");
+    private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(CATEGORY_ID);
+
     public static KeyMapping OPEN;
 
+    private RAKeybinds() {
+    }
 
-    @SubscribeEvent
-    public static void registerKeys(RegisterKeyMappingsEvent e) {
-        OPEN = new KeyMapping("key.roadarchitect.debug",
-                InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_H,
-                KeyMapping.Category.register(ResourceLocation.parse("category.roadarchitect")));
-        e.register(OPEN);
+    public static void registerKeys(RegisterKeyMappingsEvent event) {
+        if (OPEN == null) {
+            OPEN = new KeyMapping(
+                    "key.roadarchitect.debug",
+                    InputConstants.Type.KEYSYM,
+                    GLFW.GLFW_KEY_H,
+                    CATEGORY
+            );
+        }
+        event.register(OPEN);
     }
 }

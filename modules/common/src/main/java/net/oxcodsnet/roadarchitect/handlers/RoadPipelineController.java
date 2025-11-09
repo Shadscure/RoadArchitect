@@ -104,7 +104,7 @@ public final class RoadPipelineController {
      * 3) Игрок вошёл на сервер → PERIODIC (как в исходнике).
      */
     public static void onPlayerJoin(ServerPlayer player) {
-        ServerLevel world = player.level();
+        ServerLevel world = (ServerLevel) player.level();
         if (!isDimensionEnabled(world.dimension())) return;
 
         BlockPos pos = player.blockPosition();
@@ -123,13 +123,13 @@ public final class RoadPipelineController {
         tickCounter = 0;
 
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            ServerLevel w = player.level();
+            Level w = player.level();
             if (!isDimensionEnabled(w.dimension())) continue;
 
             BlockPos pos = player.blockPosition();
             DebugLog.info(LOGGER, "Periodic trigger at player {} pos {}, starting PERIODIC pipeline",
                     player.getName().getString(), pos);
-            PipelineRunner.runPipeline(w, pos, PipelineRunner.PipelineMode.PERIODIC);
+            PipelineRunner.runPipeline((ServerLevel) w, pos, PipelineRunner.PipelineMode.PERIODIC);
         }
     }
 

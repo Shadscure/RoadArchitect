@@ -6,7 +6,6 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
-import net.oxcodsnet.roadarchitect.neoforge.client.RAClientBootstrap;
 import net.oxcodsnet.roadarchitect.neoforge.config.RAConfigNeoForgeBridge;
 import net.oxcodsnet.roadarchitect.neoforge.events.NeoForgeEventBridge;
 import net.oxcodsnet.roadarchitect.neoforge.events.RoadFeatureRegistryNeoForge;

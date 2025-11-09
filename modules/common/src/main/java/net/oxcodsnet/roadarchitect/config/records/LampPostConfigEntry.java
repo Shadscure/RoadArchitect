@@ -1,4 +1,4 @@
-package net.oxcodsnet.roadarchitect.config;
+package net.oxcodsnet.roadarchitect.config.records;
 
 import java.util.List;
 

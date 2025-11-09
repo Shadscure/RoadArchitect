@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.oxcodsnet.roadarchitect.handlers.PipelineRunner;
 import net.oxcodsnet.roadarchitect.handlers.PipelineStage;
 
+
 public final class LoadingOverlayRenderer {
     private LoadingOverlayRenderer() {}
 

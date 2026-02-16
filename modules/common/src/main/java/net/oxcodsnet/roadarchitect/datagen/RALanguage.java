@@ -233,6 +233,8 @@ public final class RALanguage {
                         "Penalty applied when near a forbidden biome.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Travel around the world without barriers: RoadArchitect automatically scans your world, finds villages, and other structures, and then lays a network of roads between them.");
+                add.accept("fml.menu.mods.info.description.roadarchitect",
+                        "Travel around the world without barriers: RoadArchitect automatically scans your world, finds villages, and other structures, and then lays a network of roads between them.");
                 break;
             }
             case "ru_ru": {
@@ -466,6 +468,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
                         "Штраф при нахождении рядом с запрещённым биомом.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
+                        "Путешествуйте по миру без барьеров: RoadArchitect автоматически сканирует ваш мир, находит деревни и другие структуры, а затем прокладывает между ними сеть дорог.");
+                add.accept("fml.menu.mods.info.description.roadarchitect",
                         "Путешествуйте по миру без барьеров: RoadArchitect автоматически сканирует ваш мир, находит деревни и другие структуры, а затем прокладывает между ними сеть дорог.");
                 break;
             }
@@ -701,6 +705,8 @@ public final class RALanguage {
                         "Penalización por bloque de rango por encima del umbral.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Viaja por el mundo sin barreras: RoadArchitect escanea automáticamente tu mundo, encuentra aldeas y otras estructuras, y luego tiende una red de carreteras entre ellas.");
+                add.accept("fml.menu.mods.info.description.roadarchitect",
+                        "Viaja por el mundo sin barreras: RoadArchitect escanea automáticamente tu mundo, encuentra aldeas y otras estructuras, y luego tiende una red de carreteras entre ellas.");
                 break;
             }
             case "fr_fr": {
@@ -934,6 +940,8 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughPenaltyScale.@Tooltip",
                         "Pénalité par bloc d’étendue au‑delà du seuil.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
+                        "Voyagez dans le monde sans barrières : RoadArchitect analyse automatiquement votre monde, trouve les villages et autres structures, puis trace un réseau de routes entre eux.");
+                add.accept("fml.menu.mods.info.description.roadarchitect",
                         "Voyagez dans le monde sans barrières : RoadArchitect analyse automatiquement votre monde, trouve les villages et autres structures, puis trace un réseau de routes entre eux.");
                 break;
             }
@@ -1169,6 +1177,8 @@ public final class RALanguage {
                         "Strafe in der Nähe eines verbotenen Bioms.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "Reisen Sie barrierefrei durch die Welt: RoadArchitect scannt automatisch Ihre Welt, findet Dörfer und andere Strukturen und legt anschließend ein Straßennetz zwischen ihnen an.");
+                add.accept("fml.menu.mods.info.description.roadarchitect",
+                        "Reisen Sie barrierefrei durch die Welt: RoadArchitect scannt automatisch Ihre Welt, findet Dörfer und andere Strukturen und legt anschließend ein Straßennetz zwischen ihnen an.");
                 break;
             }
             case "zh_cn": {
@@ -1393,6 +1403,8 @@ public final class RALanguage {
                         "靠近禁止生物群系时施加的惩罚。");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
                         "畅游无障碍的世界：RoadArchitect 会自动扫描你的世界，找到村庄和其他结构，然后在它们之间铺设道路网络。");
+                add.accept("fml.menu.mods.info.description.roadarchitect",
+                        "畅游无障碍的世界：RoadArchitect 会自动扫描你的世界，找到村庄和其他结构，然后在它们之间铺设道路网络。");
                 break;
             }
             case "uk_ua": {
@@ -1401,11 +1413,11 @@ public final class RALanguage {
                 add.accept("screen.roadarchitect.debug.dimension_label", "Вимір: %s");
                 add.accept("category.roadarchitect", "Road Architect");
                 add.accept("text.autoconfig.roadarchitect.category.default", "Загальні налаштування");
-                add.accept("roadarchitect.stage.initialisation", "Ініціалізація…");
-                add.accept("roadarchitect.stage.scanning", "Сканування структур…");
-                add.accept("roadarchitect.stage.pathfinding", "Пошук шляху…");
-                add.accept("roadarchitect.stage.postprocess", "Постобробка…");
-                add.accept("roadarchitect.stage.complete", "Завершення…");
+                add.accept("roadarchitect.stage.initialisation", "Ініціалізація");
+                add.accept("roadarchitect.stage.scanning", "Сканування структур");
+                add.accept("roadarchitect.stage.pathfinding", "Пошук шляху");
+                add.accept("roadarchitect.stage.postprocess", "Постобробка");
+                add.accept("roadarchitect.stage.complete", "Завершення");
                 add.accept("text.config.roadarchitect.option.initScanRadius", "Початковий радіус сканування");
                 add.accept("text.config.roadarchitect.option.initScanRadius.@Tooltip",
                         "Радіус у чанках для пошуку структур під час першого завантаження світу.");
@@ -1527,16 +1539,16 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.category.cache", "Кеш");
                 add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb", "Бюджет кешу в пам'яті (МБ)");
                 add.accept("text.autoconfig.roadarchitect.option.cache.runtimeBudgetMb.@Tooltip",
-                        "Обсяг ОЗП, виділений під колонковий кеш до вивантаження на диск.");
+                        "Обсяг ОЗП, виділений під колонковий кеш до вивантаження на носій.");
                 add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb", "Бюджет кешу знімків (МБ)");
                 add.accept("text.autoconfig.roadarchitect.option.cache.snapshotBudgetMb.@Tooltip",
                         "Пам'ять для даних знімків чанків, які використовує конвеєр.");
                 add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb", "Бюджет персистентних сторінок (МБ)");
                 add.accept("text.autoconfig.roadarchitect.option.cache.persistedBudgetMb.@Tooltip",
-                        "Ліміт пам'яті для пагінованого буфера регіонів, що відображає дані на диску.");
+                        "Ліміт пам'яті для пагінованого буфера регіонів, що відображає дані на носій.");
                 add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks", "Розмір сторінки регіону (чанки)");
                 add.accept("text.autoconfig.roadarchitect.option.cache.regionSizeChunks.@Tooltip",
-                        "Довжина ребра сторінки, яку зберігаємо на диску: більше сторінка — менше звернень, але більші I/O-сплески.");
+                        "Довжина ребра сторінки, яку зберігаємо на носій: більше сторінка — менше звернень, але більші I/O-сплески.");
                 add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill", "Увімкнути асинхронне попереднє заповнення");
                 add.accept("text.autoconfig.roadarchitect.option.cache.enablePrefill.@Tooltip",
                         "Дозволяє фоновому воркеру готувати кеш заздалегідь.");
@@ -1545,19 +1557,19 @@ public final class RALanguage {
                         "Максимум чанків, які обробляє один прохід попереднього заповнення.");
                 add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights", "Зберігати висотні колонки");
                 add.accept("text.autoconfig.roadarchitect.option.cache.persistHeights.@Tooltip",
-                        "Пише розраховані висоти на диск, щоб вони переживали перезапуски.");
-                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities", "Зберігати показники стабільності");
+                        "Пише розраховані висоти на носій, щоб вони переживали перезапуски.");
+                add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities", "Зберігати показники стабільности");
                 add.accept("text.autoconfig.roadarchitect.option.cache.persistStabilities.@Tooltip",
-                        "Зберігає метрики стабільності рельєфу на диск.");
+                        "Зберігає метрики стабільности рельєфу на носій.");
                 add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes", "Зберігати результати біомів");
                 add.accept("text.autoconfig.roadarchitect.option.cache.persistBiomes.@Tooltip",
-                        "Кешує результати пошуку біомів на диск для швидшого прогріву.");
+                        "Кешує результати пошуку біомів на носій для швидшого прогріву.");
                 // Аналіз рельєфу (AutoConfig)
                 add.accept("text.autoconfig.roadarchitect.category.terrainAnalyzer", "Аналіз рельєфу (Бета)");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled", "Увімкнути аналіз рельєфу");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.enabled.@Tooltip",
-                        "Відхиляє дороги від нерівної/гірської місцевості, штрафуючи розкид висот.");
-                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Радіус шорсткості");
+                        "Відхиляє дороги від нерівної/гірської місцевости, штрафуючи розкид висот.");
+                add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius", "Радіус шорсткости");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughRadius.@Tooltip",
                         "Радіус (у блоках) вікна для вимірювання діапазону висот.");
                 add.accept("text.autoconfig.roadarchitect.option.terrainAnalyzer.roughStride", "Крок вибірки");
@@ -1579,28 +1591,28 @@ public final class RALanguage {
                         "Додаткова вартість за кожен крок в океані/річці, коли опцію увімкнено.");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks", "Буфер обходу узбережжя (блоки)");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastAvoidBufferBlocks.@Tooltip",
-                        "Радіус у блоках навколо водних біомів, де застосовується штраф близькості.");
-                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Штраф близькості до узбережжя");
+                        "Радіус у блоках навколо водних біомів, де застосовується штраф близькости.");
+                add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty", "Штраф близькости до узбережжя");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.coastProximityPenalty.@Tooltip",
                         "Штраф, що застосовується в межах буфера, щоб не йти вздовж берега.");
                 // Часткове прийняття
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial", "Приймати частковий шлях за високого прогресу");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.acceptHighProgressPartial.@Tooltip",
-                        "Якщо A* не дійшов до цілі, але досяг хорошої сходимості (>= порога), приймати найкращий частковий шлях, щоб підвищити успішність.");
+                        "Якщо A* не дійшов до цілі, але досяг хорошої сходимости (>= порога), приймати найкращий частковий шлях, щоб підвищити успішність.");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent", "Поріг прогресу для часткового шляху (%)");
                 add.accept("text.autoconfig.roadarchitect.option.pathfinding.partialProgressPercent.@Tooltip",
                         "Мінімальний прогрес (у %), щоб прийняти частковий шлях, коли ціль не досягнута.");
                 // Заборонені біоми
                 add.accept("text.autoconfig.roadarchitect.category.forbiddenBiomes", "Заборонені біоми");
                 add.accept("text.autoconfig.roadarchitect.category.debug", "Налагодження й діагностика (розширено)");
-                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs", "Увімкнути докладні логи");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs", "Увімкнути докладні журнали");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableVerboseLogs.@Tooltip",
-                        "Якщо ввімкнено, діагностичні повідомлення записуються на рівні info. Може засмічувати лог.");
+                        "Якщо ввімкнено, діагностичні повідомлення записуються на рівні info. Може засмічувати журнал.");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler", "Увімкнути профайлер пайплайна");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enablePipelineProfiler.@Tooltip",
                         "Запускає профайлер пайплайна під час генерації доріг, щоб зібрати докладні часові вимірювання.");
 
-                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs", "Увімкнути логи кешу");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs", "Увімкнути журнали кешу");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableCacheLogs.@Tooltip",
                         "Виводить додаткові повідомлення CacheManager про передзавантаження, читання та збереження.");
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "Показувати оверлей статистики кешу");
@@ -1609,14 +1621,16 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селектори заборонених біомів");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Список селекторів біомів (ID або #теги), через які дороги не прокладаються.");
-                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Буфер близькості до заборонених (блоки)");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks", "Буфер близькости до заборонених (блоки)");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.bufferBlocks.@Tooltip",
                         "Радіус навколо заборонених біомів, що додає додатковий штраф.");
-                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Штраф близькості до заборонених");
+                add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty", "Штраф близькости до заборонених");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.proximityPenalty.@Tooltip",
                         "Штраф при знаходженні поруч із забороненим біомом.");
                 add.accept("modmenu.descriptionTranslation.roadarchitect",
-                        "Подорожуйте навколо світу без бар'єрів: RoadArchitect автоматично сканує ваш світ, знаходить села та інші структури, а потім прокладає мережу доріг між ними");
+                        "Подорожуйте навколо світу без бар'єрів: RoadArchitect автоматично сканує ваш світ, знаходить села та інші структури, а потім прокладає мережу доріг між ними.");
+                add.accept("fml.menu.mods.info.description.roadarchitect",
+                        "Подорожуйте навколо світу без бар'єрів: RoadArchitect автоматично сканує ваш світ, знаходить села та інші структури, а потім прокладає мережу доріг між ними.");
                 break;
             }
             default: {

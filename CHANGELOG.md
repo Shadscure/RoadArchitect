@@ -1,3 +1,14 @@
+v1.6.3 — <em>Cache stability hotfix</em>
+
+### Fixes
+- 🛡️ **Corrupted cache files no longer poison your world.** If a region cache file ever ends up unreadable (after a server kill, disk hiccup, or any other failure), it is now safely set aside and the cache rebuilds from scratch — instead of silently spreading the damage across new writes.
+- 💾 **Hardened cache writes.** Cache files are now flushed to disk before being committed, so a server kill or power loss while saving no longer leaves you with a `ZipException: invalid stored block lengths` on the next launch.
+- 🚀 **Memory budget actually respected.** The cache previously underestimated its own size and could keep growing past the configured RAM limit, dragging TPS down. The accounting is fixed — the limit you set in the Cache config now reflects reality.
+
+Compatibility: existing caches are read as before, no world migration needed.
+
+---
+
 v1.6.2 — <em>Cache stack overhaul</em>
 
 ### Highlights

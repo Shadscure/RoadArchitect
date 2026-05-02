@@ -22,6 +22,12 @@ target
 # Eclipse
 .classpath
 .settings
+.eclipse/
+**/.eclipse/
+
+# Runtime logs from runClient/runServer
+logs/
+**/logs/
 
 # installed Fabric binaries etc.
 /bin/

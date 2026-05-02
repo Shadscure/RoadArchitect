@@ -1,7 +1,5 @@
 package net.oxcodsnet.roadarchitect.client.gui;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -11,7 +9,6 @@ import net.minecraft.network.chat.Component;
 import net.oxcodsnet.roadarchitect.handlers.PipelineRunner;
 import net.oxcodsnet.roadarchitect.handlers.PipelineStage;
 
-@Environment(EnvType.CLIENT)
 public final class LoadingOverlayRenderer {
     private LoadingOverlayRenderer() {}
 

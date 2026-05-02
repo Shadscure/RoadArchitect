@@ -1,7 +1,5 @@
 package net.oxcodsnet.roadarchitect.client.gui;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -29,7 +27,6 @@ import java.util.function.Supplier;
  * Ванильный экран отладки графа (без owo-lib).
  * Поддерживает: сетка, пан/зум, легенда, тултипы, клик для телепорта (в одиночке).
  */
-@Environment(EnvType.CLIENT)
 public class RoadGraphDebugScreenVanilla extends Screen {
 
     private static final int RADIUS = 4;

@@ -27,11 +27,14 @@ public record CacheSettings(
     private static final double HEAP_FRACTION = 0.65;
     private static final int MIN_CACHE_MB = 16;
 
+    // Keep in sync with RoadArchitectConfigData.CacheSection defaults — both
+    // surfaces must agree, otherwise tests / direct CacheSettings.DEFAULT
+    // consumers diverge from what players see in the GUI.
     public static final CacheSettings DEFAULT = new CacheSettings(
-            256,
             128,
-            256,
-            128,
+            32,
+            192,
+            32,
             true,
             2048,
             true,

@@ -1,0 +1,110 @@
+// Convention plugin for the common module.
+// Compiles shared sources against NeoForm-mapped Minecraft and exports them
+// to loader modules via dedicated configurations (no Architectury / Shadow needed).
+
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+// groupId: net.oxcodsnet.roadarchitect.common
+group = "${rootProject.maven_group}.${project.name}"
+
+base {
+    archivesName = "${rootProject.archives_name}-${project.name}"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    withSourcesJar()
+}
+
+repositories { repoHandler ->
+    rootProject.ext.configureStandardRepositories(repoHandler)
+}
+
+// ---- Common -> loader source export ----
+configurations {
+    commonJava {
+        canBeResolved = false
+        canBeConsumed = true
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'common-java'))
+        }
+    }
+    commonResources {
+        canBeResolved = false
+        canBeConsumed = true
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'common-resources'))
+        }
+    }
+}
+
+artifacts {
+    commonJava(sourceSets.main.java.sourceDirectories.singleFile) {
+        builtBy(tasks.named('classes'))
+    }
+    commonResources(sourceSets.main.resources.sourceDirectories.singleFile)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+// JUnit 5 — RA has unit tests in common
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat 'short'
+    }
+}
+
+// Maven publishing — artifactId carries -mc<version> suffix
+publishing {
+    def mcTag = "mc" + rootProject.minecraft_version
+
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = "${rootProject.archives_name}-${project.name}-${mcTag}"
+
+            pom {
+                name = "${rootProject.findProperty('mod_name') ?: rootProject.archives_name} - Common"
+                description = rootProject.findProperty('mod_description') ?: ''
+            }
+        }
+    }
+
+    repositories {
+        def repoUrl = rootProject.ext.resolveMavenRepoUrl()
+        if (repoUrl) {
+            maven {
+                name = rootProject.ext.resolveMavenRepoName()
+                url = uri(repoUrl)
+
+                def user  = rootProject.ext.resolveMavenRepoUsername()
+                def pass  = rootProject.ext.resolveMavenRepoPassword()
+                def token = rootProject.ext.resolveMavenRepoToken()
+
+                if ((user && pass) || token) {
+                    credentials {
+                        if (user && pass) {
+                            username = user
+                            password = pass
+                        } else {
+                            username = user ?: 'token'
+                            password = token
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

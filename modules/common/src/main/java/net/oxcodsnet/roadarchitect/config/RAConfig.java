@@ -111,6 +111,14 @@ public interface RAConfig {
     boolean debugPipelineProfiler();
 
     /**
+     * Whether [cache]-prefixed diagnostic logging should be emitted.
+     * Off by default; platforms may flip via the Debug & Diagnostics tab.
+     */
+    default boolean debugCacheLogs() {
+        return false;
+    }
+
+    /**
      * Cache budgets and persistence flags for the column store.
      * Default returns {@link CacheSettings#DEFAULT}; platforms may override
      * to expose this in their AutoConfig surface.

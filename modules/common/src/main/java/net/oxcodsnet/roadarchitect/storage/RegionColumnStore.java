@@ -29,6 +29,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 /**
  * Region-paged persistence layer for cached column data.
@@ -67,6 +69,7 @@ final class RegionColumnStore {
                 .weigher((Long key, RegionData value) -> value.weightBytes())
                 .removalListener(this::onRegionRemoval)
                 .build();
+        cleanOrphanedTempFiles(this.regionDir);
     }
 
     ColumnRecord read(long columnKey) {
@@ -139,6 +142,34 @@ final class RegionColumnStore {
             LOGGER.warn("Cached region {} is corrupted, quarantining and rebuilding from scratch", path, e);
             quarantineCorruptedRegion(path);
             return new RegionData();
+        }
+    }
+
+    /**
+     * Sweeps stray {@code region_X_Z.nbt.tmp.*} files left over from a
+     * previous JVM that crashed mid-write. Safe to run once at startup —
+     * by definition no other thread is touching the cache directory yet.
+     */
+    static void cleanOrphanedTempFiles(Path regionDir) {
+        if (regionDir == null || !Files.isDirectory(regionDir)) {
+            return;
+        }
+        try (Stream<Path> stream = Files.list(regionDir)) {
+            stream
+                    .filter(p -> {
+                        String name = p.getFileName().toString();
+                        return name.startsWith("region_") && name.contains(".nbt.tmp");
+                    })
+                    .forEach(p -> {
+                        try {
+                            Files.deleteIfExists(p);
+                            LOGGER.debug("Removed orphaned cache temp file {}", p);
+                        } catch (IOException e) {
+                            LOGGER.warn("Failed to remove orphaned cache temp file {}", p, e);
+                        }
+                    });
+        } catch (IOException e) {
+            LOGGER.warn("Failed to scan cache directory for orphaned temp files: {}", regionDir, e);
         }
     }
 
@@ -219,7 +250,15 @@ final class RegionColumnStore {
             return;
         }
 
-        Path tmp = path.resolveSibling(path.getFileName().toString() + ".tmp");
+        // Unique tmp suffix per call: Caffeine's removalListener runs on
+        // ForkJoinPool.commonPool, so the same regionKey can be flushed by
+        // two workers concurrently (evict → reload → evict in quick
+        // succession). With a shared "${name}.tmp" filename, the second
+        // worker raced the first and lost — the first ATOMIC_MOVE consumed
+        // the tmp file, the second one then failed with NoSuchFileException
+        // mid-flight. A UUID suffix isolates the workers; the orphan
+        // cleanup at construction time picks up any file the JVM died on.
+        Path tmp = path.resolveSibling(path.getFileName().toString() + ".tmp." + UUID.randomUUID());
         try (FileChannel channel = FileChannel.open(
                 tmp,
                 StandardOpenOption.CREATE,

@@ -352,9 +352,11 @@ public final class CacheManager {
         if (surface == null) {
             surface = wg;
         }
-        int[] snapshot = new int[COLUMNS_PER_CHUNK];
 
-        CacheStorage storage = state.storage();
+        // Read the heightmap synchronously while the chunk is guaranteed
+        // present on the server thread; the resulting int[] is a self-contained
+        // copy and is safe to consume from a worker.
+        int[] snapshot = new int[COLUMNS_PER_CHUNK];
         for (int localZ = 0; localZ < CHUNK_SIDE; localZ++) {
             for (int localX = 0; localX < CHUNK_SIDE; localX++) {
                 int idx = localZ * CHUNK_SIDE + localX;
@@ -363,13 +365,31 @@ public final class CacheManager {
                     height = surface.getFirstAvailable(localX, localZ);
                 }
                 snapshot[idx] = height;
-                long key = hash(startX + localX, startZ + localZ);
-                storage.putHeight(key, height);
             }
         }
 
-        state.putChunkSnapshot(pos.toLong(), new ChunkHeightSnapshot(snapshot, CHUNK_SIDE));
-        DebugLog.cache(LOGGER, "Chunk snapshot refreshed for {} ({})", pos, world.dimension().location());
+        // Defer the 256 column writes and the snapshot publication to the
+        // async pool. Each storage.putHeight() goes through CacheStorage.mutate
+        // → RegionColumnStore.write → regions.get(loadRegion), which on a
+        // cold cache miss synchronously GZIP-decodes a ~tens-of-MiB region
+        // file. Doing that 256× per chunk on the server thread, multiplied
+        // by 200+ chunk-loads/second on world reload, was the cause of the
+        // multi-second tick freezes. Caffeine's runtime + region caches and
+        // the snapshot map are all thread-safe, so deferring is a drop-in.
+        long chunkKey = pos.toLong();
+        ResourceKey<Level> dimensionKey = world.dimension();
+        AsyncExecutor.execute(() -> {
+            CacheStorage storage = state.storage();
+            for (int localZ = 0; localZ < CHUNK_SIDE; localZ++) {
+                for (int localX = 0; localX < CHUNK_SIDE; localX++) {
+                    int idx = localZ * CHUNK_SIDE + localX;
+                    long key = hash(startX + localX, startZ + localZ);
+                    storage.putHeight(key, snapshot[idx]);
+                }
+            }
+            state.putChunkSnapshot(chunkKey, new ChunkHeightSnapshot(snapshot, CHUNK_SIDE));
+            DebugLog.cache(LOGGER, "Chunk snapshot refreshed for {} ({})", pos, dimensionKey.location());
+        });
     }
 
     /**

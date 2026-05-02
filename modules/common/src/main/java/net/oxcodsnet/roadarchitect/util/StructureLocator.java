@@ -116,11 +116,17 @@ public final class StructureLocator {
         if (raw == null || raw.isEmpty()) {
             return null;
         }
-        List<String> candidates = new ArrayList<>(registry.size() + 32);
+        // Tag iteration intentionally omitted: the Registry.getTagNames /
+        // getTags accessors changed signatures incompatibly between MC
+        // versions, and locking the suggest path to one signature would
+        // break when this fix is back-ported to other branches. Suggesting
+        // by structure id alone still catches typos like "minecraft:vilage"
+        // → "minecraft:village_plains" / "minecraft:village_savanna" — the
+        // user gets a real id and can pick the matching tag manually.
+        List<String> candidates = new ArrayList<>(registry.size());
         for (ResourceLocation id : registry.keySet()) {
             candidates.add(id.toString());
         }
-        registry.getTagNames().forEach(tag -> candidates.add("#" + tag.location()));
         return StringSimilarity.bestMatch(raw, candidates, StringSimilarity.defaultThresholdFor(raw));
     }
 

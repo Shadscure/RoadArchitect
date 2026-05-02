@@ -1,5 +1,7 @@
 package net.oxcodsnet.roadarchitect.config;
 
+import net.oxcodsnet.roadarchitect.config.records.CacheSettings;
+
 import java.util.List;
 
 /**
@@ -107,4 +109,13 @@ public interface RAConfig {
      * Whether the pipeline profiler is enabled.
      */
     boolean debugPipelineProfiler();
+
+    /**
+     * Cache budgets and persistence flags for the column store.
+     * Default returns {@link CacheSettings#DEFAULT}; platforms may override
+     * to expose this in their AutoConfig surface.
+     */
+    default CacheSettings cache() {
+        return CacheSettings.DEFAULT;
+    }
 }

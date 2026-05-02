@@ -93,12 +93,12 @@ public final class RAConfigFabricBridge {
 
             @Override
             public java.util.List<String> structureSelectors() {
-                return holder.getConfig().structureSelectors;
+                return net.oxcodsnet.roadarchitect.util.ConfigSanitize.cleanList(holder.getConfig().structureSelectors);
             }
 
             @Override
             public java.util.List<String> dimensionSelectors() {
-                return holder.getConfig().dimensionSelectors;
+                return net.oxcodsnet.roadarchitect.util.ConfigSanitize.cleanList(holder.getConfig().dimensionSelectors);
             }
 
             // Terrain Analyzer
@@ -151,7 +151,7 @@ public final class RAConfigFabricBridge {
             // Forbidden biomes
             @Override
             public java.util.List<String> forbiddenBiomeSelectors() {
-                return holder.getConfig().forbiddenBiomes.selectors;
+                return net.oxcodsnet.roadarchitect.util.ConfigSanitize.cleanList(holder.getConfig().forbiddenBiomes.selectors);
             }
 
             @Override

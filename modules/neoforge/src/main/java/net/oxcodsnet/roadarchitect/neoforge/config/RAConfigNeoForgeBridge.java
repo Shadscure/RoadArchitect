@@ -239,6 +239,24 @@ public final class RAConfigNeoForgeBridge {
             }
 
             @Override
+            public boolean debugShowScanningBar() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings == null || settings.showScanningBar;
+            }
+
+            @Override
+            public boolean debugEnableMap() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings == null || settings.enableDebugMap;
+            }
+
+            @Override
+            public int debugAsyncThreads() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings == null ? 0 : settings.asyncThreads;
+            }
+
+            @Override
             public CacheSettings cache() {
                 RoadArchitectConfigData.CacheSection section = holder.getConfig().cache;
                 if (section == null) {

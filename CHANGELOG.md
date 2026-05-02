@@ -1,3 +1,10 @@
+v1.6.6 — <em>Cache flush race fix</em>
+
+### Fixes
+- 🧵 **No more `NoSuchFileException` spam in the log when the cache is busy.** Two background workers could try to save the same region at the same moment and step on each other's temporary file, leaving a stack trace in the log every time it happened. Each save now uses its own private temp file, and any leftovers from a previous crashed run are cleaned up at startup.
+
+---
+
 v1.6.5 — <em>Config robustness</em>
 
 ### Fixes

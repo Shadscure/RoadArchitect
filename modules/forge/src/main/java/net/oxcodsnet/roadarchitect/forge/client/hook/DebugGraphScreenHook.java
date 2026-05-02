@@ -10,6 +10,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.client.gui.RoadGraphDebugScreenVanilla;
+import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.storage.EdgeStorage;
 import net.oxcodsnet.roadarchitect.storage.RoadGraphState;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
@@ -22,6 +23,12 @@ public final class DebugGraphScreenHook {
     @SubscribeEvent
     public static void onKey(InputEvent.Key e) {
         if (RAKeybinds.OPEN != null && RAKeybinds.OPEN.consumeClick()) {
+            // Debug map can be globally disabled in the Debug & Diagnostics
+            // tab; in that case the keybind is a no-op so the press doesn't
+            // open or even close the debug screen.
+            if (!RAConfigHolder.get().debugEnableMap()) {
+                return;
+            }
             Minecraft mc = Minecraft.getInstance();
 
             if (mc.screen instanceof RoadGraphDebugScreenVanilla) {

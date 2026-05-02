@@ -9,6 +9,7 @@ import net.minecraft.world.level.Level;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.client.gui.RoadGraphDebugScreenVanilla;
+import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.storage.EdgeStorage;
 import net.oxcodsnet.roadarchitect.storage.RoadGraphState;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
@@ -32,6 +33,12 @@ public final class DebugGraphScreenHook {
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (openDebugKey.consumeClick()) {
+                // Debug map can be globally disabled in the Debug & Diagnostics
+                // tab; in that case the keybind is a no-op so the press doesn't
+                // open or even close the debug screen.
+                if (!RAConfigHolder.get().debugEnableMap()) {
+                    continue;
+                }
                 if (mc.screen instanceof RoadGraphDebugScreenVanilla) {
                     mc.setScreen(null);
                     continue;

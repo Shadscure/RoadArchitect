@@ -2,6 +2,7 @@ package net.oxcodsnet.roadarchitect;
 
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
+import net.oxcodsnet.roadarchitect.config.records.CacheSettings;
 import net.oxcodsnet.roadarchitect.config.records.RoadStyleConfigEntry;
 
 import java.util.List;
@@ -164,6 +165,36 @@ public final class RoadArchitect {
         @Override
         public boolean debugPipelineProfiler() {
             return RAConfigHolder.get().debugPipelineProfiler();
+        }
+
+        @Override
+        public boolean debugCacheLogs() {
+            return RAConfigHolder.get().debugCacheLogs();
+        }
+
+        @Override
+        public boolean debugCacheOverlay() {
+            return RAConfigHolder.get().debugCacheOverlay();
+        }
+
+        @Override
+        public boolean debugShowScanningBar() {
+            return RAConfigHolder.get().debugShowScanningBar();
+        }
+
+        @Override
+        public boolean debugEnableMap() {
+            return RAConfigHolder.get().debugEnableMap();
+        }
+
+        @Override
+        public int debugAsyncThreads() {
+            return RAConfigHolder.get().debugAsyncThreads();
+        }
+
+        @Override
+        public CacheSettings cache() {
+            return RAConfigHolder.get().cache();
         }
     };
 

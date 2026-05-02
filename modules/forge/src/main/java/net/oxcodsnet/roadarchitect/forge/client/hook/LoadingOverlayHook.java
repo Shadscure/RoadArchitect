@@ -8,6 +8,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.oxcodsnet.roadarchitect.RoadArchitect;
 import net.oxcodsnet.roadarchitect.client.gui.LoadingOverlayRenderer;
+import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 
 @Mod.EventBusSubscriber(modid = RoadArchitect.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public final class LoadingOverlayHook {
@@ -16,6 +17,9 @@ public final class LoadingOverlayHook {
     @SubscribeEvent
     public static void onDrawScreenPost(ScreenEvent.Render.Post event) {
         if (!(event.getScreen() instanceof LevelLoadingScreen)) {
+            return;
+        }
+        if (!RAConfigHolder.get().debugShowScanningBar()) {
             return;
         }
 

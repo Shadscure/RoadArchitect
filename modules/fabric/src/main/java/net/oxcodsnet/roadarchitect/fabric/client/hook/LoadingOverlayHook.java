@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.LevelLoadingScreen;
 import net.oxcodsnet.roadarchitect.client.gui.LoadingOverlayRenderer;
+import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 
 public final class LoadingOverlayHook {
     private LoadingOverlayHook() {}
@@ -15,6 +16,9 @@ public final class LoadingOverlayHook {
 
             // Регистрируем post-render на ЭТОТ экран
             ScreenEvents.afterRender(screen).register((scr, ctx, mouseX, mouseY, tickDelta) -> {
+                if (!RAConfigHolder.get().debugShowScanningBar()) {
+                    return;
+                }
                 Minecraft mc = Minecraft.getInstance();
                 LoadingOverlayRenderer.render(
                         ctx,

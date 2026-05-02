@@ -225,6 +225,36 @@ public final class RAConfigForgeBridge {
                 return settings != null && settings.enablePipelineProfiler;
             }
 
+            @Override
+            public boolean debugCacheLogs() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings != null && settings.enableCacheLogs;
+            }
+
+            @Override
+            public boolean debugCacheOverlay() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings != null && settings.showCacheStatsOverlay;
+            }
+
+            @Override
+            public boolean debugShowScanningBar() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings == null || settings.showScanningBar;
+            }
+
+            @Override
+            public boolean debugEnableMap() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings == null || settings.enableDebugMap;
+            }
+
+            @Override
+            public int debugAsyncThreads() {
+                RoadArchitectConfigData.DebugSettings settings = holder.getConfig().debug;
+                return settings == null ? 0 : settings.asyncThreads;
+            }
+
         });
 
         RoadPipelineController.refreshStructureSelectorCache();

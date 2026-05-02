@@ -214,5 +214,24 @@ public final class RoadArchitectConfigData implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         public boolean enablePipelineProfiler = false;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean enableCacheLogs = false;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean showCacheStatsOverlay = false;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean showScanningBar = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean enableDebugMap = true;
+
+        // 0 = auto: max(1, availableProcessors - 2). Reads once on pool
+        // construction; the @RequiresRestart hint is rendered by Cloth Config.
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.Gui.RequiresRestart
+        @ConfigEntry.BoundedDiscrete(min = 0, max = 64)
+        public int asyncThreads = 0;
     }
 }

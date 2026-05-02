@@ -121,6 +121,39 @@ public interface RAConfig {
     }
 
     /**
+     * Whether cache metrics should be rendered on the debug (F3) screen.
+     */
+    default boolean debugCacheOverlay() {
+        return false;
+    }
+
+    /**
+     * Whether the scanning progress bar overlay is rendered on the world
+     * loading screen. When false, the bar is suppressed even while the
+     * pipeline reports progress.
+     */
+    default boolean debugShowScanningBar() {
+        return true;
+    }
+
+    /**
+     * Whether the road-graph debug map (opened via the keybind) is enabled.
+     * When false the keybind is a no-op.
+     */
+    default boolean debugEnableMap() {
+        return true;
+    }
+
+    /**
+     * Thread count for the shared async pool, or 0 to auto-size to
+     * {@code max(1, availableProcessors - 2)}. Read once on pool
+     * construction; changes require a game restart.
+     */
+    default int debugAsyncThreads() {
+        return 0;
+    }
+
+    /**
      * Cache budgets and persistence flags for the column store.
      * Default returns {@link CacheSettings#DEFAULT}; platforms may override
      * to expose this in their AutoConfig surface.

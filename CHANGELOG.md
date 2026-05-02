@@ -1,3 +1,12 @@
+v1.6.4 — <em>Config & performance toggles</em>
+
+### Added
+- 🎛️ **Hide the scanning progress bar.** New *Debug → Show Scanning Bar* toggle removes the road scanning overlay from the world loading screen for players who find it noisy. On by default.
+- 🗺️ **Disable the road graph debug map.** New *Debug → Enable Debug Map* toggle gates the keybind that opens the in-game graph view. On by default; turn it off if you don't want the map (or its draw cost) at all.
+- ⚙️ **Choose how many cores RoadArchitect can use.** New *Debug → Async Worker Threads* setting controls the size of the background worker pool. `0` keeps the auto-sized default (`CPU cores − 2`, leaving headroom for the OS, the main game thread, and vanilla worldgen workers). Setting an explicit number above 0 caps it at that value. Useful for capping RA on shared servers or under Distant Horizons-heavy setups. Requires a game restart.
+
+---
+
 v1.6.3 — <em>Cache stability hotfix</em>
 
 ### Fixes

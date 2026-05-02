@@ -7,6 +7,7 @@ v1.6.3 — <em>Cache stability hotfix</em>
 
 ### Tuning
 - ⚖️ **Smarter default RAM split.** Default Cache budgets retuned for typical 2–4 GB heap setups: runtime 256 → 128 MiB, snapshots 64 → 32 MiB, pages 128 → 192 MiB. Total drops from 448 to 352 MiB while the main page cache grows by 50 % — hot regions stay in RAM instead of being read from disk on every chunk load. Existing configs are untouched; only fresh installs pick up the new values (use Cache → Reset to defaults if you want them).
+- ⚡ **No more multi-second freezes when loading into a world.** Cache writes triggered by chunk loads are now handled on a background worker. Returning to a world with hundreds of chunks streaming in at once no longer stalls the server tick for seconds while region files decompress.
 
 Compatibility: existing caches are read as before, no world migration needed.
 

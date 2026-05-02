@@ -5,6 +5,9 @@ v1.6.3 — <em>Cache stability hotfix</em>
 - 💾 **Hardened cache writes.** Cache files are now flushed to disk before being committed, so a server kill or power loss while saving no longer leaves you with a `ZipException: invalid stored block lengths` on the next launch.
 - 🚀 **Memory budget actually respected.** The cache previously underestimated its own size and could keep growing past the configured RAM limit, dragging TPS down. The accounting is fixed — the limit you set in the Cache config now reflects reality.
 
+### Tuning
+- ⚖️ **Smarter default RAM split.** Default Cache budgets retuned for typical 2–4 GB heap setups: runtime 256 → 128 MiB, snapshots 64 → 32 MiB, pages 128 → 192 MiB. Total drops from 448 to 352 MiB while the main page cache grows by 50 % — hot regions stay in RAM instead of being read from disk on every chunk load. Existing configs are untouched; only fresh installs pick up the new values (use Cache → Reset to defaults if you want them).
+
 Compatibility: existing caches are read as before, no world migration needed.
 
 ---

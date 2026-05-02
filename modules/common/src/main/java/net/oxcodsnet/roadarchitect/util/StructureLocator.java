@@ -68,6 +68,9 @@ public final class StructureLocator {
     private static final Map<Registry<Structure>, Map<String, HolderSet<Structure>>> SELECTOR_CACHE = new WeakHashMap<>();
 
     private static List<HolderSet<Structure>> compileSelectors(Registry<Structure> registry, List<String> selectors) {
+        if (selectors == null || selectors.isEmpty()) {
+            return List.of();
+        }
         Map<String, HolderSet<Structure>> cache =
                 SELECTOR_CACHE.computeIfAbsent(registry, r -> new HashMap<>(selectors.size() * 2));
 
@@ -75,6 +78,11 @@ public final class StructureLocator {
         List<HolderSet<Structure>> compiled = new ArrayList<>(selectors.size());
 
         for (String raw : selectors) {
+            // Defensive: bridges already sanitize, but a corrupt config or a
+            // direct API caller might still send null/blank entries.
+            if (raw == null || raw.isBlank()) {
+                continue;
+            }
             HolderSet<Structure> list = cache.get(raw);
             if (list == null) {
                 try {
@@ -83,13 +91,37 @@ public final class StructureLocator {
                             .orElseThrow(() -> INVALID_STRUCTURE_EXCEPTION.create(raw));
                     cache.put(raw, list);
                 } catch (CommandSyntaxException ex) {
-                    LOGGER.warn("Structure selector '{}' is invalid: {}", raw, ex.getMessage());
+                    String suggestion = suggestNearestSelector(raw, registry);
+                    if (suggestion != null) {
+                        LOGGER.warn("Structure selector '{}' is invalid: {} — did you mean '{}'?",
+                                raw, ex.getMessage(), suggestion);
+                    } else {
+                        LOGGER.warn("Structure selector '{}' is invalid: {}", raw, ex.getMessage());
+                    }
                     continue;
                 }
             }
             compiled.add(list);
         }
         return compiled;
+    }
+
+    /**
+     * Combines structure ids and tag ids from {@code registry} and returns the
+     * closest match for {@code raw} via Levenshtein distance. The tag pool is
+     * prefixed with {@code #} so the suggestion preserves the syntax the user
+     * likely intended.
+     */
+    private static String suggestNearestSelector(String raw, Registry<Structure> registry) {
+        if (raw == null || raw.isEmpty()) {
+            return null;
+        }
+        List<String> candidates = new ArrayList<>(registry.size() + 32);
+        for (ResourceLocation id : registry.keySet()) {
+            candidates.add(id.toString());
+        }
+        registry.getTagNames().forEach(tag -> candidates.add("#" + tag.location()));
+        return StringSimilarity.bestMatch(raw, candidates, StringSimilarity.defaultThresholdFor(raw));
     }
 
     /* ───────────────────────────── Public API ───────────────────────────── */

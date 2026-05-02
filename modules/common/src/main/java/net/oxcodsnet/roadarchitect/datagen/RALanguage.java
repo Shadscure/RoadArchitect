@@ -228,9 +228,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "Enable Debug Map");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
                         "Allow opening the road graph debug map via its keybind.");
-                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Async Worker Threads");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "CPU Cores Used");
                 add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
-                        "Number of background workers for cache and world scanning. 0 = auto (CPU cores - 2). Requires restart.");
+                        "How many CPU cores the mod takes for background work (scanning, cache saves). 0 = automatic (most cores but not all — keeps the game smooth). Smaller number = less load on your PC, larger = mod works faster. Restart required.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Forbidden Biome Selectors");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "List of biome selectors (IDs or #tags) that roads cannot traverse.");
@@ -471,9 +471,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "Включить карту отладки");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
                         "Разрешает открытие карты отладки графа дорог по горячей клавише.");
-                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Потоки фонового исполнителя");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Использование ядер CPU");
                 add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
-                        "Количество фоновых потоков для кэша и сканирования. 0 = автоматически (число ядер - 2). Требует перезапуска.");
+                        "Сколько ядер процессора мод занимает фоновой работой (сканирование, сохранение кэша). 0 = автоматически (большая часть ядер, но не все — чтобы игра не лагала). Меньше число — меньше нагрузки на компьютер, больше — мод работает быстрее. Нужен перезапуск.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селекторы запрещённых биомов");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Список селекторов биомов (ID или #теги), по которым дороги не строятся.");
@@ -564,9 +564,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "Habilitar mapa de depuración");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
                         "Permite abrir el mapa de depuración del grafo de caminos con su tecla.");
-                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Hilos del ejecutor asíncrono");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Núcleos de CPU usados");
                 add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
-                        "Cantidad de hilos en segundo plano para caché y escaneo. 0 = automático (núcleos - 2). Requiere reinicio.");
+                        "Cuántos núcleos de CPU usa el mod para tareas en segundo plano (escaneo, guardado de caché). 0 = automático (la mayoría de los núcleos pero no todos — para que el juego no se ralentice). Número menor = menos carga en tu PC, mayor = el mod trabaja más rápido. Requiere reinicio.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selectores de biomas prohibidos");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Lista de selectores de biomas (IDs o #etiquetas) por los que las carreteras no pueden pasar.");
@@ -807,9 +807,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "Activer la carte de débogage");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
                         "Autorise l’ouverture de la carte de débogage du graphe routier via son raccourci.");
-                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Threads de l’exécuteur asynchrone");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Cœurs CPU utilisés");
                 add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
-                        "Nombre de threads d’arrière-plan pour le cache et le balayage. 0 = auto (cœurs - 2). Redémarrage requis.");
+                        "Combien de cœurs CPU le mod utilise pour les tâches en arrière-plan (scan, sauvegarde du cache). 0 = automatique (la plupart des cœurs mais pas tous — pour que le jeu reste fluide). Nombre plus petit = moins de charge sur ton PC, plus grand = le mod va plus vite. Redémarrage requis.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Sélecteurs de biomes interdits");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Liste des sélecteurs de biomes (IDs ou #tags) que les routes ne peuvent pas traverser.");
@@ -1200,9 +1200,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "Debug-Karte aktivieren");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
                         "Erlaubt das Öffnen der Straßen-Graph-Debug-Karte über die zugehörige Taste.");
-                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Async-Worker-Threads");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Genutzte CPU-Kerne");
                 add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
-                        "Anzahl der Hintergrund-Threads für Cache und Scan. 0 = automatisch (Kerne - 2). Neustart erforderlich.");
+                        "Wie viele CPU-Kerne der Mod für Hintergrundarbeit nutzt (Scannen, Cache-Speichern). 0 = automatisch (die meisten Kerne, aber nicht alle — damit das Spiel flüssig bleibt). Kleinere Zahl = weniger Last auf dem PC, größere = Mod arbeitet schneller. Neustart erforderlich.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selektoren verbotener Biome");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Liste von Biom-Selektoren (IDs oder #Tags), durch die keine Straßen verlaufen dürfen.");
@@ -1433,9 +1433,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "启用调试地图");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
                         "允许通过快捷键打开道路图调试地图。");
-                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "异步执行线程数");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "使用的 CPU 核心数");
                 add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
-                        "缓存与扫描所用的后台线程数。0 = 自动（CPU 核心数 - 2）。需要重启。");
+                        "模组用于后台任务的 CPU 核心数（扫描、缓存保存）。0 = 自动（使用大部分核心但不是全部 — 保持游戏流畅）。数字越小，电脑负担越轻；越大，模组运行越快。需要重启。");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "禁止生物群系选择器");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "生物群系选择器列表（ID 或 #标签），道路不能穿过这些群系。");
@@ -1666,9 +1666,9 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "Увімкнути карту налагодження");
                 add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
                         "Дозволяє відкрити карту налагодження графа доріг гарячою клавішею.");
-                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Потоки фонового виконавця");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Використання ядер CPU");
                 add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
-                        "Кількість фонових потоків для кешу та сканування. 0 = автоматично (ядра - 2). Потрібен перезапуск.");
+                        "Скільки ядер процесора мод займає фоновою роботою (сканування, збереження кешу). 0 = автоматично (більшість ядер, але не всі — щоб гра не лагала). Менше число — менше навантаження на комп'ютер, більше — мод працює швидше. Потрібен перезапуск.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селектори заборонених біомів");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Список селекторів біомів (ID або #теги), через які дороги не прокладаються.");

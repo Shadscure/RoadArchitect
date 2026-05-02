@@ -22,16 +22,20 @@ target
 # Eclipse
 .classpath
 .settings
+.eclipse/
+**/.eclipse/
 
-# installed Fabric binaries etc.
+# Runtime logs from runClient/runServer
+logs/
+**/logs/
+
+# Hyperledger-Fabric template leftovers (project root only — must NOT shadow
+# Java packages such as src/.../config/)
 /bin/
-builders/
-config/
-external-chaincode/
-install-fabric.sh
-
-# override the ignore of all config/ folders
-!full-stack-asset-transfer-guide/infrastructure/sample-network/config
+/builders/
+/config/
+/external-chaincode/
+/install-fabric.sh
 
 
 # MacOS junk files

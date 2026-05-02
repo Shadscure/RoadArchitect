@@ -222,6 +222,15 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "Show Cache Stats Overlay");
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
                         "Adds Road Architect cache usage statistics to the F3 debug screen.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar", "Show Scanning Bar");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar.@Tooltip",
+                        "Display the road scanning progress bar overlay during world loading.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "Enable Debug Map");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
+                        "Allow opening the road graph debug map via its keybind.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Async Worker Threads");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
+                        "Number of background workers for cache and world scanning. 0 = auto (CPU cores - 2). Requires restart.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Forbidden Biome Selectors");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "List of biome selectors (IDs or #tags) that roads cannot traverse.");
@@ -456,6 +465,15 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "Показывать оверлей статистики кэша");
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
                         "Добавляет статистику кэша RoadArchitect на экран F3.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar", "Показывать индикатор сканирования");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar.@Tooltip",
+                        "Отображает прогресс-бар сканирования дорог во время загрузки мира.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "Включить карту отладки");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
+                        "Разрешает открытие карты отладки графа дорог по горячей клавише.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Потоки фонового исполнителя");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
+                        "Количество фоновых потоков для кэша и сканирования. 0 = автоматически (число ядер - 2). Требует перезапуска.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селекторы запрещённых биомов");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Список селекторов биомов (ID или #теги), по которым дороги не строятся.");
@@ -540,6 +558,15 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "Mostrar superposición de estadísticas de caché");
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
                         "Añade las métricas de caché de RoadArchitect a la pantalla F3.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar", "Mostrar barra de escaneo");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar.@Tooltip",
+                        "Muestra la barra de progreso del escaneo de caminos durante la carga del mundo.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "Habilitar mapa de depuración");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
+                        "Permite abrir el mapa de depuración del grafo de caminos con su tecla.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Hilos del ejecutor asíncrono");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
+                        "Cantidad de hilos en segundo plano para caché y escaneo. 0 = automático (núcleos - 2). Requiere reinicio.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selectores de biomas prohibidos");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Lista de selectores de biomas (IDs o #etiquetas) por los que las carreteras no pueden pasar.");
@@ -774,6 +801,15 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "Afficher la superposition de stats du cache");
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
                         "Ajoute les statistiques de cache de RoadArchitect à l’écran F3.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar", "Afficher la barre de balayage");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar.@Tooltip",
+                        "Affiche la barre de progression du balayage des routes pendant le chargement du monde.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "Activer la carte de débogage");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
+                        "Autorise l’ouverture de la carte de débogage du graphe routier via son raccourci.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Threads de l’exécuteur asynchrone");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
+                        "Nombre de threads d’arrière-plan pour le cache et le balayage. 0 = auto (cœurs - 2). Redémarrage requis.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Sélecteurs de biomes interdits");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Liste des sélecteurs de biomes (IDs ou #tags) que les routes ne peuvent pas traverser.");
@@ -1158,6 +1194,15 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "Cache-Statistik im Overlay anzeigen");
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
                         "Erweitert den F3-Screen um die Cache-Nutzung von RoadArchitect.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar", "Scan-Leiste anzeigen");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar.@Tooltip",
+                        "Zeigt die Fortschrittsleiste des Straßen-Scans während des Weltladens an.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "Debug-Karte aktivieren");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
+                        "Erlaubt das Öffnen der Straßen-Graph-Debug-Karte über die zugehörige Taste.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Async-Worker-Threads");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
+                        "Anzahl der Hintergrund-Threads für Cache und Scan. 0 = automatisch (Kerne - 2). Neustart erforderlich.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Selektoren verbotener Biome");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Liste von Biom-Selektoren (IDs oder #Tags), durch die keine Straßen verlaufen dürfen.");
@@ -1382,6 +1427,15 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "显示缓存统计覆盖层");
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
                         "在 F3 界面中加入 RoadArchitect 的缓存使用统计。");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar", "显示扫描进度条");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar.@Tooltip",
+                        "在世界加载界面显示道路扫描进度条。");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "启用调试地图");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
+                        "允许通过快捷键打开道路图调试地图。");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "异步执行线程数");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
+                        "缓存与扫描所用的后台线程数。0 = 自动（CPU 核心数 - 2）。需要重启。");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "禁止生物群系选择器");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "生物群系选择器列表（ID 或 #标签），道路不能穿过这些群系。");
@@ -1606,6 +1660,15 @@ public final class RALanguage {
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay", "Показувати оверлей статистики кешу");
                 add.accept("text.autoconfig.roadarchitect.option.debug.showCacheStatsOverlay.@Tooltip",
                         "Додає статистику кешу RoadArchitect до екрана F3.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar", "Показувати індикатор сканування");
+                add.accept("text.autoconfig.roadarchitect.option.debug.showScanningBar.@Tooltip",
+                        "Відображає прогрес-бар сканування доріг під час завантаження світу.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap", "Увімкнути карту налагодження");
+                add.accept("text.autoconfig.roadarchitect.option.debug.enableDebugMap.@Tooltip",
+                        "Дозволяє відкрити карту налагодження графа доріг гарячою клавішею.");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads", "Потоки фонового виконавця");
+                add.accept("text.autoconfig.roadarchitect.option.debug.asyncThreads.@Tooltip",
+                        "Кількість фонових потоків для кешу та сканування. 0 = автоматично (ядра - 2). Потрібен перезапуск.");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors", "Селектори заборонених біомів");
                 add.accept("text.autoconfig.roadarchitect.option.forbiddenBiomes.selectors.@Tooltip",
                         "Список селекторів біомів (ID або #теги), через які дороги не прокладаються.");

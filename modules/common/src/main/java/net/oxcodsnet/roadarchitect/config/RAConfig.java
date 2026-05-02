@@ -123,6 +123,26 @@ public interface RAConfig {
     boolean debugCacheOverlay();
 
     /**
+     * Whether the scanning progress bar overlay is rendered on the world
+     * loading screen. When false, the bar is suppressed even while the
+     * pipeline reports progress.
+     */
+    boolean debugShowScanningBar();
+
+    /**
+     * Whether the road-graph debug map (opened via the keybind) is enabled.
+     * When false the keybind is a no-op.
+     */
+    boolean debugEnableMap();
+
+    /**
+     * Thread count for the shared async pool, or 0 to auto-size to
+     * {@code max(1, availableProcessors - 2)}. Read once on pool
+     * construction; changes require a game restart.
+     */
+    int debugAsyncThreads();
+
+    /**
      * Memory and persistence configuration for caches.
      */
     CacheSettings cache();

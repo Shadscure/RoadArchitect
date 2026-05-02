@@ -217,6 +217,21 @@ public final class RAConfigHolder {
         }
 
         @Override
+        public boolean debugShowScanningBar() {
+            return true;
+        }
+
+        @Override
+        public boolean debugEnableMap() {
+            return true;
+        }
+
+        @Override
+        public int debugAsyncThreads() {
+            return 0;
+        }
+
+        @Override
         public CacheSettings cache() {
             return CacheSettings.DEFAULT;
         }

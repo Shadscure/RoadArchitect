@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 // Если у тебя PipelineRunner в common — удобно подтягивать прямо отсюда.
 // Иначе пробрасывай Text stage параметром из «клея».
+import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.handlers.PipelineRunner;
 import net.oxcodsnet.roadarchitect.handlers.PipelineStage;
 
@@ -24,6 +25,10 @@ public final class LoadingOverlayRenderer {
 
     /** Перегрузка, если хочешь подставлять свой текст стадии извне */
     public static void render(GuiGraphics ctx, int screenWidth, int screenHeight, Component stage) {
+        if (!RAConfigHolder.get().debugShowScanningBar()) {
+            return;
+        }
+
         final int x = (screenWidth - BAR_W) / 2;
         final int y = screenHeight - 24;
 

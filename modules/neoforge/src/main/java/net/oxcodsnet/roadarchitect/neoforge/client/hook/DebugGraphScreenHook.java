@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.oxcodsnet.roadarchitect.client.gui.RoadGraphDebugScreenVanilla;
+import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
 import net.oxcodsnet.roadarchitect.storage.EdgeStorage;
 import net.oxcodsnet.roadarchitect.storage.RoadGraphState;
 import net.oxcodsnet.roadarchitect.storage.components.Node;
@@ -29,6 +30,10 @@ public final class DebugGraphScreenHook {
 
         if (mc.screen instanceof RoadGraphDebugScreenVanilla) {
             mc.setScreen(null);
+            return;
+        }
+
+        if (!RAConfigHolder.get().debugEnableMap()) {
             return;
         }
 

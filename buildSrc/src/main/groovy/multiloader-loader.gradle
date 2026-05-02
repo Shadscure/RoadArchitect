@@ -1,0 +1,169 @@
+// Convention plugin for loader modules (fabric, neoforge).
+// Pulls common-module sources via dedicated configurations and bundles them
+// into the loader's compilation/resource pipeline.
+
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+// groupId: net.oxcodsnet.roadarchitect.<fabric|neoforge>
+group = "${rootProject.maven_group}.${project.name}"
+
+base {
+    archivesName = "${rootProject.archives_name}-${project.name}"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    withSourcesJar()
+}
+
+repositories { repoHandler ->
+    rootProject.ext.configureStandardRepositories(repoHandler)
+}
+
+// ---- Consume common module ----
+configurations {
+    commonJava {
+        canBeResolved = true
+        canBeConsumed = false
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'common-java'))
+        }
+    }
+    commonResources {
+        canBeResolved = true
+        canBeConsumed = false
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'common-resources'))
+        }
+    }
+}
+
+dependencies {
+    commonJava project(':modules:common')
+    commonResources project(':modules:common')
+    compileOnly project(':modules:common')
+}
+
+tasks.named('compileJava') {
+    dependsOn configurations.commonJava
+    source configurations.commonJava
+}
+
+tasks.named('processResources') {
+    dependsOn configurations.commonResources
+    from(configurations.commonResources) {
+        exclude 'fabric.mod.json'
+        exclude 'META-INF/neoforge.mods.toml'
+        exclude '*.mixins.json'
+    }
+}
+
+tasks.named('sourcesJar') {
+    dependsOn configurations.commonJava
+    dependsOn configurations.commonResources
+    from configurations.commonJava
+    from configurations.commonResources
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat 'short'
+    }
+}
+
+// ---- Maven publishing ----
+publishing {
+    def mcTag = "mc" + rootProject.minecraft_version
+
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = "${rootProject.archives_name}-${project.name}-${mcTag}"
+
+            pom {
+                name = "${rootProject.findProperty('mod_name') ?: rootProject.archives_name} - ${project.name.capitalize()}"
+                description = rootProject.findProperty('mod_description') ?: ''
+            }
+        }
+    }
+
+    repositories {
+        def repoUrl = rootProject.ext.resolveMavenRepoUrl()
+        if (repoUrl) {
+            maven {
+                name = rootProject.ext.resolveMavenRepoName()
+                url = uri(repoUrl)
+
+                def user  = rootProject.ext.resolveMavenRepoUsername()
+                def pass  = rootProject.ext.resolveMavenRepoPassword()
+                def token = rootProject.ext.resolveMavenRepoToken()
+
+                if ((user && pass) || token) {
+                    credentials {
+                        if (user && pass) {
+                            username = user
+                            password = pass
+                        } else {
+                            username = user ?: 'token'
+                            password = token
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Wire artifacts after fabric-loom / moddev have applied their tasks
+afterEvaluate {
+    publishing.publications.mavenJava {
+        if (tasks.findByName('remapJar')) {
+            // Fabric: remapJar = main artifact (intermediary mappings)
+            artifact(tasks.named('remapJar')) {
+                builtBy(tasks.named('remapJar'))
+            }
+            // dev jar (mojmap) for downstream consumers building against common
+            artifact(tasks.named('jar')) {
+                classifier = 'dev'
+                builtBy(tasks.named('jar'))
+            }
+            if (tasks.findByName('remapSourcesJar')) {
+                artifact(tasks.named('remapSourcesJar')) {
+                    classifier = 'sources'
+                    builtBy(tasks.named('remapSourcesJar'))
+                }
+            } else if (tasks.findByName('sourcesJar')) {
+                artifact(tasks.named('sourcesJar')) {
+                    classifier = 'sources'
+                    builtBy(tasks.named('sourcesJar'))
+                }
+            }
+        } else {
+            // NeoForge: regular jar + sources
+            if (tasks.findByName('jar')) {
+                artifact(tasks.named('jar')) {
+                    builtBy(tasks.named('jar'))
+                }
+            }
+            if (tasks.findByName('sourcesJar')) {
+                artifact(tasks.named('sourcesJar')) {
+                    classifier = 'sources'
+                    builtBy(tasks.named('sourcesJar'))
+                }
+            }
+        }
+    }
+}

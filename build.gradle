@@ -1,24 +1,22 @@
 plugins {
-    id 'dev.architectury.loom' version '1.11-SNAPSHOT' apply false
-    id 'architectury-plugin' version '3.4-SNAPSHOT'
-    id 'com.gradleup.shadow' version '8.3.6' apply false
-    id "com.modrinth.minotaur" version "2.8.8" apply false
+    id 'fabric-loom' version '1.11-SNAPSHOT' apply false
+    id 'net.neoforged.moddev' version '2.0.140' apply false
+    id 'com.modrinth.minotaur' version '2.8.8' apply false
     id 'net.darkhax.curseforgegradle' version '1.1.26' apply false
-    id "co.uzzu.dotenv.gradle" version "4.0.0"
+    id 'co.uzzu.dotenv.gradle' version '4.0.0'
 }
 
-apply from: "gradle/repository-config.gradle"
-apply from: "gradle/config.gradle"
-
-architectury {
-    minecraft = project.minecraft_version
-}
+apply from: 'gradle/repository-config.gradle'
+apply from: 'gradle/config.gradle'
 
 allprojects {
     group = rootProject.maven_group
     version = rootProject.mod_version
 }
 
+// =======================================================
+// .env / gradle.properties / system env value resolution
+// =======================================================
 ext.resolveConfigValue = { Object... rawKeys ->
     List<String> flattened = rawKeys.flatten().findAll { it != null }.collect { it.toString() }
     if (flattened.isEmpty()) {
@@ -27,25 +25,17 @@ ext.resolveConfigValue = { Object... rawKeys ->
 
     List<String> keys = []
     flattened.each { original ->
-        if (!keys.contains(original)) {
-            keys << original
-        }
+        if (!keys.contains(original)) keys << original
         def lower = original.toLowerCase(Locale.ROOT)
-        if (!keys.contains(lower)) {
-            keys << lower
-        }
+        if (!keys.contains(lower)) keys << lower
         def upper = original.toUpperCase(Locale.ROOT)
-        if (!keys.contains(upper)) {
-            keys << upper
-        }
+        if (!keys.contains(upper)) keys << upper
     }
 
-    def envExtension = rootProject.extensions.findByName("env")
+    def envExtension = rootProject.extensions.findByName('env')
     def fetchFromEnvExtension = { ext, key ->
-        if (ext == null) {
-            return null
-        }
-        if (ext.metaClass.respondsTo(ext, "isPresent", String) && ext.isPresent(key)) {
+        if (ext == null) return null
+        if (ext.metaClass.respondsTo(ext, 'isPresent', String) && ext.isPresent(key)) {
             return ext.fetch(key)
         }
         return null
@@ -55,9 +45,7 @@ ext.resolveConfigValue = { Object... rawKeys ->
         def value = System.getenv(key)
         if (value != null) {
             def trimmed = value.toString().trim()
-            if (!trimmed.isEmpty()) {
-                return trimmed
-            }
+            if (!trimmed.isEmpty()) return trimmed
         }
     }
 
@@ -66,9 +54,7 @@ ext.resolveConfigValue = { Object... rawKeys ->
             def value = fetchFromEnvExtension(envExtension, key)
             if (value != null) {
                 def trimmed = value.toString().trim()
-                if (!trimmed.isEmpty()) {
-                    return trimmed
-                }
+                if (!trimmed.isEmpty()) return trimmed
             }
         }
     }
@@ -78,9 +64,7 @@ ext.resolveConfigValue = { Object... rawKeys ->
             def value = rootProject.property(key)
             if (value != null) {
                 def trimmed = value.toString().trim()
-                if (!trimmed.isEmpty()) {
-                    return trimmed
-                }
+                if (!trimmed.isEmpty()) return trimmed
             }
         }
     }
@@ -96,15 +80,13 @@ ext.resolveMirrorRepositoryUrl = {
 
 ext.configureStandardRepositories = { handler, Map options = [:] ->
     def includeGradlePortal = options.containsKey('gradlePluginPortal') ? options.gradlePluginPortal : false
-    def includeMavenLocal = options.containsKey('mavenLocal') ? options.mavenLocal : true
-    def includeMavenCentral = options.containsKey('mavenCentral') ? options.mavenCentral : true
+    def includeMavenLocal   = options.containsKey('mavenLocal')         ? options.mavenLocal         : true
+    def includeMavenCentral = options.containsKey('mavenCentral')       ? options.mavenCentral       : true
 
     def repoConfig = rootProject.ext.standardRepositoryConfig ?: [:]
 
     def configureCredentials = { MavenArtifactRepository repo, Map credentials ->
-        if (!repo || !credentials) {
-            return
-        }
+        if (!repo || !credentials) return
         def user = credentials.username
         def pass = credentials.password
         def token = credentials.token
@@ -118,13 +100,9 @@ ext.configureStandardRepositories = { handler, Map options = [:] ->
 
     def addMavenRepo = { Map spec ->
         def resolvedUrl = spec?.url ?: spec?.defaultUrl
-        if (!resolvedUrl) {
-            return
-        }
+        if (!resolvedUrl) return
         handler.maven {
-            if (spec?.name) {
-                name = spec.name
-            }
+            if (spec?.name) name = spec.name
             url = uri(resolvedUrl)
             if (spec?.configure instanceof Closure) {
                 spec.configure.delegate = delegate
@@ -147,25 +125,21 @@ ext.configureStandardRepositories = { handler, Map options = [:] ->
         }
     }
 
-    if (includeMavenLocal && handler.metaClass.respondsTo(handler, "mavenLocal")) {
+    if (includeMavenLocal && handler.metaClass.respondsTo(handler, 'mavenLocal')) {
         handler.mavenLocal()
     }
 
-    if (includeMavenCentral && handler.metaClass.respondsTo(handler, "mavenCentral")) {
+    if (includeMavenCentral && handler.metaClass.respondsTo(handler, 'mavenCentral')) {
         handler.mavenCentral()
     }
 
     repoConfig.each { key, spec ->
-        if (key == 'mirror') {
-            return
-        }
-        if (spec.type == 'mavenLocal' || spec.type == 'mavenCentral') {
-            return
-        }
+        if (key == 'mirror') return
+        if (spec.type == 'mavenLocal' || spec.type == 'mavenCentral') return
         addMavenRepo(spec)
     }
 
-    if (includeGradlePortal && handler.metaClass.respondsTo(handler, "gradlePluginPortal")) {
+    if (includeGradlePortal && handler.metaClass.respondsTo(handler, 'gradlePluginPortal')) {
         handler.gradlePluginPortal()
     }
 }
@@ -173,14 +147,14 @@ ext.configureStandardRepositories = { handler, Map options = [:] ->
 ext.envConfig = [:]
 
 def resolvedMirrorUrl = rootProject.ext.resolveMirrorRepositoryUrl()
-def mavenUsername = rootProject.ext.resolveConfigValue("MAVEN_REPO_USERNAME", "MAVEN_REPO_USER", "MAVEN_USERNAME", "MAVEN_USER")
-def mavenPassword = rootProject.ext.resolveConfigValue("MAVEN_REPO_PASSWORD", "MAVEN_PASSWORD")
-def mavenToken = rootProject.ext.resolveConfigValue("MAVEN_REPO_TOKEN", "MAVEN_TOKEN")
+def mavenUsername = rootProject.ext.resolveConfigValue('MAVEN_REPO_USERNAME', 'MAVEN_REPO_USER', 'MAVEN_USERNAME', 'MAVEN_USER')
+def mavenPassword = rootProject.ext.resolveConfigValue('MAVEN_REPO_PASSWORD', 'MAVEN_PASSWORD')
+def mavenToken    = rootProject.ext.resolveConfigValue('MAVEN_REPO_TOKEN', 'MAVEN_TOKEN')
 
 ext.envConfig.maven = [
         releases: [
-                url     : rootProject.ext.resolveConfigValue("MAVEN_REPO_URL", "MAVEN_URL"),
-                name    : rootProject.ext.resolveConfigValue("MAVEN_REPO_NAME") ?: "private",
+                url     : rootProject.ext.resolveConfigValue('MAVEN_REPO_URL', 'MAVEN_URL'),
+                name    : rootProject.ext.resolveConfigValue('MAVEN_REPO_NAME') ?: 'private',
                 username: mavenUsername,
                 password: mavenPassword,
                 token   : mavenToken
@@ -193,24 +167,18 @@ ext.envConfig.maven = [
         ]
 ]
 
-ext.envConfig.curseforge = [
-        token: rootProject.ext.resolveConfigValue("CURSEFORGE_TOKEN")
-]
+ext.envConfig.curseforge = [token: rootProject.ext.resolveConfigValue('CURSEFORGE_TOKEN')]
+ext.envConfig.modrinth   = [token: rootProject.ext.resolveConfigValue('MODRINTH_TOKEN')]
 
-ext.envConfig.modrinth = [
-        token: rootProject.ext.resolveConfigValue("MODRINTH_TOKEN")
-]
-
+// =======================================================
+// releaseConfig helpers (used by fabric/neoforge build.gradle)
+// =======================================================
 ext.evaluateReleaseConfigValue = { value, Project moduleProject ->
     if (value instanceof Closure) {
         def params = value.maximumNumberOfParameters
-        if (params >= 2) {
-            return value.call(moduleProject, moduleProject.rootProject)
-        } else if (params == 1) {
-            return value.call(moduleProject)
-        } else {
-            return value.call()
-        }
+        if (params >= 2) return value.call(moduleProject, moduleProject.rootProject)
+        else if (params == 1) return value.call(moduleProject)
+        else return value.call()
     }
     return value
 }
@@ -219,17 +187,13 @@ ext.resolveReleaseConfigValue = { String platform, String section, String key, P
     def releaseConfig = rootProject.ext.releaseConfig ?: [:]
     def platformConfig = releaseConfig[platform]
     if (platformConfig == null) {
-        if (required) {
-            throw new GradleException("releaseConfig.${platform} is not defined")
-        }
+        if (required) throw new GradleException("releaseConfig.${platform} is not defined")
         return fallback
     }
 
     def sectionConfig = platformConfig[section]
     if (sectionConfig == null) {
-        if (required) {
-            throw new GradleException("releaseConfig.${platform}.${section} is not defined")
-        }
+        if (required) throw new GradleException("releaseConfig.${platform}.${section} is not defined")
         return fallback
     }
 
@@ -242,192 +206,45 @@ ext.resolveReleaseConfigValue = { String platform, String section, String key, P
 }
 
 ext.toList = { Object value ->
-    if (value == null) {
-        return []
-    }
-    if (value instanceof List) {
-        return value
-    }
-    if (value instanceof Collection) {
-        return new ArrayList(value)
-    }
-    if (value.getClass().isArray()) {
-        return value.toList()
-    }
+    if (value == null) return []
+    if (value instanceof List) return value
+    if (value instanceof Collection) return new ArrayList(value)
+    if (value.getClass().isArray()) return value.toList()
     return [value]
 }
 
-// ====================== Maven (.env) ====================
-// ---- helpers for Maven repository configuration ----
-ext.resolveMavenRepoUrl = {
-    rootProject.ext.envConfig.maven.releases.url
-}
+// =======================================================
+// Maven / CurseForge / Modrinth resolvers
+// =======================================================
+ext.resolveMavenRepoUrl      = { rootProject.ext.envConfig.maven.releases.url }
+ext.resolveMavenRepoUsername = { rootProject.ext.envConfig.maven.releases.username }
+ext.resolveMavenRepoPassword = { rootProject.ext.envConfig.maven.releases.password }
+ext.resolveMavenRepoToken    = { rootProject.ext.envConfig.maven.releases.token }
+ext.resolveMavenRepoName     = { rootProject.ext.envConfig.maven.releases.name ?: 'private' }
+ext.resolveCurseforgeToken   = { rootProject.ext.envConfig.curseforge.token }
+ext.resolveModrinthToken     = { rootProject.ext.envConfig.modrinth.token }
 
-ext.resolveMavenRepoUsername = {
-    rootProject.ext.envConfig.maven.releases.username
-}
-
-ext.resolveMavenRepoPassword = {
-    rootProject.ext.envConfig.maven.releases.password
-}
-
-ext.resolveMavenRepoToken = {
-    rootProject.ext.envConfig.maven.releases.token
-}
-
-ext.resolveMavenRepoName = {
-    rootProject.ext.envConfig.maven.releases.name ?: "private"
-}
-
-// ====================== CurseForge ====================
-ext.resolveCurseforgeToken = {
-    rootProject.ext.envConfig.curseforge.token
-}
-
-tasks.register("publishCurseForgeAll") {
-    ["fabric", "neoforge"].each { plat ->
+// =======================================================
+// Aggregate publish tasks
+// =======================================================
+tasks.register('publishCurseForgeAll') {
+    ['fabric', 'neoforge'].each { plat ->
         if (findProject(":modules:${plat}") != null) {
             dependsOn(":modules:${plat}:curseforge")
         }
     }
 }
-// ====================================================
 
-// ====================== Modrinth ====================
-ext.resolveModrinthToken = {
-    rootProject.ext.envConfig.modrinth.token
-}
-
-tasks.register("publishModrinthAll") {
-    ["fabric", "neoforge"].each { plat ->
+tasks.register('publishModrinthAll') {
+    ['fabric', 'neoforge'].each { plat ->
         if (findProject(":modules:${plat}") != null) {
             dependsOn(":modules:${plat}:modrinth")
         }
     }
 }
 
-subprojects {
-    apply plugin: 'dev.architectury.loom'
-    apply plugin: 'architectury-plugin'
-    apply plugin: 'maven-publish'
-
-    // ---- groupId: добавляем сегмент по лоадеру (common/fabric/neoforge/quilt)
-    def baseGroup = rootProject.maven_group
-    def platforms = ["common", "fabric", "neoforge"]
-    if (platforms.contains(project.name)) {
-        group = "${baseGroup}.${project.name}"
-    }
-
-    base {
-        // Имена JAR: beltborne_lanterns-<platform>
-        archivesName = "$rootProject.archives_name-$project.name"
-    }
-
-    repositories { repoHandler ->
-        rootProject.ext.configureStandardRepositories(repoHandler)
-    }
-
-    dependencies {
-        minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
-        mappings loom.layered {
-            officialMojangMappings()
-        }
-        implementation "com.github.ben-manes.caffeine:caffeine:${rootProject.caffeine_version}"
-        testImplementation "org.junit.jupiter:junit-jupiter-api:5.10.2"
-        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.2"
-        testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.10.2"
-    }
-
-    java {
-        withSourcesJar()
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
-
-    tasks.withType(JavaCompile).configureEach {
-        it.options.release = 21
-    }
-
-    // ---- Maven publishing: MC в artifactId суффиксом -mcX.Y, sources/dev — classifier’ы
-    publishing {
-        def mcTag = "mc" + rootProject.minecraft_version
-
-        publications {
-            mavenJava(MavenPublication) {
-                def baseId = base.archivesName.get()                 // e.g. beltborne_lanterns-fabric
-                artifactId = "${baseId}-${mcTag}"                    // -> beltborne_lanterns-fabric-mc1.21
-
-                if (tasks.findByName('remapJar')) {
-                    artifact(tasks.named('remapJar')) {               // runtime jar
-                        builtBy(tasks.named('remapJar'))
-                    }
-
-                    if (tasks.findByName('remapSourcesJar')) {
-                        artifact(tasks.named('remapSourcesJar')) {     // sources
-                            classifier = "sources"
-                            builtBy(tasks.named('remapSourcesJar'))
-                        }
-                    } else if (tasks.findByName('sourcesJar')) {
-                        artifact(tasks.named('sourcesJar')) {
-                            classifier = "sources"
-                            builtBy(tasks.named('sourcesJar'))
-                        }
-                    }
-                } else {
-                    if (tasks.findByName('jar')) {
-                        artifact(tasks.named('jar')) {                 // runtime jar
-                            builtBy(tasks.named('jar'))
-                        }
-                    }
-                    if (tasks.findByName('sourcesJar')) {
-                        artifact(tasks.named('sourcesJar')) {          // sources
-                            classifier = "sources"
-                            builtBy(tasks.named('sourcesJar'))
-                        }
-                    }
-                }
-                // dev/fat добавим ниже, когда Shadow будет применён
-            }
-        }
-
-        // Репозиторий — из .env / gradle.properties
-        repositories {
-            def repoUrl = rootProject.ext.resolveMavenRepoUrl()
-            if (repoUrl) {
-                maven {
-                    name = rootProject.ext.resolveMavenRepoName()
-                    url = uri(repoUrl)
-
-                    def user  = rootProject.ext.resolveMavenRepoUsername()
-                    def pass  = rootProject.ext.resolveMavenRepoPassword()
-                    def token = rootProject.ext.resolveMavenRepoToken()
-
-                    if ((user && pass) || token) {
-                        credentials {
-                            if (user && pass) {
-                                username = user; password = pass
-                            } else {
-                                username = user ?: 'token'; password = token
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    // Ensure JUnit 5 tests are discovered and executed
-    tasks.withType(Test).configureEach {
-        useJUnitPlatform()
-        testLogging {
-            events "passed", "skipped", "failed"
-            exceptionFormat "short"
-        }
-    }
-}
-
-// Aggregate task to publish all platform modules to Maven
-tasks.register("publishMavenAll") {
-    ["common", "fabric", "neoforge"].each { plat ->
+tasks.register('publishMavenAll') {
+    ['common', 'fabric', 'neoforge'].each { plat ->
         if (findProject(":modules:${plat}") != null) {
             dependsOn(":modules:${plat}:publish")
         }

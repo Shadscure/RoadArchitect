@@ -1,39 +1,94 @@
 plugins {
-    id 'com.gradleup.shadow'
+    id 'multiloader-loader'
+    id 'net.neoforged.moddev.legacyforge'
 }
 
-architectury {
-    platformSetupLoomIde()
-    forge()
+def modId = rootProject.findProperty('mod_id')
+
+legacyForge {
+    version = "${rootProject.minecraft_version}-${rootProject.forge_version}"
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+        clientData {
+            clientData()
+            programArguments.addAll(
+                    '--mod', modId,
+                    '--all',
+                    '--output', file('src/main/generated-client').absolutePath,
+                    '--existing', file('src/main/resources').absolutePath
+            )
+        }
+        serverData {
+            serverData()
+            programArguments.addAll(
+                    '--mod', modId,
+                    '--all',
+                    '--output', file('src/main/generated-server').absolutePath,
+                    '--existing', file('src/main/resources').absolutePath
+            )
+        }
+    }
+
+    mods {
+        "${modId}" {
+            sourceSet(sourceSets.main)
+        }
+    }
 }
 
+// Forge 1.20.1 (FML/MinecraftForge) does not unpack jarJar entries into the dev classpath
+// during runClient. Funnel Caffeine into RunModel.additionalRuntimeClasspathConfiguration so
+// the Forge class loader can resolve it; the production jar still gets it from jarJar.
 configurations {
-    common {
+    devRuntimeLibs {
         canBeResolved = true
         canBeConsumed = false
     }
-    compileClasspath.extendsFrom common
-    runtimeClasspath.extendsFrom common
-    developmentForge.extendsFrom common
+}
+dependencies {
+    devRuntimeLibs "com.github.ben-manes.caffeine:caffeine:${rootProject.caffeine_version}"
+}
+legacyForge {
+    runs.configureEach { run ->
+        run.additionalRuntimeClasspathConfiguration.extendsFrom(configurations.devRuntimeLibs)
+    }
+}
 
-    // Files in this configuration will be bundled into your mod using the Shadow plugin.
-    // Don't use the `shadow` configuration from the plugin itself as it's meant for excluding files.
-    shadowBundle {
-        canBeResolved = true
-        canBeConsumed = false
+sourceSets {
+    main {
+        resources {
+            srcDirs += file("src/main/generated-client")
+            srcDirs += file("src/main/generated-server")
+        }
     }
+}
+
+tasks.withType(Jar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 dependencies {
-    forge "net.minecraftforge:forge:$rootProject.minecraft_version-$rootProject.forge_version"
-
+    // Cloth Config (Forge variant for 1.20.1)
     implementation "me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}"
 
-    common(project(path: ':modules:common', configuration: 'namedElements')) { transitive = false }
-    shadowBundle project(path: ':modules:common', configuration: 'transformProductionForge')
+    // Caffeine — bundled via Forge Jar-in-Jar
+    implementation "com.github.ben-manes.caffeine:caffeine:${rootProject.caffeine_version}"
+    jarJar("com.github.ben-manes.caffeine:caffeine") {
+        version {
+            strictly "[${rootProject.caffeine_version},)"
+            prefer "${rootProject.caffeine_version}"
+        }
+    }
 }
 
 processResources {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     def props = [
             version              : project.version,
             mod_id               : rootProject.findProperty('mod_id'),
@@ -55,41 +110,35 @@ processResources {
     }
 }
 
-shadowJar {
-    configurations = [project.configurations.shadowBundle]
-    archiveClassifier = 'dev-shadow'
-}
-
-remapJar {
-    inputFile.set shadowJar.archiveFile
-    // roadarchitect-{version}-{for_loader}+{mc_version}
-    archiveFileName.set("roadarchitect-${project.version}-forge+${rootProject.minecraft_version}.jar")
+jar {
+    archiveFileName.set("${rootProject.archives_name}-${project.version}-forge+${rootProject.minecraft_version}.jar")
 }
 
 def releaseValue = { String section, String key, boolean required = false ->
-    rootProject.ext.resolveReleaseConfigValue("forge", section, key, project, required)
+    rootProject.ext.resolveReleaseConfigValue('forge', section, key, project, required)
 }
 def releaseList = { String section, String key, boolean required = false ->
     rootProject.ext.toList(releaseValue(section, key, required))
 }
 
-// =========== Modrith =========
-apply plugin: "com.modrinth.minotaur"
+// ====================== Modrinth ====================
+apply plugin: 'com.modrinth.minotaur'
+
 def modrinthConfig = rootProject.ext.envConfig?.modrinth ?: [:]
 def modrinth_token = modrinthConfig.token
 boolean hasModrinthToken = modrinth_token != null && !modrinth_token.toString().trim().isEmpty()
 if (!hasModrinthToken) {
-    logger.warn("MODRINTH_TOKEN is not configured; using a dummy value and disabling Modrinth publishing tasks.")
-    modrinth_token = "modrinth_dummy_token"
+    logger.warn('MODRINTH_TOKEN is not configured; using a dummy value and disabling Modrinth publishing tasks.')
+    modrinth_token = 'modrinth_dummy_token'
 }
 
-def modrinthProjectId = releaseValue("modrinth", "projectId", true)
-def modrinthVersionNumber = releaseValue("modrinth", "versionNumber", true)
-def modrinthVersionName = releaseValue("modrinth", "versionName", true)
-def modrinthVersionType = releaseValue("modrinth", "versionType", true)
-def modrinthLoaders = releaseList("modrinth", "loaders", true)
-def modrinthGameVersions = releaseList("modrinth", "gameVersions", true)
-def modrinthDependencies = releaseValue("modrinth", "dependencies")
+def modrinthProjectId        = releaseValue('modrinth', 'projectId', true)
+def modrinthVersionNumber    = releaseValue('modrinth', 'versionNumber', true)
+def modrinthVersionName      = releaseValue('modrinth', 'versionName', true)
+def modrinthVersionType      = releaseValue('modrinth', 'versionType', true)
+def modrinthLoaders          = releaseList('modrinth', 'loaders', true)
+def modrinthGameVersions     = releaseList('modrinth', 'gameVersions', true)
+def modrinthDependencies     = releaseValue('modrinth', 'dependencies')
 def modrinthRequiredProjects = rootProject.ext.toList(modrinthDependencies?.requiredProjects)
 def modrinthOptionalProjects = rootProject.ext.toList(modrinthDependencies?.optionalProjects)
 
@@ -101,48 +150,48 @@ modrinth {
     versionType   = modrinthVersionType
     gameVersions  = modrinthGameVersions
     loaders       = modrinthLoaders
-    uploadFile    = remapJar                   // из Loom
-    changelog     = rootProject.file("CHANGELOG.md").exists() ? rootProject.file("CHANGELOG.md").text : ""
+    uploadFile    = jar
+    changelog     = rootProject.file('CHANGELOG.md').exists() ? rootProject.file('CHANGELOG.md').text : ''
     dependencies {
         modrinthRequiredProjects.each { required.project(it) }
         modrinthOptionalProjects.each { optional.project(it) }
     }
 }
 tasks.configureEach { task ->
-    if (task.name.toLowerCase().startsWith("modrinth")) {
+    if (task.name.toLowerCase().startsWith('modrinth')) {
         task.onlyIf { hasModrinthToken }
     }
 }
 
 // ====================== CurseForge ====================
-apply plugin: "net.darkhax.curseforgegradle"
+apply plugin: 'net.darkhax.curseforgegradle'
 
 def curseforgeConfig = rootProject.ext.envConfig?.curseforge ?: [:]
 def curse_token = curseforgeConfig.token
 boolean hasCurseToken = curse_token != null && !curse_token.toString().trim().isEmpty()
 if (!hasCurseToken) {
-    logger.warn("CURSEFORGE_TOKEN is not configured; using a dummy value and disabling CurseForge publishing tasks.")
-    curse_token = "curseforge_dummy_token"
+    logger.warn('CURSEFORGE_TOKEN is not configured; using a dummy value and disabling CurseForge publishing tasks.')
+    curse_token = 'curseforge_dummy_token'
 }
-def curse_project_id = releaseValue("curseforge", "projectId", true)
 
-def curseDisplayName = releaseValue("curseforge", "displayName", true)
-def curseReleaseType = releaseValue("curseforge", "releaseType", true)
-def curseModLoaders = releaseList("curseforge", "modLoaders", true)
-def curseGameVersions = releaseList("curseforge", "gameVersions", true)
-def curseJavaVersions = releaseList("curseforge", "javaVersions")
-def curseEnvironments = releaseList("curseforge", "environments")
-def curseRequirements = releaseList("curseforge", "requirements")
-def curseOptionals = releaseList("curseforge", "optionals")
+def curse_project_id  = releaseValue('curseforge', 'projectId', true)
+def curseDisplayName  = releaseValue('curseforge', 'displayName', true)
+def curseReleaseType  = releaseValue('curseforge', 'releaseType', true)
+def curseModLoaders   = releaseList('curseforge', 'modLoaders', true)
+def curseGameVersions = releaseList('curseforge', 'gameVersions', true)
+def curseJavaVersions = releaseList('curseforge', 'javaVersions')
+def curseEnvironments = releaseList('curseforge', 'environments')
+def curseRequirements = releaseList('curseforge', 'requirements')
+def curseOptionals    = releaseList('curseforge', 'optionals')
 
-tasks.register("curseforge", net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+tasks.register('curseforge', net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     onlyIf { hasCurseToken }
     apiToken = curse_token
 
     disableVersionDetection()
 
-    dependsOn remapJar
-    def mainFile = upload(curse_project_id as String, remapJar)
+    dependsOn jar
+    def mainFile = upload(curse_project_id as String, jar)
 
     mainFile.displayName = curseDisplayName
     mainFile.releaseType = curseReleaseType
@@ -150,12 +199,12 @@ tasks.register("curseforge", net.darkhax.curseforgegradle.TaskPublishCurseForge)
     curseGameVersions.each { mainFile.addGameVersion(it) }
     curseJavaVersions.each { mainFile.addJavaVersion(it) }
     curseEnvironments.each { mainFile.addEnvironment(it) }
-    mainFile.changelog = rootProject.file("CHANGELOG.md"); mainFile.changelogType = "markdown"
+    mainFile.changelog = rootProject.file('CHANGELOG.md'); mainFile.changelogType = 'markdown'
     curseRequirements.each { mainFile.addRequirement(it) }
     curseOptionals.each { mainFile.addOptional(it) }
 }
 tasks.configureEach { task ->
-    if (task.name.toLowerCase().startsWith("curseforge")) {
+    if (task.name.toLowerCase().startsWith('curseforge')) {
         task.onlyIf { hasCurseToken }
     }
 }

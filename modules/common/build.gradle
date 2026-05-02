@@ -1,15 +1,28 @@
-architectury {
-    common rootProject.enabled_platforms.split(',')
+plugins {
+    id 'multiloader-common'
+    id 'net.neoforged.moddev.legacyforge'
+}
+
+legacyForge {
+    // 1.20.1: NeoForm only exists from 1.20.3+ and the MCP-only path requires
+    // a NeoForge minecraft-dependencies POM that was never published for 1.20.1.
+    // Compile common against Forge so the Minecraft API is available; sources are
+    // re-compiled by the loader modules through the commonJava configuration, so
+    // no Forge-specific bytecode leaks into fabric.
+    version = "${rootProject.minecraft_version}-${rootProject.forge_version}"
+    // Make Minecraft available to test sources (BlockPos, NBT, etc.)
+    addModdingDependenciesTo sourceSets.test
 }
 
 dependencies {
-    // We depend on Fabric Loader here to use the Fabric @Environment annotations,
-    // which get remapped to the correct annotations on each platform.
-    // Do NOT use other classes from Fabric Loader.
-    modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
+    // Cloth Config API (compile-only — Forge variant for 1.20.1)
+    compileOnly "me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}"
 
-    implementation "me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_config_version}"
+    // Caffeine (used by common code; bundled into final jar by loader modules)
+    implementation "com.github.ben-manes.caffeine:caffeine:${rootProject.caffeine_version}"
 
-    // Architectury API. This is optional, and you can comment it out if you don't need it.
-    // modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
+    // Tests
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${rootProject.junit_version}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${rootProject.junit_version}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.10.2"
 }

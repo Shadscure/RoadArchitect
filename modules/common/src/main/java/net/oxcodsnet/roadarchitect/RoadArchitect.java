@@ -179,6 +179,21 @@ public final class RoadArchitect {
         }
 
         @Override
+        public boolean debugShowScanningBar() {
+            return RAConfigHolder.get().debugShowScanningBar();
+        }
+
+        @Override
+        public boolean debugEnableMap() {
+            return RAConfigHolder.get().debugEnableMap();
+        }
+
+        @Override
+        public int debugAsyncThreads() {
+            return RAConfigHolder.get().debugAsyncThreads();
+        }
+
+        @Override
         public CacheSettings cache() {
             return RAConfigHolder.get().cache();
         }

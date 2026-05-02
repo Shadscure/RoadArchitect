@@ -19,10 +19,17 @@ import net.minecraft.world.level.biome.Biome;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 /**
  * Region-paged persistence layer for cached column data.
@@ -61,6 +68,7 @@ final class RegionColumnStore {
                 .weigher((Long key, RegionData value) -> value.weightBytes())
                 .removalListener(this::onRegionRemoval)
                 .build();
+        cleanOrphanedTempFiles(this.regionDir);
     }
 
     ColumnRecord read(long columnKey) {
@@ -94,13 +102,14 @@ final class RegionColumnStore {
 
     private RegionData loadRegion(long regionKey) {
         Path path = regionPath(regionKey);
-        RegionData data = new RegionData();
         if (!Files.exists(path)) {
-            return data;
+            return new RegionData();
         }
+        RegionData data = new RegionData();
         try (var in = Files.newInputStream(path)) {
             CompoundTag tag = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
             if (tag == null) {
+                data.markClean();
                 return data;
             }
             tag.getList(LIST_KEY).ifPresent(list -> {
@@ -131,11 +140,65 @@ final class RegionColumnStore {
                     });
                 }
             });
-        } catch (IOException e) {
-            LOGGER.error("Failed to load cached region {}", path, e);
+            data.markClean();
+            return data;
+        } catch (IOException | RuntimeException e) {
+            // Corrupt or unreadable region: a partial RegionData would otherwise be
+            // cached and (since it stays dirty=false) silently overwrite the file
+            // on the next flush, propagating the corruption forever.
+            LOGGER.warn("Cached region {} is corrupted, quarantining and rebuilding from scratch", path, e);
+            quarantineCorruptedRegion(path);
+            return new RegionData();
         }
-        data.markClean();
-        return data;
+    }
+
+    /**
+     * Sweeps stray {@code region_X_Z.nbt.tmp.*} files left over from a
+     * previous JVM that crashed mid-write. Safe to run once at startup —
+     * by definition no other thread is touching the cache directory yet.
+     */
+    static void cleanOrphanedTempFiles(Path regionDir) {
+        if (regionDir == null || !Files.isDirectory(regionDir)) {
+            return;
+        }
+        try (Stream<Path> stream = Files.list(regionDir)) {
+            stream
+                    .filter(p -> {
+                        String name = p.getFileName().toString();
+                        return name.startsWith("region_") && name.contains(".nbt.tmp");
+                    })
+                    .forEach(p -> {
+                        try {
+                            Files.deleteIfExists(p);
+                            LOGGER.debug("Removed orphaned cache temp file {}", p);
+                        } catch (IOException e) {
+                            LOGGER.warn("Failed to remove orphaned cache temp file {}", p, e);
+                        }
+                    });
+        } catch (IOException e) {
+            LOGGER.warn("Failed to scan cache directory for orphaned temp files: {}", regionDir, e);
+        }
+    }
+
+    static void quarantineCorruptedRegion(Path path) {
+        if (path == null) {
+            return;
+        }
+        try {
+            if (!Files.exists(path)) {
+                return;
+            }
+            Path target = path.resolveSibling(path.getFileName().toString() + ".corrupt-" + System.currentTimeMillis());
+            Files.move(path, target, StandardCopyOption.REPLACE_EXISTING);
+            LOGGER.warn("Quarantined corrupted region {} -> {}", path, target);
+        } catch (IOException e) {
+            LOGGER.error("Failed to quarantine corrupted region {}, attempting delete", path, e);
+            try {
+                Files.deleteIfExists(path);
+            } catch (IOException deleteException) {
+                LOGGER.error("Failed to delete corrupted region {}", path, deleteException);
+            }
+        }
     }
 
     private void flushRegion(long regionKey, RegionData region) {
@@ -178,12 +241,53 @@ final class RegionColumnStore {
         }
         root.put(LIST_KEY, list);
 
-        Path tmp = path.resolveSibling(path.getFileName().toString() + ".tmp");
-        try (var out = Files.newOutputStream(tmp)) {
-            NbtIo.writeCompressed(root, out);
-            Files.move(tmp, path, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+        // Buffer the GZIP'ed NBT in memory so we can fsync the on-disk file
+        // before atomically renaming it. Without force(true) the rename can
+        // succeed while the data block is still in the page cache — a kill -9
+        // or power loss then leaves a non-empty file with garbage payload,
+        // surfacing as ZipException("invalid stored block lengths") on the
+        // next read.
+        byte[] payload;
+        try {
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream(8192);
+            NbtIo.writeCompressed(root, buffer);
+            payload = buffer.toByteArray();
+        } catch (IOException e) {
+            LOGGER.error("Failed to serialize cache region {}", path, e);
+            return;
+        }
+
+        // Unique tmp suffix per call: Caffeine's removalListener runs on
+        // ForkJoinPool.commonPool, so the same regionKey can be flushed by
+        // two workers concurrently. With a shared "${name}.tmp" filename
+        // the second worker's ATOMIC_MOVE failed with NoSuchFileException
+        // because the first one already consumed the file. UUID isolates
+        // workers; the orphan cleanup at construction time picks up any
+        // file the JVM died on.
+        Path tmp = path.resolveSibling(path.getFileName().toString() + ".tmp." + UUID.randomUUID());
+        try (FileChannel channel = FileChannel.open(
+                tmp,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE,
+                StandardOpenOption.TRUNCATE_EXISTING)) {
+            ByteBuffer view = ByteBuffer.wrap(payload);
+            while (view.hasRemaining()) {
+                channel.write(view);
+            }
+            channel.force(true);
         } catch (IOException e) {
             LOGGER.error("Failed to write cache region {}", path, e);
+            try {
+                Files.deleteIfExists(tmp);
+            } catch (IOException ignored) {
+            }
+            return;
+        }
+
+        try {
+            Files.move(tmp, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException e) {
+            LOGGER.error("Failed to atomically move cache region {} -> {}", tmp, path, e);
             try {
                 Files.deleteIfExists(tmp);
             } catch (IOException ignored) {
@@ -265,7 +369,12 @@ final class RegionColumnStore {
         }
 
         synchronized int weightBytes() {
-            return Math.max(1, columns.size()) * 64;
+            // Approx. per-entry footprint: long key (8) + ColumnRecord (height 4 +
+            // stability 8 + biome Holder ~16) + Long2ObjectMap.Entry overhead (~24)
+            // + ResourceLocation string accounted in serialized form (~60).
+            // 64 b/entry was a wild underestimate — Caffeine's maximumWeight then
+            // failed to evict regions, letting the cache grow unbounded.
+            return Math.max(1, columns.size()) * 128;
         }
     }
 }

@@ -1,3 +1,11 @@
+v1.6.5 — <em>Config robustness</em>
+
+### Fixes
+- 🛡️ **Broken selector lists no longer crash the mod.** A truncated or partially-corrupt config file (e.g. after a game crash mid-write) sometimes left `null` entries inside `structureSelectors` / `dimensionSelectors` / `forbiddenBiomes.selectors`. These are now filtered out at load time and the mod keeps running on whatever entries are still valid.
+- 💬 **Helpful hint when a structure id is mistyped.** Invalid selectors used to log a flat `Structure selector 'X' is invalid`. The mod now searches the registry for the closest-matching id or tag and adds `did you mean 'Y'?` — handy when adding ids from Mo' Structures, Tectonic, etc.
+
+---
+
 v1.6.4 — <em>Config & performance toggles</em>
 
 ### Added

@@ -70,6 +70,11 @@ public final class RoadArchitectConfigData implements ConfigData {
     @ConfigEntry.Gui.TransitiveObject
     public TerrainAnalyzerSettings terrainAnalyzer = new TerrainAnalyzerSettings();
 
+    // Cache tuning (separate tab)
+    @ConfigEntry.Category("cache")
+    @ConfigEntry.Gui.TransitiveObject
+    public CacheSection cache = new CacheSection();
+
     public static final class TerrainAnalyzerSettings {
         @ConfigEntry.Gui.Tooltip
         public boolean enabled = false;
@@ -233,5 +238,48 @@ public final class RoadArchitectConfigData implements ConfigData {
         @ConfigEntry.Gui.RequiresRestart
         @ConfigEntry.BoundedDiscrete(min = 0, max = 64)
         public int asyncThreads = 0;
+    }
+
+    public static final class CacheSection {
+        // Defaults rebalanced for typical 2-4 GB heap setups:
+        //   runtime  128 MiB ≈ render distance 32 fully resident (~95 MiB at peak,
+        //                       ~88 b/ColumnRecord);
+        //   snapshot 32  MiB  covers render distance ~96 (1 KiB per chunk);
+        //   pages    192 MiB  holds 6 full 32-chunk regions (~32 MiB each), so
+        //                       render distance 32 fits without disk thrash.
+        // Total ≈ 352 MiB vs. previous 448 MiB, with the largest tier (pages)
+        // grown by 50 % — hot regions fit in RAM instead of being re-paged
+        // from disk on every chunk load.
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 16, max = 4096)
+        public int runtimeBudgetMb = 128;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 16, max = 1024)
+        public int snapshotBudgetMb = 32;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 16, max = 4096)
+        public int persistedBudgetMb = 192;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 4, max = 128)
+        public int regionSizeChunks = 32;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean enablePrefill = true;
+
+        @ConfigEntry.Gui.Tooltip
+        @ConfigEntry.BoundedDiscrete(min = 0, max = 16384)
+        public int prefillMaxChunks = 2048;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean persistHeights = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean persistStabilities = true;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean persistBiomes = true;
     }
 }

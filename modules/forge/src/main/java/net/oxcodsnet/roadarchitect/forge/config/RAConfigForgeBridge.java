@@ -255,6 +255,25 @@ public final class RAConfigForgeBridge {
                 return settings == null ? 0 : settings.asyncThreads;
             }
 
+            @Override
+            public net.oxcodsnet.roadarchitect.config.records.CacheSettings cache() {
+                RoadArchitectConfigData.CacheSection section = holder.getConfig().cache;
+                if (section == null) {
+                    return net.oxcodsnet.roadarchitect.config.records.CacheSettings.DEFAULT;
+                }
+                return new net.oxcodsnet.roadarchitect.config.records.CacheSettings(
+                        section.runtimeBudgetMb,
+                        section.snapshotBudgetMb,
+                        section.persistedBudgetMb,
+                        section.regionSizeChunks,
+                        section.enablePrefill,
+                        section.prefillMaxChunks,
+                        section.persistHeights,
+                        section.persistStabilities,
+                        section.persistBiomes
+                );
+            }
+
         });
 
         RoadPipelineController.refreshStructureSelectorCache();

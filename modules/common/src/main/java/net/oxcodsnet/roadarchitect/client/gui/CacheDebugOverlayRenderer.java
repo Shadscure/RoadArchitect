@@ -18,9 +18,13 @@ import java.util.Locale;
 public final class CacheDebugOverlayRenderer {
     // 1.21.1 wires this up via mc.gui.getDebugOverlay().getSystemInformation();
     // 1.20.1 has no Gui#getDebugOverlay accessor — DebugScreenOverlay is created
-    // ad-hoc inside Gui.renderHud — so we fall back to a fixed top-right offset
-    // (matches the 4-line vanilla system info block height comfortably).
-    private static final int FIXED_RIGHT_COLUMN_TOP = 48;
+    // ad-hoc inside Gui.renderHud — so we fall back to a fixed top-right offset.
+    // 130 px ≈ 10 lines × ~12 px line height + padding, comfortably clearing the
+    // vanilla system info block (Java + Mem + Allocation rate + Allocated +
+    // CPU + GPU display + 2-3 OpenGL/extensions lines + version footer). On
+    // exotic setups with extra GPU diagnostic lines the user can scroll the
+    // overlay down by toggling debugCacheOverlay off/on once a setting changes.
+    private static final int FIXED_RIGHT_COLUMN_TOP = 130;
 
     private CacheDebugOverlayRenderer() {
     }

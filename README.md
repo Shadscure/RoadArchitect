@@ -17,14 +17,6 @@
   </a>
 </p>
 
-<p align="center">
-  <a href="https://modrinth.com/mod/roadarchitect">
-    <img alt="Modrinth Downloads" src="https://img.shields.io/modrinth/dt/dLRvLyY3?style=flat&logo=modrinth">
-  </a>
-  <a href="https://www.curseforge.com/minecraft/mc-mods/roadarchitect">
-    <img alt="CurseForge Downloads" src="https://img.shields.io/curseforge/dt/1326434?style=flat&logo=curseforge">
-  </a>
-</p>
 
 <p align="center">
  <img alt="Latest release" src="https://img.shields.io/github/v/release/Shadscure/RoadArchitect?display_name=release&sort=semver&style=flat-square&color=00ae5d">
@@ -50,9 +42,8 @@ Roads adapt their style to the biome, and the network is saved between game sess
 - 🗺 **Terralith-ready** — works out of the box with the <a href="https://modrinth.com/datapack/terralith">Terralith</a> world-generation datapack
 
 ## 🧩 Add-ons
-- RoadArchitect Encounters:  [Modrinth](https://modrinth.com/mod/roadarchitect-encounters) / [Curseforge](https://www.curseforge.com/minecraft/mc-mods/roadarchitect-encounters) / [Github](https://github.com/Shadscure/RoadArchitect-Encounters)
-
----
+ - **RoadArchitect Encounters**:  [Modrinth](https://modrinth.com/mod/roadarchitect-encounters) / [Curseforge](https://www.curseforge.com/minecraft/mc-mods/roadarchitect-encounters) / [Github](https://github.com/Shadscure/RoadArchitect-Encounters)
+ 
 
 ## 📷 Screenshots
 
@@ -111,35 +102,6 @@ Roads adapt their style to the biome, and the network is saved between game sess
   <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/c99e8d83bce571228c71efa6a3f6522551af16d9.webp" height="512">
 </p>
 
----
-
-## 📥 Installation (Minecraft 1.21.x)
-
-**Loaders:** Fabric / Quilt / NeoForge
-
-1. Install a **loader** compatible with your game:
-   - **Fabric**
-   - **Quilt**
-   - **NeoForge**
-2. **Required dependency (all loaders):**  
-   - **Cloth Config** *(mandatory on Fabric / Quilt / NeoForge)*
-3. Download the mod:
-   <p align="center" style="display:flex;justify-content:center;gap:8px;margin:6px 0;">
-     <a href="https://modrinth.com/mod/roadarchitect">
-       <img src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact/available/modrinth_vector.svg" alt="Available on Modrinth">
-     </a>
-     <a href="https://www.curseforge.com/minecraft/mc-mods/roadarchitect">
-       <img src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact/available/curseforge_vector.svg" alt="Available on CurseForge">
-     </a>
-   </p>
-4. Place the `.jar` file in your `mods` folder.
-5. *(Optional)*
-   - **Mod Menu** (Fabric/Quilt) for quick access to settings.
-   - **Catalogue** by MrCrayfish (NeoForge)
-     > Settings are also available from the mods list
-     
-> **Note:** Starting with `v1.2.0`, **owo-lib is not required**.
----
 
 ## 🗒️ Recent changes
 
@@ -184,12 +146,11 @@ Roads adapt their style to the biome, and the network is saved between game sess
 
 ### Highlights
 
-- 🧩 **Add-ons support**: official API so other mods can extend Road Architect (events, read-only core views, and per-world storage);
-- 📴 **No changes out of the box**: there are no built-in add-ons; gameplay stays the same unless you install one.;
+- 🧩 **Add-ons support**: official API so other mods can extend Road Architect (events, read-only core views, and per-world storage).
+- 📴 **No changes out of the box**: there are no built-in add-ons; gameplay stays the same unless you install one.
 
-**Compatibility:** No visible gameplay changes by default; add-ons are optional.;
+**Compatibility:** No visible gameplay changes by default; add-ons are optional.
 </details>
-
 
 <details>
 <summary><strong>v1.3.0</strong> — <em>Smarter scans & deterministic decorations</em></summary>
@@ -227,17 +188,16 @@ Roads adapt their style to the biome, and the network is saved between game sess
 <summary><strong>v1.1.0</strong> — <em>Smoother paths, smarter junctions, cleaner buoys</em></summary>
 
 ### Highlights
-- ⚙️ **Pathfinding ( A'star / ARA'star )**: adjusted heuristic, removed early termination, expanded profiling.
-- 🏗️ **Post-processing**: trimming roads near nodes, improved junction merging and stabilization.
-- 🌊 **Buoys**: placed only on “clean” water, spaced by real distance, interval increased **12 → 18**.
-- 🔧 **Fixed client ↔ server sync** when registering command arguments.
-- 🐛 **Fixed swamp style**: uses `MOSSY_COBBLESTONE_WALL` instead of `MOSSY_COBBLESTONE`.
+- ⚙️ Pathfinding (A* / ARA*): adjusted heuristic, removed early termination, expanded profiling.
+- 🏗️ Post-processing: trimming roads near nodes, improved junction merging and stabilization.
+- 🌊 Buoys: placed only on “clean” water, spaced by real distance, interval increased **12 → 18**.
+- 🔧 Fixed client ↔ server sync when registering command arguments.
+- 🐛 Fixed swamp style: uses `MOSSY_COBBLESTONE_WALL` instead of `MOSSY_COBBLESTONE`.
 - 📦 Reduced mod size.
 
 **Compatibility:** No breaking changes; worlds from `1.0.1` remain fully compatible.
 </details>
 
----
 
 ## ❓ FAQ
 
@@ -253,13 +213,14 @@ Roads adapt their style to the biome, and the network is saved between game sess
   Yes — RoadArchitect is fully compatible with <a href="https://modrinth.com/datapack/terralith">Terralith</a>. Roads scan and connect structures in Terralith biomes out of the box.
 </details>
 
+
 <details>
   <summary>Only villages are being connected?</summary>
   
   Not only! RoadArchitect can connect any structure discoverable via `/locate structure`. Add the structure IDs or a `#tag` in the config, then reload/restart the world to rescan.
 </details>
 
----
+
 
 ## 🌉 Related mods & inspiration
 
@@ -269,13 +230,12 @@ Roads adapt their style to the biome, and the network is saved between game sess
 *Thanks to the authors and the community for pushing this idea forward.*
 
 
----
 
 ## 📜 License
 
 This project is licensed under the **Apache License 2.0** — see the [LICENSE](LICENSE) file for details.  
-You can also read the full license text here: [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+Full license text: [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
----
-
-<p align="center">Crafted with ❤️ for the Minecraft community</p>
+<p align="center">
+  <sub>Crafted with ❤️ for the Minecraft community</sub>
+</p>

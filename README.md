@@ -2,45 +2,30 @@
   <img src="https://cdn.modrinth.com/data/cached_images/5e3cf4526c4f1ff191f1c98debe19db5e23161de_0.webp" width="128" height="128" alt="RoadArchitect icon">
 </p>
 
-<p align="center">
+<p align="center" style="display:flex;justify-content:center;gap:8px;margin:6px 0;">
   <a href="https://modrinth.com/mod/roadarchitect">
-    <img alt="Modrinth Downloads" src="https://img.shields.io/modrinth/dt/dLRvLyY3?style=flat&logo=modrinth">
-  </a>
-  <a href="https://www.curseforge.com/minecraft/mc-mods/roadarchitect">
-    <img alt="CurseForge Downloads" src="https://img.shields.io/curseforge/dt/1326434?style=flat&logo=curseforge">
-  </a>
-</p>
-
-<p align="center" style="display: flex; justify-content: center; gap: 6px;">
-    <a href="https://modrinth.com/mod/roadarchitect/versions?l=fabric">
-        <img src="https://cdn.modrinth.com/data/cached_images/d8a8d9852fb6e55292d6f5ecc1842fd7bc8c3c9e.webp" alt="Available on Fabric">
-    </a>
-    <a href="https://modrinth.com/mod/roadarchitect/versions?l=quilt">
-        <img src="https://cdn.modrinth.com/data/cached_images/77e67c2eae40b638430d5959e9a0d0ef60f76f41.webp" alt="Available on Quilt">
-    </a>
-   <a href="https://modrinth.com/mod/roadarchitect/versions?l=neoforge">
-    <img src="https://cdn.modrinth.com/data/cached_images/ecbd0303728027761730760800f9354e14f38d31.webp" alt="Available on NeoForge">
-  </a>
-</p>
-<p align="center" style="display:flex;justify-content:center;gap:8px;margin:6px 0;">
-  <a href="https://boosty.to/0xcodsnet" target="_blank" rel="noopener">
-    <img alt="Boosty — Support" src="https://img.shields.io/badge/Boosty-Support-F15F2C?style=for-the-badge&logo=boosty&logoColor=white">
+    <img alt="Modrinth" height="48" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy-minimal/available/modrinth_vector.svg">
+  </a>&nbsp;
+  <a href="https://curseforge.com/minecraft/mc-mods/roadarchitect">
+    <img alt="CurseForge" height="48" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy-minimal/available/curseforge_vector.svg">
+  </a>&nbsp;
+  <a href="https://discord.gg/9JRb3JMAD3">
+    <img alt="Discord" height="48" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy-minimal/social/discord-plural_vector.svg">
+  </a>&nbsp;
+  <a href="https://github.com/Shadscure/RoadArchitect">
+    <img alt="GitHub" height="48" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy-minimal/available/github_vector.svg">
   </a>
 </p>
 
-<p align="center" style="display:flex;justify-content:center;gap:8px;margin:6px 0;">
-  <a href="https://discord.gg/9JRb3JMAD3" target="_blank" rel="noopener">
-    <img alt="discord-plural" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy-minimal/social/discord-plural_vector.svg">
-  </a>
-</p>
 
+<p align="center">
+ <img alt="Latest release" src="https://img.shields.io/github/v/release/Shadscure/RoadArchitect?display_name=release&sort=semver&style=flat-square&color=00ae5d">
+</p>
 
 # RoadArchitect
 
-**RoadArchitect** is a **Fabric / Quilt / NeoForge / Forge ** mod for **Minecraft 1.20.1, 1.21–1.21.10** that automatically scans the world for villages and other structures and connects them with roads to form a persistent travel network.  
+**RoadArchitect** is a mod that automatically scans the world for villages and other structures and connects them with roads to form a persistent travel network.  
 Roads adapt their style to the biome, and the network is saved between game sessions.
-
-> **Current version:** `v1.6.1`
 
 > **Wiki:** <a href="https://github.com/0xCoDSnet/RoadArchitect/wiki">RoadArchitect Wiki</a>
 
@@ -57,9 +42,8 @@ Roads adapt their style to the biome, and the network is saved between game sess
 - 🗺 **Terralith-ready** — works out of the box with the <a href="https://modrinth.com/datapack/terralith">Terralith</a> world-generation datapack
 
 ## 🧩 Add-ons
-- RoadArchitect Encounters:  [Modrinth](https://modrinth.com/mod/roadarchitect-encounters) / [Curseforge](https://www.curseforge.com/minecraft/mc-mods/roadarchitect-encounters) / [Github](https://github.com/Shadscure/RoadArchitect-Encounters)
-
----
+ - **RoadArchitect Encounters**:  [Modrinth](https://modrinth.com/mod/roadarchitect-encounters) / [Curseforge](https://www.curseforge.com/minecraft/mc-mods/roadarchitect-encounters) / [Github](https://github.com/Shadscure/RoadArchitect-Encounters)
+ 
 
 ## 📷 Screenshots
 
@@ -118,35 +102,6 @@ Roads adapt their style to the biome, and the network is saved between game sess
   <img src="https://cdn.modrinth.com/data/dLRvLyY3/images/c99e8d83bce571228c71efa6a3f6522551af16d9.webp" height="512">
 </p>
 
----
-
-## 📥 Installation (Minecraft 1.21.x)
-
-**Loaders:** Fabric / Quilt / NeoForge
-
-1. Install a **loader** compatible with your game:
-   - **Fabric**
-   - **Quilt**
-   - **NeoForge**
-2. **Required dependency (all loaders):**  
-   - **Cloth Config** *(mandatory on Fabric / Quilt / NeoForge)*
-3. Download the mod:
-   <p align="center" style="display:flex;justify-content:center;gap:8px;margin:6px 0;">
-     <a href="https://modrinth.com/mod/roadarchitect">
-       <img src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact/available/modrinth_vector.svg" alt="Available on Modrinth">
-     </a>
-     <a href="https://www.curseforge.com/minecraft/mc-mods/roadarchitect">
-       <img src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact/available/curseforge_vector.svg" alt="Available on CurseForge">
-     </a>
-   </p>
-4. Place the `.jar` file in your `mods` folder.
-5. *(Optional)*
-   - **Mod Menu** (Fabric/Quilt) for quick access to settings.
-   - **Catalogue** by MrCrayfish (NeoForge)
-     > Settings are also available from the mods list
-     
-> **Note:** Starting with `v1.2.0`, **owo-lib is not required**.
----
 
 ## 🗒️ Recent changes
 
@@ -191,12 +146,11 @@ Roads adapt their style to the biome, and the network is saved between game sess
 
 ### Highlights
 
-- 🧩 **Add-ons support**: official API so other mods can extend Road Architect (events, read-only core views, and per-world storage);
-- 📴 **No changes out of the box**: there are no built-in add-ons; gameplay stays the same unless you install one.;
+- 🧩 **Add-ons support**: official API so other mods can extend Road Architect (events, read-only core views, and per-world storage).
+- 📴 **No changes out of the box**: there are no built-in add-ons; gameplay stays the same unless you install one.
 
-**Compatibility:** No visible gameplay changes by default; add-ons are optional.;
+**Compatibility:** No visible gameplay changes by default; add-ons are optional.
 </details>
-
 
 <details>
 <summary><strong>v1.3.0</strong> — <em>Smarter scans & deterministic decorations</em></summary>
@@ -234,17 +188,16 @@ Roads adapt their style to the biome, and the network is saved between game sess
 <summary><strong>v1.1.0</strong> — <em>Smoother paths, smarter junctions, cleaner buoys</em></summary>
 
 ### Highlights
-- ⚙️ **Pathfinding ( A'star / ARA'star )**: adjusted heuristic, removed early termination, expanded profiling.
-- 🏗️ **Post-processing**: trimming roads near nodes, improved junction merging and stabilization.
-- 🌊 **Buoys**: placed only on “clean” water, spaced by real distance, interval increased **12 → 18**.
-- 🔧 **Fixed client ↔ server sync** when registering command arguments.
-- 🐛 **Fixed swamp style**: uses `MOSSY_COBBLESTONE_WALL` instead of `MOSSY_COBBLESTONE`.
+- ⚙️ Pathfinding (A* / ARA*): adjusted heuristic, removed early termination, expanded profiling.
+- 🏗️ Post-processing: trimming roads near nodes, improved junction merging and stabilization.
+- 🌊 Buoys: placed only on “clean” water, spaced by real distance, interval increased **12 → 18**.
+- 🔧 Fixed client ↔ server sync when registering command arguments.
+- 🐛 Fixed swamp style: uses `MOSSY_COBBLESTONE_WALL` instead of `MOSSY_COBBLESTONE`.
 - 📦 Reduced mod size.
 
 **Compatibility:** No breaking changes; worlds from `1.0.1` remain fully compatible.
 </details>
 
----
 
 ## ❓ FAQ
 
@@ -260,13 +213,14 @@ Roads adapt their style to the biome, and the network is saved between game sess
   Yes — RoadArchitect is fully compatible with <a href="https://modrinth.com/datapack/terralith">Terralith</a>. Roads scan and connect structures in Terralith biomes out of the box.
 </details>
 
+
 <details>
   <summary>Only villages are being connected?</summary>
   
   Not only! RoadArchitect can connect any structure discoverable via `/locate structure`. Add the structure IDs or a `#tag` in the config, then reload/restart the world to rescan.
 </details>
 
----
+
 
 ## 🌉 Related mods & inspiration
 
@@ -276,13 +230,12 @@ Roads adapt their style to the biome, and the network is saved between game sess
 *Thanks to the authors and the community for pushing this idea forward.*
 
 
----
 
 ## 📜 License
 
 This project is licensed under the **Apache License 2.0** — see the [LICENSE](LICENSE) file for details.  
-You can also read the full license text here: [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+Full license text: [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
----
-
-<p align="center">Crafted with ❤️ for the Minecraft community</p>
+<p align="center">
+  <sub>Crafted with ❤️ for the Minecraft community</sub>
+</p>

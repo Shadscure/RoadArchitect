@@ -6,6 +6,7 @@ import me.shedaniel.autoconfig.gui.registry.GuiRegistry;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
+import net.minecraft.client.gui.screens.Screen;
 import net.oxcodsnet.roadarchitect.config.records.LampPostConfigEntry;
 import net.oxcodsnet.roadarchitect.config.RAConfig;
 import net.oxcodsnet.roadarchitect.config.RAConfigHolder;
@@ -333,5 +334,9 @@ public final class RAConfigForgeBridge {
             return defaults;
         }
         return java.util.List.copyOf(out);
+    }
+
+    public static Screen createScreen(Screen parent) {
+        return AutoConfig.getConfigScreen(RoadArchitectConfigData.class, parent).get();
     }
 }

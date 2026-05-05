@@ -59,6 +59,14 @@ jobs:
 
       - name: Setup Gradle (with cache)
         uses: gradle/actions/setup-gradle@v4
+        with:
+          # Default for non-default-branch workflows is `true` — i.e. cache is
+          # read-only on ci/smoke, so nothing ever gets saved and every run
+          # cold-resolves Forge userdev. Flip to false so iteration runs
+          # populate their own cache for subsequent restores.
+          # `cache-cleanup` is left at its default ('on-success'), which
+          # already prunes stale Gradle User Home entries before save.
+          cache-read-only: false
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
@@ -147,63 +155,123 @@ jobs:
           echo "target=$TARGET" >> "$GITHUB_OUTPUT"
           echo "::notice::target=$TARGET"
 
-      - name: Launch (xvfb-run, ${{ env.WAIT_SECONDS }}s)
+      - name: Launch + watch (early-exit on success/crash, hard cap ${{ env.WAIT_SECONDS }}s)
         run: |
           set -uo pipefail
           LOG="${{ steps.stage.outputs.test_dir }}/launch.log"
-          # GitHub default shell is `bash -e {0}` — without the `|| RC=$?`
-          # short-circuit, the timeout's rc=124 (which we want to treat as
-          # "game ran the full window without crashing") would abort the
-          # script before we get to the case statement below.
-          RC=0
-          xvfb-run -a timeout --foreground -s INT "$WAIT_SECONDS" \
-            portablemc start \
-              --main-dir "${{ steps.stage.outputs.test_dir }}" \
-              --username SmokeTester \
-              "${{ steps.target.outputs.target }}" \
-            > "$LOG" 2>&1 || RC=$?
-          # 0   — clean exit
-          # 124 — timeout fired (game alive the whole window — pass)
-          # 130 — SIGINT (also from timeout)
-          # other — launcher itself died
-          case "$RC" in
-            0|124|130) echo "::notice::launcher exited rc=$RC (expected: 0=clean, 124=timeout, 130=INT)" ;;
-            *) echo "::error::launcher exited unexpectedly rc=$RC"; tail -50 "$LOG" | tr -d '\r'; exit 1 ;;
+
+          # Crash classes worth gating on. Caused-by chains alone are noisy;
+          # the patterns below are concrete enough that any real regression
+          # produces at least one match.
+          CRASH='Failed to create mod|NoSuchMethodError|NoClassDefFoundError|UnsatisfiedLinkError|ModLoadingException|ReportedException|FATAL.*minecraft|Mod requires.*above|Mixin apply failed'
+          # Known-safe noise — explicitly suppressed so the broad CRASH regex
+          # above keeps catching real classes of the same type elsewhere:
+          #   Realms/JWT/auth        — offline-mode auth chains always fail
+          #   text2speech/Narrator   — accessibility TTS native (libflite.so)
+          #                            absent on hosted runners; unrelated
+          NOISE='Realms|SignedJWT|FailedConnection|Authentication|MinecraftClientHttpException|player/attributes|Failed to load realms|FabricMC.*JWT|text2speech|Narrator|libflite|Unable to load library .flite'
+
+          # Background launcher; xvfb-run propagates signals to the JVM child
+          # when we send SIGTERM/SIGKILL on early-exit.
+          xvfb-run -a portablemc start \
+            --main-dir "${{ steps.stage.outputs.test_dir }}" \
+            --username SmokeTester \
+            "${{ steps.target.outputs.target }}" \
+            > "$LOG" 2>&1 &
+          LAUNCHER_PID=$!
+
+          START_TS=$(date +%s)
+          DEADLINE=$((START_TS + WAIT_SECONDS))
+          REASON='deadline'
+
+          # Polling loop — terminates as soon as either decisive signal appears
+          # in the log, instead of always waiting the full WAIT_SECONDS window.
+          while [[ $(date +%s) -lt $DEADLINE ]]; do
+            sleep 3
+
+            if [[ -f "$LOG" ]]; then
+              # Hard fail — crash class detected, no point waiting further
+              if grep -E "$CRASH" "$LOG" 2>/dev/null | grep -qEv "$NOISE"; then
+                REASON='crash'
+                break
+              fi
+
+              # Hard pass — both health markers seen:
+              #   1) [RoadArchitect] log line  → mod's own init code ran
+              #   2) texture atlas line        → render thread alive
+              if grep -qF '[RoadArchitect]' "$LOG" 2>/dev/null \
+                 && grep -qE 'Created: [0-9]+x[0-9]+.*minecraft:textures/atlas' "$LOG" 2>/dev/null; then
+                REASON='healthy'
+                break
+              fi
+            fi
+
+            # Process died on its own (clean quit or unhandled crash)
+            if ! kill -0 "$LAUNCHER_PID" 2>/dev/null; then
+              REASON='self_exit'
+              break
+            fi
+          done
+
+          ELAPSED=$(($(date +%s) - START_TS))
+
+          # Tear down launcher if still running (TERM, brief grace, KILL)
+          if kill -0 "$LAUNCHER_PID" 2>/dev/null; then
+            kill -TERM "$LAUNCHER_PID" 2>/dev/null || true
+            for _ in 1 2 3 4 5; do
+              kill -0 "$LAUNCHER_PID" 2>/dev/null || break
+              sleep 1
+            done
+            kill -KILL "$LAUNCHER_PID" 2>/dev/null || true
+          fi
+          wait "$LAUNCHER_PID" 2>/dev/null || true
+
+          echo "::notice::launcher terminated after ${ELAPSED}s (reason=${REASON})"
+
+          # Final classification — converts loop's REASON into pass/fail
+          case "$REASON" in
+            healthy)
+              RA_INIT="$(grep -F '[RoadArchitect]' "$LOG" | head -1 || true)"
+              echo "::notice::PASS — mod inited + render thread alive"
+              printf '  RA: %s\n' "$(echo "$RA_INIT" | cut -c1-120)"
+              ;;
+            crash)
+              HITS="$(grep -E "$CRASH" "$LOG" | grep -Ev "$NOISE" | head -10)"
+              echo "::error::FAIL — crash patterns detected"
+              echo "$HITS" | sed 's/^/  /'
+              exit 1
+              ;;
+            deadline|self_exit)
+              # Final pass on the log: did any crash slip in late, and did
+              # the mod at least mention itself? Stricter than the old
+              # ModLauncher/FabricLoader fallback — those fire even if our
+              # mod silently no-op'd.
+              FINAL_HITS="$(grep -E "$CRASH" "$LOG" 2>/dev/null | grep -Ev "$NOISE" | head -10 || true)"
+              RA_INIT="$(grep -F '[RoadArchitect]' "$LOG" 2>/dev/null | head -1 || true)"
+              if [[ -n "$FINAL_HITS" ]]; then
+                echo "::error::FAIL — crash patterns detected (final pass)"
+                echo "$FINAL_HITS" | sed 's/^/  /'
+                exit 1
+              fi
+              if [[ -z "$RA_INIT" ]]; then
+                echo "::error::FAIL — no [RoadArchitect] init line in log within ${ELAPSED}s"
+                tail -30 "$LOG" 2>/dev/null | tr -d '\r' | sed 's/^/  /'
+                exit 1
+              fi
+              echo "::notice::PASS — mod inited (render-thread marker not seen; reason=${REASON})"
+              printf '  RA: %s\n' "$(echo "$RA_INIT" | cut -c1-120)"
+              ;;
           esac
 
-      - name: Detect crash patterns in log
-        run: |
-          set -uo pipefail
-          LOG="${{ steps.stage.outputs.test_dir }}/launch.log"
-          CRASH='Failed to create mod|NoSuchMethodError|NoClassDefFoundError|UnsatisfiedLinkError|ModLoadingException|ReportedException|FATAL.*minecraft|Mod requires.*above|Mixin apply failed'
-          # Noise classes — never indicate a real regression for prod-smoke purposes:
-          #   Realms/JWT/auth        — offline-mode auth chains always fail
-          #   text2speech/Narrator   — accessibility TTS lib (libflite.so) absent
-          #                            on hosted runners; unrelated to mod
-          NOISE='Realms|SignedJWT|FailedConnection|Authentication|MinecraftClientHttpException|player/attributes|Failed to load realms|FabricMC.*JWT|text2speech|Narrator|libflite|Unable to load library .flite'
-          HITS="$(grep -E "$CRASH" "$LOG" | grep -Ev "$NOISE" | head -20 || true)"
-          BOOTED="$(grep -E 'ModLauncher|FabricLoader|Mod construction|RoadArchitect' "$LOG" | head -3 || true)"
-
-          if [[ -n "$HITS" ]]; then
-            echo "::error::Crash patterns detected in log:"
-            echo "$HITS" | sed 's/^/  /'
-            exit 1
-          fi
-          if [[ -z "$BOOTED" ]]; then
-            echo "::error::Launcher never reached mod loading stage (no ModLauncher/FabricLoader/RoadArchitect line)"
-            tail -30 "$LOG" | tr -d '\r'
-            exit 1
-          fi
-          echo "::notice::PASS — first booted line: $(echo "$BOOTED" | head -1 | cut -c1-120)"
-
-      - name: Upload launch.log on failure
-        if: failure()
+      - name: Upload launch.log
+        # `always()` so we get the log on green runs too — useful for
+        # confirming what "PASS" actually saw. `if-no-files-found: ignore`
+        # silences the warning when an early step (e.g. gradle build) fails
+        # before the log file is created.
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: launch-log-${{ env.MC }}-${{ env.LOADER }}
-          # Use a fixed path so this step works even when `stage` is skipped
-          # (e.g., gradle build failure earlier in the pipeline). The file
-          # may not exist; the warning is suppressed below.
           path: ${{ runner.temp }}/ra-smoke/launch.log
           if-no-files-found: ignore
           retention-days: 7

@@ -48,11 +48,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup JDK 17 (Adoptium temurin)
+      - name: Setup JDK 21 (Adoptium temurin)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          # Gradle itself runs on 21+ (fabric-loom 1.11-SNAPSHOT requires it).
+          # The game's runtime JVM is provided by portablemc separately, so the
+          # client doesn't care what Gradle uses.
+          java-version: '21'
 
       - name: Setup Gradle (with cache)
         uses: gradle/actions/setup-gradle@v4
@@ -189,6 +192,10 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: launch-log-${{ inputs.mc }}-${{ inputs.loader }}
-          path: ${{ steps.stage.outputs.test_dir }}/launch.log
+          name: launch-log-${{ env.MC }}-${{ env.LOADER }}
+          # Use a fixed path so this step works even when `stage` is skipped
+          # (e.g., gradle build failure earlier in the pipeline). The file
+          # may not exist; the warning is suppressed below.
+          path: ${{ runner.temp }}/ra-smoke/launch.log
+          if-no-files-found: ignore
           retention-days: 7

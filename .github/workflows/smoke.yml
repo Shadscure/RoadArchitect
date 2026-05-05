@@ -336,6 +336,174 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  # ─── Stage 2: client-windows ────────────────────────────────────────────
+  # Per-loader headless smoke on Windows. Same logic as client-linux, but
+  # on a windows-latest runner so we exercise a different Forge install
+  # pipeline / classloader / FS layout (NTFS vs ext4) — closer to the
+  # environment most user reports come from. No xvfb wrapper: the Windows
+  # runner ships an active desktop session, so GLFW gets a real window.
+  client-windows:
+    needs: [discover, build]
+    runs-on: windows-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        # Force git-bash so the same shell scripts we use on Linux work
+        # without a PowerShell rewrite. GHA's default on Windows is pwsh.
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        loader: ${{ fromJSON(needs.discover.outputs.loaders) }}
+    env:
+      MC: ${{ needs.discover.outputs.mc }}
+      LOADER: ${{ matrix.loader }}
+      WAIT_SECONDS: ${{ inputs.wait_seconds || '180' }}
+    steps:
+      - name: Download bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: bundle-${{ matrix.loader }}
+          path: ${{ runner.temp }}/bundle
+
+      - name: Source bundle versions
+        id: gp
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC1091
+          source "$RUNNER_TEMP/bundle/versions.env"
+          echo "loader_version=$LOADER_VERSION" >> "$GITHUB_OUTPUT"
+          echo "::notice::resolved $LOADER=$LOADER_VERSION (from bundle)"
+
+      - name: Install portablemc (Windows zip)
+        env:
+          PMC_VERSION: '5.0.3'
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pmc "$HOME/.local/bin"
+          curl -fsSL -o /tmp/pmc.zip \
+            "https://github.com/mindstorm38/portablemc/releases/download/v${PMC_VERSION}/portablemc-${PMC_VERSION}-windows-x86_64-msvc.zip"
+          # git-bash bundles unzip
+          unzip -q /tmp/pmc.zip -d /tmp/pmc
+          PMC_BIN="$(find /tmp/pmc -type f -name 'portablemc.exe' | head -1)"
+          [[ -x "$PMC_BIN" ]] || { echo "::error::portablemc.exe not found in archive"; ls -R /tmp/pmc; exit 1; }
+          cp "$PMC_BIN" "$HOME/.local/bin/portablemc.exe"
+          # `~/.local/bin` isn't on PATH on Windows runners by default
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/portablemc.exe" --version
+
+      - name: Stage profile from bundle
+        id: stage
+        run: |
+          set -euo pipefail
+          TEST_DIR="$RUNNER_TEMP/ra-smoke"
+          rm -rf "$TEST_DIR" && mkdir -p "$TEST_DIR/mods"
+          cp "$RUNNER_TEMP/bundle/mods/"*.jar "$TEST_DIR/mods/"
+          ls -la "$TEST_DIR/mods/"
+          echo "test_dir=$TEST_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: Compose portablemc target
+        id: target
+        run: |
+          set -euo pipefail
+          case "$LOADER" in
+            forge)    TARGET="forge::${MC}-${{ steps.gp.outputs.loader_version }}" ;;
+            neoforge) TARGET="neoforge:${{ steps.gp.outputs.loader_version }}" ;;
+            fabric)   TARGET="fabric:${MC}:${{ steps.gp.outputs.loader_version }}" ;;
+          esac
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "::notice::target=$TARGET"
+
+      - name: Launch + watch (early-exit on success/crash, hard cap ${{ env.WAIT_SECONDS }}s)
+        run: |
+          set -uo pipefail
+          LOG="${{ steps.stage.outputs.test_dir }}/launch.log"
+
+          CRASH='Failed to create mod|NoSuchMethodError|NoClassDefFoundError|UnsatisfiedLinkError|ModLoadingException|ReportedException|FATAL.*minecraft|Mod requires.*above|Mixin apply failed'
+          NOISE='Realms|SignedJWT|FailedConnection|Authentication|MinecraftClientHttpException|player/attributes|Failed to load realms|FabricMC.*JWT|text2speech|Narrator|libflite|Unable to load library .flite'
+
+          # No xvfb on Windows — runner has an active desktop session, GLFW
+          # gets a real window. portablemc.exe drives the JVM directly.
+          portablemc start \
+            --main-dir "${{ steps.stage.outputs.test_dir }}" \
+            --username SmokeTester \
+            "${{ steps.target.outputs.target }}" \
+            > "$LOG" 2>&1 &
+          LAUNCHER_PID=$!
+
+          START_TS=$(date +%s)
+          DEADLINE=$((START_TS + WAIT_SECONDS))
+          REASON='deadline'
+
+          while [[ $(date +%s) -lt $DEADLINE ]]; do
+            sleep 3
+            if [[ -f "$LOG" ]]; then
+              if grep -E "$CRASH" "$LOG" 2>/dev/null | grep -qEv "$NOISE"; then
+                REASON='crash'; break
+              fi
+              if grep -qF '[RoadArchitect]' "$LOG" 2>/dev/null \
+                 && grep -qE 'Created: [0-9]+x[0-9]+.*minecraft:textures/atlas' "$LOG" 2>/dev/null; then
+                REASON='healthy'; break
+              fi
+            fi
+            if ! kill -0 "$LAUNCHER_PID" 2>/dev/null; then
+              REASON='self_exit'; break
+            fi
+          done
+
+          ELAPSED=$(($(date +%s) - START_TS))
+
+          if kill -0 "$LAUNCHER_PID" 2>/dev/null; then
+            kill -TERM "$LAUNCHER_PID" 2>/dev/null || true
+            for _ in 1 2 3 4 5; do
+              kill -0 "$LAUNCHER_PID" 2>/dev/null || break
+              sleep 1
+            done
+            kill -KILL "$LAUNCHER_PID" 2>/dev/null || true
+          fi
+          wait "$LAUNCHER_PID" 2>/dev/null || true
+
+          echo "::notice::launcher terminated after ${ELAPSED}s (reason=${REASON})"
+
+          case "$REASON" in
+            healthy)
+              RA_INIT="$(grep -F '[RoadArchitect]' "$LOG" | head -1 || true)"
+              echo "::notice::PASS — mod inited + render thread alive"
+              printf '  RA: %s\n' "$(echo "$RA_INIT" | cut -c1-120)"
+              ;;
+            crash)
+              HITS="$(grep -E "$CRASH" "$LOG" | grep -Ev "$NOISE" | head -10)"
+              echo "::error::FAIL — crash patterns detected"
+              echo "$HITS" | sed 's/^/  /'
+              exit 1
+              ;;
+            deadline|self_exit)
+              FINAL_HITS="$(grep -E "$CRASH" "$LOG" 2>/dev/null | grep -Ev "$NOISE" | head -10 || true)"
+              RA_INIT="$(grep -F '[RoadArchitect]' "$LOG" 2>/dev/null | head -1 || true)"
+              if [[ -n "$FINAL_HITS" ]]; then
+                echo "::error::FAIL — crash patterns detected (final pass)"
+                echo "$FINAL_HITS" | sed 's/^/  /'
+                exit 1
+              fi
+              if [[ -z "$RA_INIT" ]]; then
+                echo "::error::FAIL — no [RoadArchitect] init line in log within ${ELAPSED}s"
+                tail -30 "$LOG" 2>/dev/null | tr -d '\r' | sed 's/^/  /'
+                exit 1
+              fi
+              echo "::notice::PASS — mod inited (render-thread marker not seen; reason=${REASON})"
+              printf '  RA: %s\n' "$(echo "$RA_INIT" | cut -c1-120)"
+              ;;
+          esac
+
+      - name: Upload launch.log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-log-windows-${{ env.MC }}-${{ env.LOADER }}
+          path: ${{ runner.temp }}/ra-smoke/launch.log
+          if-no-files-found: ignore
+          retention-days: 7
+
   # ─── Stage 2: server-linux ──────────────────────────────────────────────
   # Per-loader headless dedicated-server smoke. Installs the loader's
   # server distribution, drops the bundle's mods into mods/, accepts EULA,

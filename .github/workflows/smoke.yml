@@ -388,14 +388,36 @@ jobs:
         # unaffected because it doesn't init GLFW that early). Mesa3D's
         # llvmpipe gives LWJGL a working software GL context.
         #
-        # Use the canonical community action — it wraps pal1000/mesa-dist-win's
-        # `systemwidedeploy.cmd` (deployment-choice=1 = core desktop GL),
-        # which handles System32 ownership and registry tweaks correctly.
-        # Doing this by hand with takeown/icacls is fragile; the action is
-        # the maintained path.
-        uses: ssciwr/setup-mesa-dist-win@v3
-        with:
-          deployment-choice: '1'
+        # Pal1000 ships a ready-made `systemwidedeploy.cmd` inside each
+        # release archive that already handles the System32 ownership
+        # and registry tweaks correctly. We run it directly instead of
+        # going through a third-party wrapper action — that keeps the
+        # supply-chain surface to a single pinned download from
+        # pal1000/mesa-dist-win (already a dependency of any wrapper).
+        # Argument `1` to the script = "core desktop OpenGL drivers"
+        # (no d3d10umd, no Vulkan, no extras we don't need).
+        shell: pwsh
+        env:
+          MESA_DIST_VERSION: '26.0.6'
+        run: |
+          $url = "https://github.com/pal1000/mesa-dist-win/releases/download/$env:MESA_DIST_VERSION/mesa3d-$env:MESA_DIST_VERSION-release-msvc.7z"
+          $archive = Join-Path $env:RUNNER_TEMP 'mesa.7z'
+          $extract = Join-Path $env:RUNNER_TEMP 'mesa'
+          Invoke-WebRequest -Uri $url -OutFile $archive -UseBasicParsing
+          & "C:\Program Files\7-Zip\7z.exe" x $archive "-o$extract" -y | Out-Null
+
+          Push-Location $extract
+          try {
+            cmd /c "systemwidedeploy.cmd 1"
+            if ($LASTEXITCODE -ne 0) {
+              throw "systemwidedeploy.cmd exited $LASTEXITCODE"
+            }
+          } finally {
+            Pop-Location
+          }
+
+          Write-Host "Mesa3D installed:"
+          Get-Item C:\Windows\System32\opengl32.dll | Format-List FullName, Length, LastWriteTime
 
       - name: Install portablemc (Windows zip)
         env:

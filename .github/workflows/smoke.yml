@@ -764,6 +764,203 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  # ─── Stage 2: server-windows ────────────────────────────────────────────
+  # Mirror of server-linux on a windows-latest runner. No Mesa3D needed —
+  # a dedicated server is fully headless (no GLFW, no OpenGL). Forge's
+  # installer writes both unix_args.txt and win_args.txt; we pick the
+  # latter for the Windows JVM. Stdin uses git-bash mkfifo, which msys2
+  # implements via Windows named-pipe emulation; if the resulting pipe
+  # doesn't behave the same way as on Linux we'll see it in the first
+  # run and switch to a signal-based shutdown.
+  server-windows:
+    needs: [discover, build]
+    runs-on: windows-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        loader: ${{ fromJSON(needs.discover.outputs.loaders) }}
+    env:
+      MC: ${{ needs.discover.outputs.mc }}
+      LOADER: ${{ matrix.loader }}
+      BOOT_TIMEOUT: ${{ inputs.wait_seconds || '180' }}
+    steps:
+      - name: Setup JDK 17 (server runtime)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Download bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: bundle-${{ matrix.loader }}
+          path: ${{ runner.temp }}/bundle
+
+      - name: Source bundle versions
+        id: gp
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC1091
+          source "$RUNNER_TEMP/bundle/versions.env"
+          echo "loader_version=$LOADER_VERSION" >> "$GITHUB_OUTPUT"
+          echo "::notice::resolved $LOADER=$LOADER_VERSION (from bundle)"
+
+      - name: Provision server directory
+        id: provision
+        run: |
+          set -euo pipefail
+          SERVER_DIR="$RUNNER_TEMP/server"
+          rm -rf "$SERVER_DIR" && mkdir -p "$SERVER_DIR/mods"
+          cd "$SERVER_DIR"
+
+          cp "$RUNNER_TEMP/bundle/mods/"*.jar mods/
+
+          case "$LOADER" in
+            forge)
+              INSTALLER_URL="https://maven.minecraftforge.net/net/minecraftforge/forge/${MC}-${{ steps.gp.outputs.loader_version }}/forge-${MC}-${{ steps.gp.outputs.loader_version }}-installer.jar"
+              curl -fsSL -o forge-installer.jar "$INSTALLER_URL"
+              java -jar forge-installer.jar --installServer . > install.log 2>&1
+              # Forge's installer drops both unix_args.txt and win_args.txt
+              # — pick the right one for the runner's JVM. The path layout
+              # is otherwise identical.
+              WIN_ARGS="@libraries/net/minecraftforge/forge/${MC}-${{ steps.gp.outputs.loader_version }}/win_args.txt"
+              echo "-Xmx2G" > user_jvm_args.txt
+              echo "START_CMD=java @user_jvm_args.txt $WIN_ARGS nogui" >> "$GITHUB_OUTPUT"
+              ;;
+            fabric)
+              INSTALLER_VER="$(curl -fsSL https://meta.fabricmc.net/v2/versions/installer/ \
+                | jq -r '[.[] | select(.stable)] | first | .version')"
+              curl -fsSL -L -o fabric-server.jar \
+                "https://meta.fabricmc.net/v2/versions/loader/${MC}/${{ steps.gp.outputs.loader_version }}/${INSTALLER_VER}/server/jar"
+              echo "START_CMD=java -Xmx2G -jar fabric-server.jar nogui" >> "$GITHUB_OUTPUT"
+              ;;
+            neoforge)
+              INSTALLER_URL="https://maven.neoforged.net/releases/net/neoforged/neoforge/${{ steps.gp.outputs.loader_version }}/neoforge-${{ steps.gp.outputs.loader_version }}-installer.jar"
+              curl -fsSL -o neoforge-installer.jar "$INSTALLER_URL"
+              java -jar neoforge-installer.jar --installServer . > install.log 2>&1
+              WIN_ARGS="@libraries/net/neoforged/neoforge/${{ steps.gp.outputs.loader_version }}/win_args.txt"
+              echo "-Xmx2G" > user_jvm_args.txt
+              echo "START_CMD=java @user_jvm_args.txt $WIN_ARGS nogui" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+          echo "eula=true" > eula.txt
+          cat > server.properties <<'EOF'
+          online-mode=false
+          level-name=smoke
+          motd=smoke
+          gamemode=creative
+          max-players=1
+          view-distance=4
+          sync-chunk-writes=false
+          spawn-protection=0
+          EOF
+
+          echo "server_dir=$SERVER_DIR" >> "$GITHUB_OUTPUT"
+          ls -la mods/
+
+      - name: Boot + watch (early-exit on Done/crash, hard cap ${{ env.BOOT_TIMEOUT }}s)
+        run: |
+          set -uo pipefail
+          cd "${{ steps.provision.outputs.server_dir }}"
+          LOG="$PWD/server.log"
+          FIFO="$PWD/stdin.fifo"
+          mkfifo "$FIFO"
+
+          CRASH='Failed to create mod|NoSuchMethodError|NoClassDefFoundError|UnsatisfiedLinkError|ModLoadingException|ReportedException|FATAL.*minecraft|Mod requires.*above|Mixin apply failed|Encountered an unexpected exception'
+          NOISE='Realms|SignedJWT|FailedConnection|Authentication|MinecraftClientHttpException|player/attributes|Failed to load realms|FabricMC.*JWT'
+
+          eval "${{ steps.provision.outputs.START_CMD }}" < "$FIFO" > "$LOG" 2>&1 &
+          SERVER_PID=$!
+          exec 3>"$FIFO"
+
+          START_TS=$(date +%s)
+          DEADLINE=$((START_TS + BOOT_TIMEOUT))
+          REASON='deadline'
+
+          while [[ $(date +%s) -lt $DEADLINE ]]; do
+            sleep 3
+            if [[ -f "$LOG" ]]; then
+              if grep -E "$CRASH" "$LOG" 2>/dev/null | grep -qEv "$NOISE"; then
+                REASON='crash'; break
+              fi
+              if grep -qE 'Done \([0-9.]+s\)! For help, type "help"' "$LOG" 2>/dev/null; then
+                REASON='ready'; break
+              fi
+            fi
+            if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+              REASON='self_exit'; break
+            fi
+          done
+
+          ELAPSED=$(($(date +%s) - START_TS))
+          echo "::notice::server reached '${REASON}' state after ${ELAPSED}s"
+
+          if [[ "$REASON" == 'ready' ]] && kill -0 "$SERVER_PID" 2>/dev/null; then
+            echo "stop" >&3
+            for _ in $(seq 1 30); do
+              kill -0 "$SERVER_PID" 2>/dev/null || break
+              sleep 1
+            done
+          fi
+          if kill -0 "$SERVER_PID" 2>/dev/null; then
+            kill -TERM "$SERVER_PID" 2>/dev/null || true
+            for _ in 1 2 3 4 5; do
+              kill -0 "$SERVER_PID" 2>/dev/null || break
+              sleep 1
+            done
+            kill -KILL "$SERVER_PID" 2>/dev/null || true
+          fi
+          exec 3>&- || true
+          wait "$SERVER_PID" 2>/dev/null || true
+          rm -f "$FIFO"
+
+          case "$REASON" in
+            ready)
+              RA_INIT="$(grep -F '[RoadArchitect]' "$LOG" | head -1 || true)"
+              if [[ -z "$RA_INIT" ]]; then
+                echo "::error::FAIL — server reached Done but no [RoadArchitect] init line"
+                tail -30 "$LOG" 2>/dev/null | sed 's/^/  /'
+                exit 1
+              fi
+              echo "::notice::PASS — server reached listening state, mod inited"
+              printf '  RA: %s\n' "$(echo "$RA_INIT" | cut -c1-120)"
+              ;;
+            crash)
+              HITS="$(grep -E "$CRASH" "$LOG" | grep -Ev "$NOISE" | head -10)"
+              echo "::error::FAIL — crash patterns detected"
+              echo "$HITS" | sed 's/^/  /'
+              exit 1
+              ;;
+            deadline|self_exit)
+              echo "::error::FAIL — server didn't reach 'Done' marker (reason=${REASON}, ${ELAPSED}s)"
+              tail -30 "$LOG" 2>/dev/null | sed 's/^/  /'
+              exit 1
+              ;;
+          esac
+
+      - name: Upload world (for integration stage)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: world-windows-${{ matrix.loader }}
+          path: ${{ runner.temp }}/server/smoke/
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload server.log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log-windows-${{ env.MC }}-${{ env.LOADER }}
+          path: ${{ runner.temp }}/server/server.log
+          if-no-files-found: ignore
+          retention-days: 7
+
   # ─── Stage 3: integration-linux ─────────────────────────────────────────
   # Per-loader end-to-end smoke: take the world the server stage wrote,
   # mount it into a portablemc profile alongside the bundle's mods, then

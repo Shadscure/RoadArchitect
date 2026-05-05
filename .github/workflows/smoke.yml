@@ -116,12 +116,14 @@ jobs:
           echo "::notice::${{ matrix.loader }}=$LOADER_VERSION  cloth=$CLOTH_VERSION"
 
       - name: Build mod jar
-        # `--build-cache` enables Gradle's internal task-output cache. The
-        # action's gradle-home cache already preserves
-        # `~/.gradle/caches/build-cache-1` between runs; this flag lets
-        # Gradle actually use it. With unchanged source, `compileJava`,
-        # `processResources`, `jar`, etc. restore their outputs from the
-        # cache instead of re-executing — typically -30..60s on warm runs.
+        # `--build-cache` enables Gradle's internal task-output cache.
+        # setup-gradle@v4 already preserves ~/.gradle/caches/build-cache-1
+        # between runs; this flag lets Gradle actually use it. With
+        # unchanged source, compileJava / processResources / jar /
+        # sourcesJar restore their outputs from the cache instead of
+        # re-executing. First run with the flag is a wash (cache is
+        # populated for the first time); subsequent runs win 30-60s
+        # when src didn't change.
         run: ./gradlew ":modules:${{ matrix.loader }}:build" --build-cache --quiet
 
       - name: Assemble test bundle

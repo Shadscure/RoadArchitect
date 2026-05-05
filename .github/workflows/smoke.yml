@@ -1133,3 +1133,197 @@ jobs:
           path: ${{ runner.temp }}/ra-smoke/launch.log
           if-no-files-found: ignore
           retention-days: 7
+
+  # ─── Stage 3: integration-windows ───────────────────────────────────────
+  # Per-loader end-to-end smoke on Windows: take the world server-linux
+  # generated, mount it under saves/smoke in a portablemc profile, then
+  # enter via --join-world. Reuses the Linux-generated world artifact
+  # (world-${loader}) intentionally — Minecraft world saves are platform-
+  # independent given the same loader + MC + mod jar, and server-windows
+  # deliberately doesn't upload one (see its boot-step comment). Same
+  # PASS criterion as integration-linux: [RoadArchitect] init + `joined
+  # the game` log line. Mesa3D is needed here just like client-windows.
+  integration-windows:
+    needs: [discover, build, server-linux]
+    runs-on: windows-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        loader: ${{ fromJSON(needs.discover.outputs.loaders) }}
+    env:
+      MC: ${{ needs.discover.outputs.mc }}
+      LOADER: ${{ matrix.loader }}
+      WAIT_SECONDS: ${{ inputs.wait_seconds || '180' }}
+      MESA_GL_VERSION_OVERRIDE: '4.6'
+      MESA_GLSL_VERSION_OVERRIDE: '460'
+      GALLIUM_DRIVER: 'llvmpipe'
+    steps:
+      - name: Download bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: bundle-${{ matrix.loader }}
+          path: ${{ runner.temp }}/bundle
+
+      - name: Download world (from server-linux)
+        uses: actions/download-artifact@v4
+        with:
+          name: world-${{ matrix.loader }}
+          path: ${{ runner.temp }}/world
+
+      - name: Source bundle versions
+        id: gp
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC1091
+          source "$RUNNER_TEMP/bundle/versions.env"
+          echo "loader_version=$LOADER_VERSION" >> "$GITHUB_OUTPUT"
+          echo "::notice::resolved $LOADER=$LOADER_VERSION (from bundle)"
+
+      - name: Install Mesa3D (software OpenGL)
+        shell: pwsh
+        env:
+          MESA_DIST_VERSION: '26.0.6'
+        run: |
+          $url = "https://github.com/pal1000/mesa-dist-win/releases/download/$env:MESA_DIST_VERSION/mesa3d-$env:MESA_DIST_VERSION-release-msvc.7z"
+          $archive = Join-Path $env:RUNNER_TEMP 'mesa.7z'
+          $extract = Join-Path $env:RUNNER_TEMP 'mesa'
+          Invoke-WebRequest -Uri $url -OutFile $archive -UseBasicParsing
+          & "C:\Program Files\7-Zip\7z.exe" x $archive "-o$extract" -y | Out-Null
+          Push-Location $extract
+          try {
+            cmd /c "systemwidedeploy.cmd 1"
+            if ($LASTEXITCODE -ne 0) { throw "systemwidedeploy.cmd exited $LASTEXITCODE" }
+          } finally {
+            Pop-Location
+          }
+
+      - name: Install portablemc (Windows zip)
+        env:
+          PMC_VERSION: '5.0.3'
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pmc "$HOME/.local/bin"
+          curl -fsSL -o /tmp/pmc.zip \
+            "https://github.com/mindstorm38/portablemc/releases/download/v${PMC_VERSION}/portablemc-${PMC_VERSION}-windows-x86_64-msvc.zip"
+          unzip -q /tmp/pmc.zip -d /tmp/pmc
+          PMC_BIN="$(find /tmp/pmc -type f -name 'portablemc.exe' | head -1)"
+          [[ -x "$PMC_BIN" ]] || { echo "::error::portablemc.exe not found in archive"; ls -R /tmp/pmc; exit 1; }
+          cp "$PMC_BIN" "$HOME/.local/bin/portablemc.exe"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/portablemc.exe" --version
+
+      - name: Stage profile + world
+        id: stage
+        run: |
+          set -euo pipefail
+          TEST_DIR="$RUNNER_TEMP/ra-smoke"
+          rm -rf "$TEST_DIR" && mkdir -p "$TEST_DIR/mods" "$TEST_DIR/saves"
+
+          cp "$RUNNER_TEMP/bundle/mods/"*.jar "$TEST_DIR/mods/"
+          cp -r "$RUNNER_TEMP/world" "$TEST_DIR/saves/smoke"
+
+          echo "mods:"
+          ls -la "$TEST_DIR/mods/"
+          echo "saves/smoke (top-level):"
+          ls -la "$TEST_DIR/saves/smoke/" | head -10
+          echo "test_dir=$TEST_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: Compose portablemc target
+        id: target
+        run: |
+          set -euo pipefail
+          case "$LOADER" in
+            forge)    TARGET="forge::${MC}-${{ steps.gp.outputs.loader_version }}" ;;
+            neoforge) TARGET="neoforge:${{ steps.gp.outputs.loader_version }}" ;;
+            fabric)   TARGET="fabric:${MC}:${{ steps.gp.outputs.loader_version }}" ;;
+          esac
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "::notice::target=$TARGET (--join-world smoke)"
+
+      - name: Launch + watch (early-exit on world-loaded/crash, hard cap ${{ env.WAIT_SECONDS }}s)
+        run: |
+          set -uo pipefail
+          LOG="${{ steps.stage.outputs.test_dir }}/launch.log"
+
+          CRASH='Failed to create mod|NoSuchMethodError|NoClassDefFoundError|UnsatisfiedLinkError|ModLoadingException|ReportedException|FATAL.*minecraft|Mod requires.*above|Mixin apply failed'
+          NOISE='Realms|SignedJWT|FailedConnection|Authentication|MinecraftClientHttpException|player/attributes|Failed to load realms|FabricMC.*JWT|text2speech|Narrator|libflite|Unable to load library .flite'
+
+          portablemc start \
+            --main-dir "${{ steps.stage.outputs.test_dir }}" \
+            --username SmokeTester \
+            --join-world smoke \
+            "${{ steps.target.outputs.target }}" \
+            > "$LOG" 2>&1 &
+          LAUNCHER_PID=$!
+
+          START_TS=$(date +%s)
+          DEADLINE=$((START_TS + WAIT_SECONDS))
+          REASON='deadline'
+
+          while [[ $(date +%s) -lt $DEADLINE ]]; do
+            sleep 3
+            if [[ -f "$LOG" ]]; then
+              if grep -E "$CRASH" "$LOG" 2>/dev/null | grep -qEv "$NOISE"; then
+                REASON='crash'; break
+              fi
+              if grep -qF '[RoadArchitect]' "$LOG" 2>/dev/null \
+                 && grep -qE 'joined the game' "$LOG" 2>/dev/null; then
+                REASON='in_world'; break
+              fi
+            fi
+            if ! kill -0 "$LAUNCHER_PID" 2>/dev/null; then
+              REASON='self_exit'; break
+            fi
+          done
+
+          ELAPSED=$(($(date +%s) - START_TS))
+
+          if kill -0 "$LAUNCHER_PID" 2>/dev/null; then
+            kill -TERM "$LAUNCHER_PID" 2>/dev/null || true
+            for _ in 1 2 3 4 5; do
+              kill -0 "$LAUNCHER_PID" 2>/dev/null || break
+              sleep 1
+            done
+            kill -KILL "$LAUNCHER_PID" 2>/dev/null || true
+          fi
+          wait "$LAUNCHER_PID" 2>/dev/null || true
+
+          echo "::notice::launcher terminated after ${ELAPSED}s (reason=${REASON})"
+
+          case "$REASON" in
+            in_world)
+              JOIN_LINE="$(grep -F 'joined the game' "$LOG" | head -1 || true)"
+              echo "::notice::PASS — mod inited + player joined the world"
+              printf '  join: %s\n' "$(echo "$JOIN_LINE" | cut -c1-120)"
+              ;;
+            crash)
+              HITS="$(grep -E "$CRASH" "$LOG" | grep -Ev "$NOISE" | head -10)"
+              echo "::error::FAIL — crash patterns detected"
+              echo "$HITS" | sed 's/^/  /'
+              exit 1
+              ;;
+            deadline|self_exit)
+              FINAL_HITS="$(grep -E "$CRASH" "$LOG" 2>/dev/null | grep -Ev "$NOISE" | head -10 || true)"
+              if [[ -n "$FINAL_HITS" ]]; then
+                echo "::error::FAIL — crash patterns detected (final pass)"
+                echo "$FINAL_HITS" | sed 's/^/  /'
+                exit 1
+              fi
+              echo "::error::FAIL — never saw 'joined the game' within ${ELAPSED}s (reason=${REASON})"
+              tail -30 "$LOG" 2>/dev/null | tr -d '\r' | sed 's/^/  /'
+              exit 1
+              ;;
+          esac
+
+      - name: Upload integration launch.log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-log-windows-${{ env.MC }}-${{ env.LOADER }}
+          path: ${{ runner.temp }}/ra-smoke/launch.log
+          if-no-files-found: ignore
+          retention-days: 7

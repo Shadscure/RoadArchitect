@@ -117,11 +117,11 @@ jobs:
 
       - name: Cache built mod jar (skip Gradle entirely on src-hash hit)
         # Outer cache layer over the build output. The key hashes everything
-        # that can affect the produced jar — Java/resources under
+        # that can affect the produced jar: Java/resources under
         # modules/**/src, per-module + root gradle config, gradle.properties
-        # (which carries the dep versions), and buildSrc convention plugins.
+        # (carries the dep versions), and buildSrc convention plugins.
         # On a hit (e.g. workflow-only tweak with no source change), the
-        # next step skips Gradle entirely; on a miss, Gradle runs and the
+        # next step skips Gradle entirely; on a miss Gradle runs and the
         # restored gradle-home cache still cuts dep-resolution time.
         id: jar-cache
         uses: actions/cache@v4

@@ -375,6 +375,16 @@ jobs:
           echo "loader_version=$LOADER_VERSION" >> "$GITHUB_OUTPUT"
           echo "::notice::resolved $LOADER=$LOADER_VERSION (from bundle)"
 
+      - name: Install Mesa3D (software OpenGL for headless server SKU)
+        # Windows Server 2025 GHA runners ship without a GPU driver, so the
+        # native opengl32.dll fails WGL probing. Forge's FML early display
+        # crashes before reaching mod construction (Fabric is unaffected
+        # because it doesn't init GLFW that early). Mesa3D's software
+        # opengl32.dll lets LWJGL succeed at GL context creation.
+        shell: pwsh
+        run: |
+          choco install -y --no-progress mesa3d
+
       - name: Install portablemc (Windows zip)
         env:
           PMC_VERSION: '5.0.3'

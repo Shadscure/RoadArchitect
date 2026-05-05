@@ -47,15 +47,22 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Install xvfb + portablemc
+        env:
+          PMC_VERSION: '5.0.3'
         run: |
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb
-          # portablemc-cli is rust-based since 5.x; cargo is preinstalled on ubuntu-24.04
-          cargo install portablemc-cli --locked --quiet
-          # cargo puts binary at ~/.cargo/bin which is on PATH via setup
-          which portablemc
-          portablemc --version
+          # Prebuilt portablemc binary from upstream releases (rust crate, no cargo build needed)
+          mkdir -p /tmp/pmc "$HOME/.local/bin"
+          curl -fsSL -o /tmp/pmc.tar.gz \
+            "https://github.com/mindstorm38/portablemc/releases/download/v${PMC_VERSION}/portablemc-${PMC_VERSION}-linux-x86_64-gnu.tar.gz"
+          tar -xzf /tmp/pmc.tar.gz -C /tmp/pmc
+          PMC_BIN="$(find /tmp/pmc -type f -name portablemc -executable | head -1)"
+          [[ -x "$PMC_BIN" ]] || { echo "::error::portablemc binary not found in archive"; ls -R /tmp/pmc; exit 1; }
+          install -m 0755 "$PMC_BIN" "$HOME/.local/bin/portablemc"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/portablemc" --version
 
       - name: Read versions from gradle.properties
         id: gp

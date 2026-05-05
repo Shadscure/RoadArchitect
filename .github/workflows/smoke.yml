@@ -147,23 +147,27 @@ jobs:
           echo "target=$TARGET" >> "$GITHUB_OUTPUT"
           echo "::notice::target=$TARGET"
 
-      - name: Launch (xvfb-run, ${{ inputs.wait_seconds }}s)
+      - name: Launch (xvfb-run, ${{ env.WAIT_SECONDS }}s)
         run: |
           set -uo pipefail
           LOG="${{ steps.stage.outputs.test_dir }}/launch.log"
+          # GitHub default shell is `bash -e {0}` — without the `|| RC=$?`
+          # short-circuit, the timeout's rc=124 (which we want to treat as
+          # "game ran the full window without crashing") would abort the
+          # script before we get to the case statement below.
+          RC=0
           xvfb-run -a timeout --foreground -s INT "$WAIT_SECONDS" \
             portablemc start \
               --main-dir "${{ steps.stage.outputs.test_dir }}" \
               --username SmokeTester \
               "${{ steps.target.outputs.target }}" \
-            > "$LOG" 2>&1
-          RC=$?
+            > "$LOG" 2>&1 || RC=$?
           # 0   — clean exit
           # 124 — timeout fired (game alive the whole window — pass)
           # 130 — SIGINT (also from timeout)
           # other — launcher itself died
           case "$RC" in
-            0|124|130) echo "::notice::launcher exited rc=$RC (expected)" ;;
+            0|124|130) echo "::notice::launcher exited rc=$RC (expected: 0=clean, 124=timeout, 130=INT)" ;;
             *) echo "::error::launcher exited unexpectedly rc=$RC"; tail -50 "$LOG" | tr -d '\r'; exit 1 ;;
           esac
 

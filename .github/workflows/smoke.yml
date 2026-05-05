@@ -874,15 +874,26 @@ jobs:
           set -uo pipefail
           cd "${{ steps.provision.outputs.server_dir }}"
           LOG="$PWD/server.log"
-          FIFO="$PWD/stdin.fifo"
-          mkfifo "$FIFO"
 
+          # No FIFO on Windows: msys2 mkfifo creates a pipe that the
+          # native-Win32 JVM can't read from properly (it logs `Exception
+          # handling console input — java.io.IOException: The handle is
+          # invalid` and the console-handler thread dies). The server
+          # itself runs fine, but `stop` over the pipe never reaches it,
+          # so graceful shutdown breaks and a forced KILL leaves the
+          # world half-written.
+          #
+          # Resolution: don't try to drive stdin at all here. Run with
+          # stdin=/dev/null, watch the log for Done/crash, then KILL the
+          # JVM. The world dir is intentionally NOT uploaded from this
+          # stage — server-linux is the canonical world source for
+          # integration-windows (worlds are platform-independent given
+          # same loader + MC version + mod jar).
           CRASH='Failed to create mod|NoSuchMethodError|NoClassDefFoundError|UnsatisfiedLinkError|ModLoadingException|ReportedException|FATAL.*minecraft|Mod requires.*above|Mixin apply failed|Encountered an unexpected exception'
           NOISE='Realms|SignedJWT|FailedConnection|Authentication|MinecraftClientHttpException|player/attributes|Failed to load realms|FabricMC.*JWT'
 
-          eval "${{ steps.provision.outputs.START_CMD }}" < "$FIFO" > "$LOG" 2>&1 &
+          eval "${{ steps.provision.outputs.START_CMD }}" < /dev/null > "$LOG" 2>&1 &
           SERVER_PID=$!
-          exec 3>"$FIFO"
 
           START_TS=$(date +%s)
           DEADLINE=$((START_TS + BOOT_TIMEOUT))
@@ -906,24 +917,11 @@ jobs:
           ELAPSED=$(($(date +%s) - START_TS))
           echo "::notice::server reached '${REASON}' state after ${ELAPSED}s"
 
-          if [[ "$REASON" == 'ready' ]] && kill -0 "$SERVER_PID" 2>/dev/null; then
-            echo "stop" >&3
-            for _ in $(seq 1 30); do
-              kill -0 "$SERVER_PID" 2>/dev/null || break
-              sleep 1
-            done
-          fi
+          # Forced shutdown — we don't need a clean world here.
           if kill -0 "$SERVER_PID" 2>/dev/null; then
-            kill -TERM "$SERVER_PID" 2>/dev/null || true
-            for _ in 1 2 3 4 5; do
-              kill -0 "$SERVER_PID" 2>/dev/null || break
-              sleep 1
-            done
             kill -KILL "$SERVER_PID" 2>/dev/null || true
           fi
-          exec 3>&- || true
           wait "$SERVER_PID" 2>/dev/null || true
-          rm -f "$FIFO"
 
           case "$REASON" in
             ready)
@@ -948,15 +946,6 @@ jobs:
               exit 1
               ;;
           esac
-
-      - name: Upload world (for integration stage)
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: world-windows-${{ matrix.loader }}
-          path: ${{ runner.temp }}/server/smoke/
-          if-no-files-found: error
-          retention-days: 1
 
       - name: Upload server.log
         if: always()

@@ -176,7 +176,11 @@ jobs:
           set -uo pipefail
           LOG="${{ steps.stage.outputs.test_dir }}/launch.log"
           CRASH='Failed to create mod|NoSuchMethodError|NoClassDefFoundError|UnsatisfiedLinkError|ModLoadingException|ReportedException|FATAL.*minecraft|Mod requires.*above|Mixin apply failed'
-          NOISE='Realms|SignedJWT|FailedConnection|Authentication|MinecraftClientHttpException|player/attributes|Failed to load realms|FabricMC.*JWT'
+          # Noise classes — never indicate a real regression for prod-smoke purposes:
+          #   Realms/JWT/auth        — offline-mode auth chains always fail
+          #   text2speech/Narrator   — accessibility TTS lib (libflite.so) absent
+          #                            on hosted runners; unrelated to mod
+          NOISE='Realms|SignedJWT|FailedConnection|Authentication|MinecraftClientHttpException|player/attributes|Failed to load realms|FabricMC.*JWT|text2speech|Narrator|libflite|Unable to load library .flite'
           HITS="$(grep -E "$CRASH" "$LOG" | grep -Ev "$NOISE" | head -20 || true)"
           BOOTED="$(grep -E 'ModLauncher|FabricLoader|Mod construction|RoadArchitect' "$LOG" | head -3 || true)"
 

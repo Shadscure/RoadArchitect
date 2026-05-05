@@ -205,6 +205,13 @@ jobs:
       LOADER: ${{ matrix.loader }}
       WAIT_SECONDS: ${{ inputs.wait_seconds || '180' }}
     steps:
+      - name: Checkout composite actions
+        uses: actions/checkout@v4
+        with:
+          # Test stages don't need the source tree, just the local
+          # composite actions under .github/actions/.
+          sparse-checkout: .github/actions
+
       - name: Download bundle
         uses: actions/download-artifact@v4
         with:
@@ -220,22 +227,13 @@ jobs:
           echo "loader_version=$LOADER_VERSION" >> "$GITHUB_OUTPUT"
           echo "::notice::resolved $LOADER=$LOADER_VERSION (from bundle)"
 
-      - name: Install xvfb + portablemc
-        env:
-          PMC_VERSION: '5.0.3'
+      - name: Install xvfb
         run: |
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb
-          mkdir -p /tmp/pmc "$HOME/.local/bin"
-          curl -fsSL -o /tmp/pmc.tar.gz \
-            "https://github.com/mindstorm38/portablemc/releases/download/v${PMC_VERSION}/portablemc-${PMC_VERSION}-linux-x86_64-gnu.tar.gz"
-          tar -xzf /tmp/pmc.tar.gz -C /tmp/pmc
-          PMC_BIN="$(find /tmp/pmc -type f -name portablemc -executable | head -1)"
-          [[ -x "$PMC_BIN" ]] || { echo "::error::portablemc binary not found in archive"; ls -R /tmp/pmc; exit 1; }
-          install -m 0755 "$PMC_BIN" "$HOME/.local/bin/portablemc"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          "$HOME/.local/bin/portablemc" --version
+
+      - uses: ./.github/actions/install-portablemc
 
       - name: Stage profile from bundle
         id: stage
@@ -387,6 +385,11 @@ jobs:
       MESA_GLSL_VERSION_OVERRIDE: '460'
       GALLIUM_DRIVER: 'llvmpipe'
     steps:
+      - name: Checkout composite actions
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/actions
+
       - name: Download bundle
         uses: actions/download-artifact@v4
         with:
@@ -402,60 +405,8 @@ jobs:
           echo "loader_version=$LOADER_VERSION" >> "$GITHUB_OUTPUT"
           echo "::notice::resolved $LOADER=$LOADER_VERSION (from bundle)"
 
-      - name: Install Mesa3D (software OpenGL for headless server SKU)
-        # Windows Server 2025 GHA runners ship without a GPU driver, so
-        # the native opengl32.dll fails WGL probing. Forge's FML early
-        # display crashes before reaching mod construction (Fabric is
-        # unaffected because it doesn't init GLFW that early). Mesa3D's
-        # llvmpipe gives LWJGL a working software GL context.
-        #
-        # Pal1000 ships a ready-made `systemwidedeploy.cmd` inside each
-        # release archive that already handles the System32 ownership
-        # and registry tweaks correctly. We run it directly instead of
-        # going through a third-party wrapper action — that keeps the
-        # supply-chain surface to a single pinned download from
-        # pal1000/mesa-dist-win (already a dependency of any wrapper).
-        # Argument `1` to the script = "core desktop OpenGL drivers"
-        # (no d3d10umd, no Vulkan, no extras we don't need).
-        shell: pwsh
-        env:
-          MESA_DIST_VERSION: '26.0.6'
-        run: |
-          $url = "https://github.com/pal1000/mesa-dist-win/releases/download/$env:MESA_DIST_VERSION/mesa3d-$env:MESA_DIST_VERSION-release-msvc.7z"
-          $archive = Join-Path $env:RUNNER_TEMP 'mesa.7z'
-          $extract = Join-Path $env:RUNNER_TEMP 'mesa'
-          Invoke-WebRequest -Uri $url -OutFile $archive -UseBasicParsing
-          & "C:\Program Files\7-Zip\7z.exe" x $archive "-o$extract" -y | Out-Null
-
-          Push-Location $extract
-          try {
-            cmd /c "systemwidedeploy.cmd 1"
-            if ($LASTEXITCODE -ne 0) {
-              throw "systemwidedeploy.cmd exited $LASTEXITCODE"
-            }
-          } finally {
-            Pop-Location
-          }
-
-          Write-Host "Mesa3D installed:"
-          Get-Item C:\Windows\System32\opengl32.dll | Format-List FullName, Length, LastWriteTime
-
-      - name: Install portablemc (Windows zip)
-        env:
-          PMC_VERSION: '5.0.3'
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/pmc "$HOME/.local/bin"
-          curl -fsSL -o /tmp/pmc.zip \
-            "https://github.com/mindstorm38/portablemc/releases/download/v${PMC_VERSION}/portablemc-${PMC_VERSION}-windows-x86_64-msvc.zip"
-          # git-bash bundles unzip
-          unzip -q /tmp/pmc.zip -d /tmp/pmc
-          PMC_BIN="$(find /tmp/pmc -type f -name 'portablemc.exe' | head -1)"
-          [[ -x "$PMC_BIN" ]] || { echo "::error::portablemc.exe not found in archive"; ls -R /tmp/pmc; exit 1; }
-          cp "$PMC_BIN" "$HOME/.local/bin/portablemc.exe"
-          # `~/.local/bin` isn't on PATH on Windows runners by default
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          "$HOME/.local/bin/portablemc.exe" --version
+      - uses: ./.github/actions/install-mesa3d
+      - uses: ./.github/actions/install-portablemc
 
       - name: Stage profile from bundle
         id: stage
@@ -999,6 +950,11 @@ jobs:
       LOADER: ${{ matrix.loader }}
       WAIT_SECONDS: ${{ inputs.wait_seconds || '180' }}
     steps:
+      - name: Checkout composite actions
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/actions
+
       - name: Download bundle
         uses: actions/download-artifact@v4
         with:
@@ -1020,22 +976,13 @@ jobs:
           echo "loader_version=$LOADER_VERSION" >> "$GITHUB_OUTPUT"
           echo "::notice::resolved $LOADER=$LOADER_VERSION (from bundle)"
 
-      - name: Install xvfb + portablemc
-        env:
-          PMC_VERSION: '5.0.3'
+      - name: Install xvfb
         run: |
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb
-          mkdir -p /tmp/pmc "$HOME/.local/bin"
-          curl -fsSL -o /tmp/pmc.tar.gz \
-            "https://github.com/mindstorm38/portablemc/releases/download/v${PMC_VERSION}/portablemc-${PMC_VERSION}-linux-x86_64-gnu.tar.gz"
-          tar -xzf /tmp/pmc.tar.gz -C /tmp/pmc
-          PMC_BIN="$(find /tmp/pmc -type f -name portablemc -executable | head -1)"
-          [[ -x "$PMC_BIN" ]] || { echo "::error::portablemc binary not found in archive"; ls -R /tmp/pmc; exit 1; }
-          install -m 0755 "$PMC_BIN" "$HOME/.local/bin/portablemc"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          "$HOME/.local/bin/portablemc" --version
+
+      - uses: ./.github/actions/install-portablemc
 
       - name: Stage profile + world
         id: stage
@@ -1183,6 +1130,11 @@ jobs:
       MESA_GLSL_VERSION_OVERRIDE: '460'
       GALLIUM_DRIVER: 'llvmpipe'
     steps:
+      - name: Checkout composite actions
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/actions
+
       - name: Download bundle
         uses: actions/download-artifact@v4
         with:
@@ -1204,38 +1156,8 @@ jobs:
           echo "loader_version=$LOADER_VERSION" >> "$GITHUB_OUTPUT"
           echo "::notice::resolved $LOADER=$LOADER_VERSION (from bundle)"
 
-      - name: Install Mesa3D (software OpenGL)
-        shell: pwsh
-        env:
-          MESA_DIST_VERSION: '26.0.6'
-        run: |
-          $url = "https://github.com/pal1000/mesa-dist-win/releases/download/$env:MESA_DIST_VERSION/mesa3d-$env:MESA_DIST_VERSION-release-msvc.7z"
-          $archive = Join-Path $env:RUNNER_TEMP 'mesa.7z'
-          $extract = Join-Path $env:RUNNER_TEMP 'mesa'
-          Invoke-WebRequest -Uri $url -OutFile $archive -UseBasicParsing
-          & "C:\Program Files\7-Zip\7z.exe" x $archive "-o$extract" -y | Out-Null
-          Push-Location $extract
-          try {
-            cmd /c "systemwidedeploy.cmd 1"
-            if ($LASTEXITCODE -ne 0) { throw "systemwidedeploy.cmd exited $LASTEXITCODE" }
-          } finally {
-            Pop-Location
-          }
-
-      - name: Install portablemc (Windows zip)
-        env:
-          PMC_VERSION: '5.0.3'
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/pmc "$HOME/.local/bin"
-          curl -fsSL -o /tmp/pmc.zip \
-            "https://github.com/mindstorm38/portablemc/releases/download/v${PMC_VERSION}/portablemc-${PMC_VERSION}-windows-x86_64-msvc.zip"
-          unzip -q /tmp/pmc.zip -d /tmp/pmc
-          PMC_BIN="$(find /tmp/pmc -type f -name 'portablemc.exe' | head -1)"
-          [[ -x "$PMC_BIN" ]] || { echo "::error::portablemc.exe not found in archive"; ls -R /tmp/pmc; exit 1; }
-          cp "$PMC_BIN" "$HOME/.local/bin/portablemc.exe"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          "$HOME/.local/bin/portablemc.exe" --version
+      - uses: ./.github/actions/install-mesa3d
+      - uses: ./.github/actions/install-portablemc
 
       - name: Stage profile + world
         id: stage

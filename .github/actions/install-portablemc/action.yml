@@ -1,0 +1,49 @@
+name: Install portablemc
+description: |
+  Downloads a pinned portablemc release binary for the current runner OS
+  (linux-x86_64-gnu .tar.gz or windows-x86_64-msvc .zip) and adds it to
+  PATH at $HOME/.local/bin. No-op for OSes other than Linux/Windows.
+
+inputs:
+  version:
+    description: portablemc release version (without leading `v`)
+    required: false
+    default: '5.0.3'
+
+runs:
+  using: composite
+  steps:
+    - name: Install portablemc (${{ runner.os }})
+      shell: bash
+      env:
+        PMC_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        mkdir -p /tmp/pmc "$HOME/.local/bin"
+
+        case "$RUNNER_OS" in
+          Linux)
+            curl -fsSL -o /tmp/pmc.tar.gz \
+              "https://github.com/mindstorm38/portablemc/releases/download/v${PMC_VERSION}/portablemc-${PMC_VERSION}-linux-x86_64-gnu.tar.gz"
+            tar -xzf /tmp/pmc.tar.gz -C /tmp/pmc
+            PMC_BIN="$(find /tmp/pmc -type f -name portablemc -executable | head -1)"
+            [[ -x "$PMC_BIN" ]] || { echo "::error::portablemc binary not found in archive"; ls -R /tmp/pmc; exit 1; }
+            install -m 0755 "$PMC_BIN" "$HOME/.local/bin/portablemc"
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+            "$HOME/.local/bin/portablemc" --version
+            ;;
+          Windows)
+            curl -fsSL -o /tmp/pmc.zip \
+              "https://github.com/mindstorm38/portablemc/releases/download/v${PMC_VERSION}/portablemc-${PMC_VERSION}-windows-x86_64-msvc.zip"
+            unzip -q /tmp/pmc.zip -d /tmp/pmc
+            PMC_BIN="$(find /tmp/pmc -type f -name 'portablemc.exe' | head -1)"
+            [[ -x "$PMC_BIN" ]] || { echo "::error::portablemc.exe not found in archive"; ls -R /tmp/pmc; exit 1; }
+            cp "$PMC_BIN" "$HOME/.local/bin/portablemc.exe"
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+            "$HOME/.local/bin/portablemc.exe" --version
+            ;;
+          *)
+            echo "::error::unsupported runner OS: $RUNNER_OS"
+            exit 1
+            ;;
+        esac

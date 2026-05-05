@@ -1,0 +1,46 @@
+name: Install Mesa3D (software OpenGL)
+description: |
+  Installs Mesa3D's llvmpipe software OpenGL driver system-wide on
+  Windows runners (no-op elsewhere). Needed because GitHub-hosted
+  windows-latest runners don't ship a GPU driver, so the native
+  opengl32.dll fails WGL probing and Forge's FML early window crashes
+  before mod construction.
+
+  Downloads a pinned pal1000/mesa-dist-win release archive and runs
+  its bundled `systemwidedeploy.cmd 1` (= core desktop OpenGL drivers,
+  no extras). The script handles System32 ownership / registry tweaks
+  itself.
+
+inputs:
+  version:
+    description: pal1000/mesa-dist-win release version
+    required: false
+    default: '26.0.6'
+
+runs:
+  using: composite
+  steps:
+    - name: Install Mesa3D
+      if: runner.os == 'Windows'
+      shell: pwsh
+      env:
+        MESA_DIST_VERSION: ${{ inputs.version }}
+      run: |
+        $url = "https://github.com/pal1000/mesa-dist-win/releases/download/$env:MESA_DIST_VERSION/mesa3d-$env:MESA_DIST_VERSION-release-msvc.7z"
+        $archive = Join-Path $env:RUNNER_TEMP 'mesa.7z'
+        $extract = Join-Path $env:RUNNER_TEMP 'mesa'
+        Invoke-WebRequest -Uri $url -OutFile $archive -UseBasicParsing
+        & "C:\Program Files\7-Zip\7z.exe" x $archive "-o$extract" -y | Out-Null
+
+        Push-Location $extract
+        try {
+          cmd /c "systemwidedeploy.cmd 1"
+          if ($LASTEXITCODE -ne 0) {
+            throw "systemwidedeploy.cmd exited $LASTEXITCODE"
+          }
+        } finally {
+          Pop-Location
+        }
+
+        Write-Host "Mesa3D installed:"
+        Get-Item C:\Windows\System32\opengl32.dll | Format-List FullName, Length, LastWriteTime

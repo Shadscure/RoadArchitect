@@ -115,15 +115,28 @@ jobs:
           echo "loader_version=$LOADER_VERSION" >> "$GITHUB_OUTPUT"
           echo "::notice::${{ matrix.loader }}=$LOADER_VERSION  cloth=$CLOTH_VERSION"
 
+      - name: Cache built mod jar (skip Gradle entirely on src-hash hit)
+        # Outer cache layer over the build output. The key hashes everything
+        # that can affect the produced jar — Java/resources under
+        # modules/**/src, per-module + root gradle config, gradle.properties
+        # (which carries the dep versions), and buildSrc convention plugins.
+        # On a hit (e.g. workflow-only tweak with no source change), the
+        # next step skips Gradle entirely; on a miss, Gradle runs and the
+        # restored gradle-home cache still cuts dep-resolution time.
+        id: jar-cache
+        uses: actions/cache@v4
+        with:
+          path: modules/${{ matrix.loader }}/build/libs
+          key: mod-jar-${{ matrix.loader }}-${{ hashFiles('modules/**/src/**', 'modules/**/build.gradle*', 'gradle.properties', 'build.gradle', 'settings.gradle', 'buildSrc/**') }}
+
       - name: Build mod jar
         # `--build-cache` enables Gradle's internal task-output cache.
-        # setup-gradle@v4 already preserves ~/.gradle/caches/build-cache-1
-        # between runs; this flag lets Gradle actually use it. With
-        # unchanged source, compileJava / processResources / jar /
-        # sourcesJar restore their outputs from the cache instead of
-        # re-executing. First run with the flag is a wash (cache is
-        # populated for the first time); subsequent runs win 30-60s
-        # when src didn't change.
+        # Even when this step does run (src-hash miss above), Gradle
+        # itself can still skip individual tasks whose inputs match a
+        # build-cache-1 entry from a prior run. The two caching layers
+        # compose: outer cache shortcuts whole-build, inner cache
+        # shortcuts individual tasks.
+        if: steps.jar-cache.outputs.cache-hit != 'true'
         run: ./gradlew ":modules:${{ matrix.loader }}:build" --build-cache --quiet
 
       - name: Assemble test bundle

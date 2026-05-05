@@ -786,7 +786,13 @@ jobs:
     env:
       MC: ${{ needs.discover.outputs.mc }}
       LOADER: ${{ matrix.loader }}
-      BOOT_TIMEOUT: ${{ inputs.wait_seconds || '180' }}
+      # Windows runners are noticeably slower at cold world-gen than
+      # Linux (no GPU passthrough, slower disk on the server SKU). The
+      # first run reached only ~70-75% of "Preparing spawn area" within
+      # 180s — server itself was healthy, just hadn't logged the
+      # `Done (Xs)!` marker yet. Bump to 300s so we measure the right
+      # thing instead of the runner's I/O.
+      BOOT_TIMEOUT: ${{ inputs.wait_seconds || '300' }}
     steps:
       - name: Setup JDK 17 (server runtime)
         uses: actions/setup-java@v4

@@ -1,0 +1,173 @@
+name: smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      mc:
+        description: 'Minecraft version (must match this branch, e.g. 1.20.1)'
+        required: true
+        default: '1.20.1'
+      loader:
+        description: 'Mod loader (forge | neoforge | fabric)'
+        required: true
+        default: 'forge'
+        type: choice
+        options:
+          - forge
+          - neoforge
+          - fabric
+      wait_seconds:
+        description: 'Seconds to keep the game alive before timing out'
+        required: false
+        default: '180'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      MC: ${{ inputs.mc }}
+      LOADER: ${{ inputs.loader }}
+      WAIT_SECONDS: ${{ inputs.wait_seconds }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17 (Adoptium temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle (with cache)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Install xvfb + portablemc
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb
+          # portablemc-cli is rust-based since 5.x; cargo is preinstalled on ubuntu-24.04
+          cargo install portablemc-cli --locked --quiet
+          # cargo puts binary at ~/.cargo/bin which is on PATH via setup
+          which portablemc
+          portablemc --version
+
+      - name: Read versions from gradle.properties
+        id: gp
+        run: |
+          set -euo pipefail
+          read_prop() { grep -E "^${1}\s*=" gradle.properties | head -1 | awk -F'=' '{print $2}' | tr -d ' '; }
+          MOD_VERSION="$(read_prop mod_version)"
+          CLOTH_VERSION="$(read_prop cloth_config_version)"
+          case "$LOADER" in
+            forge)    LOADER_VERSION="$(read_prop forge_version)" ;;
+            neoforge) LOADER_VERSION="$(read_prop neoforge_version)" ;;
+            fabric)   LOADER_VERSION="$(read_prop fabric_loader_version)" ;;
+          esac
+          echo "mod_version=$MOD_VERSION" >> "$GITHUB_OUTPUT"
+          echo "cloth_version=$CLOTH_VERSION" >> "$GITHUB_OUTPUT"
+          echo "loader_version=$LOADER_VERSION" >> "$GITHUB_OUTPUT"
+          echo "::notice::mod=$MOD_VERSION  $LOADER=$LOADER_VERSION  cloth=$CLOTH_VERSION"
+
+      - name: Build mod jar
+        run: ./gradlew ":modules:${LOADER}:build" --quiet
+
+      - name: Stage test profile (mods + deps)
+        id: stage
+        run: |
+          set -euo pipefail
+          TEST_DIR="$RUNNER_TEMP/ra-smoke"
+          rm -rf "$TEST_DIR"
+          mkdir -p "$TEST_DIR/mods"
+
+          MOD_JAR="$(find "modules/$LOADER/build/libs" -maxdepth 1 -type f \
+            -name "*${{ steps.gp.outputs.mod_version }}*.jar" \
+            ! -name '*-sources*' ! -name '*-dev*' \
+            -printf '%T@ %p\n' | sort -nr | head -1 | cut -d' ' -f2-)"
+          [[ -f "$MOD_JAR" ]] || { echo "::error::no built jar matched ${{ steps.gp.outputs.mod_version }} in modules/$LOADER/build/libs"; ls -la "modules/$LOADER/build/libs" || true; exit 1; }
+          cp "$MOD_JAR" "$TEST_DIR/mods/"
+          echo "mod jar: $(basename "$MOD_JAR")"
+
+          CLOTH_DIR="$HOME/.gradle/caches/modules-2/files-2.1/me.shedaniel.cloth/cloth-config-${LOADER}/${{ steps.gp.outputs.cloth_version }}"
+          CLOTH_JAR="$(find "$CLOTH_DIR" -name '*.jar' ! -name '*-sources*' 2>/dev/null | head -1 || true)"
+          [[ -f "$CLOTH_JAR" ]] || { echo "::error::cloth-config-${LOADER}-${{ steps.gp.outputs.cloth_version }} not in gradle cache"; exit 1; }
+          cp "$CLOTH_JAR" "$TEST_DIR/mods/"
+          echo "cloth: $(basename "$CLOTH_JAR")"
+
+          if [[ "$LOADER" == "fabric" ]]; then
+            FA_VER="$(grep -E '^fabric_api_version\s*=' gradle.properties | awk -F'=' '{print $2}' | tr -d ' ')"
+            FA_JAR="$(find "$HOME/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api/$FA_VER" -name '*.jar' ! -name '*-sources*' 2>/dev/null | head -1 || true)"
+            if [[ -f "$FA_JAR" ]]; then
+              cp "$FA_JAR" "$TEST_DIR/mods/"
+              echo "fabric-api: $(basename "$FA_JAR")"
+            fi
+          fi
+
+          echo "test_dir=$TEST_DIR" >> "$GITHUB_OUTPUT"
+          ls -la "$TEST_DIR/mods/"
+
+      - name: Compose portablemc target
+        id: target
+        run: |
+          set -euo pipefail
+          case "$LOADER" in
+            forge)    TARGET="forge::${MC}-${{ steps.gp.outputs.loader_version }}" ;;
+            neoforge) TARGET="neoforge:${{ steps.gp.outputs.loader_version }}" ;;
+            fabric)   TARGET="fabric:${MC}:${{ steps.gp.outputs.loader_version }}" ;;
+          esac
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "::notice::target=$TARGET"
+
+      - name: Launch (xvfb-run, ${{ inputs.wait_seconds }}s)
+        run: |
+          set -uo pipefail
+          LOG="${{ steps.stage.outputs.test_dir }}/launch.log"
+          xvfb-run -a timeout --foreground -s INT "$WAIT_SECONDS" \
+            portablemc start \
+              --main-dir "${{ steps.stage.outputs.test_dir }}" \
+              --username SmokeTester \
+              "${{ steps.target.outputs.target }}" \
+            > "$LOG" 2>&1
+          RC=$?
+          # 0   — clean exit
+          # 124 — timeout fired (game alive the whole window — pass)
+          # 130 — SIGINT (also from timeout)
+          # other — launcher itself died
+          case "$RC" in
+            0|124|130) echo "::notice::launcher exited rc=$RC (expected)" ;;
+            *) echo "::error::launcher exited unexpectedly rc=$RC"; tail -50 "$LOG" | tr -d '\r'; exit 1 ;;
+          esac
+
+      - name: Detect crash patterns in log
+        run: |
+          set -uo pipefail
+          LOG="${{ steps.stage.outputs.test_dir }}/launch.log"
+          CRASH='Failed to create mod|NoSuchMethodError|NoClassDefFoundError|UnsatisfiedLinkError|ModLoadingException|ReportedException|FATAL.*minecraft|Mod requires.*above|Mixin apply failed'
+          NOISE='Realms|SignedJWT|FailedConnection|Authentication|MinecraftClientHttpException|player/attributes|Failed to load realms|FabricMC.*JWT'
+          HITS="$(grep -E "$CRASH" "$LOG" | grep -Ev "$NOISE" | head -20 || true)"
+          BOOTED="$(grep -E 'ModLauncher|FabricLoader|Mod construction|RoadArchitect' "$LOG" | head -3 || true)"
+
+          if [[ -n "$HITS" ]]; then
+            echo "::error::Crash patterns detected in log:"
+            echo "$HITS" | sed 's/^/  /'
+            exit 1
+          fi
+          if [[ -z "$BOOTED" ]]; then
+            echo "::error::Launcher never reached mod loading stage (no ModLauncher/FabricLoader/RoadArchitect line)"
+            tail -30 "$LOG" | tr -d '\r'
+            exit 1
+          fi
+          echo "::notice::PASS — first booted line: $(echo "$BOOTED" | head -1 | cut -c1-120)"
+
+      - name: Upload launch.log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-log-${{ inputs.mc }}-${{ inputs.loader }}
+          path: ${{ steps.stage.outputs.test_dir }}/launch.log
+          retention-days: 7

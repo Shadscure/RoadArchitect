@@ -16,60 +16,188 @@ on:
       - 'buildSrc/**'
   workflow_dispatch:
     inputs:
-      mc:
-        description: 'Minecraft version (must match this branch, e.g. 1.20.1)'
-        required: true
-        default: '1.20.1'
-      loader:
-        description: 'Mod loader (forge | neoforge | fabric)'
-        required: true
-        default: 'forge'
-        type: choice
-        options:
-          - forge
-          - neoforge
-          - fabric
       wait_seconds:
-        description: 'Seconds to keep the game alive before timing out'
+        description: 'Seconds to keep the game alive before timing out (per cell)'
         required: false
         default: '180'
 
 jobs:
-  smoke:
+  # ─── Stage 0 ────────────────────────────────────────────────────────────
+  # Determine what to test on this branch:
+  #   - mc:      from gradle.properties (so the same workflow file works
+  #              identically across every *-multiloader branch — branch
+  #              determines the MC version, not a YAML constant)
+  #   - loaders: from `modules/` directory contents, filtered to known
+  #              loader names. 1.20.1 → [fabric, forge]; 1.21.x → [fabric,
+  #              neoforge]; the workflow is one file, every branch picks up
+  #              its own loader set.
+  discover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      loaders: ${{ steps.detect.outputs.loaders }}
+      mc: ${{ steps.detect.outputs.mc }}
+      mod_version: ${{ steps.detect.outputs.mod_version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: detect
+        run: |
+          set -euo pipefail
+          # Loader auto-detection: only directories whose name is one of the
+          # three loaders we support. Skips `common/`, build outputs, etc.
+          LOADERS_JSON="$(ls -1 modules 2>/dev/null \
+            | grep -E '^(forge|fabric|neoforge)$' \
+            | jq -R . | jq -cs .)"
+          [[ "$LOADERS_JSON" != "[]" ]] || { echo "::error::no loader modules found under modules/"; exit 1; }
+
+          read_prop() { grep -E "^${1}\s*=" gradle.properties | head -1 | awk -F'=' '{print $2}' | tr -d ' '; }
+          MC="$(read_prop minecraft_version)"
+          MOD_VERSION="$(read_prop mod_version)"
+
+          echo "loaders=${LOADERS_JSON}" >> "$GITHUB_OUTPUT"
+          echo "mc=${MC}" >> "$GITHUB_OUTPUT"
+          echo "mod_version=${MOD_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "::notice::mc=${MC}  mod=${MOD_VERSION}  loaders=${LOADERS_JSON}"
+
+  # ─── Stage 1: build ─────────────────────────────────────────────────────
+  # Per-loader Gradle build. Output is a bundle artifact containing:
+  #   - the freshly built mod jar
+  #   - cloth-config jar resolved from the gradle cache
+  #   - fabric-api jar (fabric loader only)
+  #   - versions.env with $LOADER_VERSION for the test stage's portablemc target
+  # Test stages then need zero JDK/Gradle — they consume the bundle.
+  build:
+    needs: discover
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    env:
-      # Defaults apply when triggered by push (inputs.* unavailable).
-      MC: ${{ inputs.mc || '1.20.1' }}
-      LOADER: ${{ inputs.loader || 'forge' }}
-      WAIT_SECONDS: ${{ inputs.wait_seconds || '180' }}
-
+    strategy:
+      fail-fast: false
+      matrix:
+        loader: ${{ fromJSON(needs.discover.outputs.loaders) }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup JDK 21 (Adoptium temurin)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          # Gradle itself runs on 21+ (fabric-loom 1.11-SNAPSHOT requires it).
-          # The game's runtime JVM is provided by portablemc separately, so the
-          # client doesn't care what Gradle uses.
+          # Gradle itself runs on 21+ (fabric-loom 1.11-SNAPSHOT requires
+          # it). The game's runtime JVM is provided by portablemc separately
+          # in the test stage, so the client doesn't care what Gradle uses.
           java-version: '21'
 
       - name: Setup Gradle (with cache)
         uses: gradle/actions/setup-gradle@v4
         with:
-          # Default for non-default-branch workflows is `true` — i.e. cache is
-          # read-only on ci/smoke, so nothing ever gets saved and every run
-          # cold-resolves Forge userdev. Flip to false so iteration runs
-          # populate their own cache for subsequent restores.
-          # `cache-cleanup` is left at its default ('on-success'), which
-          # already prunes stale Gradle User Home entries before save.
+          # Default for non-default-branch workflows is `true` — i.e. cache
+          # is read-only on ci/smoke, so nothing ever gets saved and every
+          # run cold-resolves Forge userdev. Flip to false so iteration
+          # runs populate their own cache for subsequent restores. The
+          # `cache-cleanup` default ('on-success') already prunes stale
+          # Gradle User Home entries before save.
           cache-read-only: false
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
+      - run: chmod +x ./gradlew
+
+      - name: Read loader-specific versions
+        id: gp
+        run: |
+          set -euo pipefail
+          read_prop() { grep -E "^${1}\s*=" gradle.properties | head -1 | awk -F'=' '{print $2}' | tr -d ' '; }
+          CLOTH_VERSION="$(read_prop cloth_config_version)"
+          case "${{ matrix.loader }}" in
+            forge)    LOADER_VERSION="$(read_prop forge_version)" ;;
+            neoforge) LOADER_VERSION="$(read_prop neoforge_version)" ;;
+            fabric)   LOADER_VERSION="$(read_prop fabric_loader_version)" ;;
+          esac
+          echo "cloth_version=$CLOTH_VERSION" >> "$GITHUB_OUTPUT"
+          echo "loader_version=$LOADER_VERSION" >> "$GITHUB_OUTPUT"
+          echo "::notice::${{ matrix.loader }}=$LOADER_VERSION  cloth=$CLOTH_VERSION"
+
+      - name: Build mod jar
+        run: ./gradlew ":modules:${{ matrix.loader }}:build" --quiet
+
+      - name: Assemble test bundle
+        run: |
+          set -euo pipefail
+          BUNDLE="$RUNNER_TEMP/bundle"
+          rm -rf "$BUNDLE" && mkdir -p "$BUNDLE/mods"
+
+          MOD_JAR="$(find "modules/${{ matrix.loader }}/build/libs" -maxdepth 1 -type f \
+            -name "*${{ needs.discover.outputs.mod_version }}*.jar" \
+            ! -name '*-sources*' ! -name '*-dev*' \
+            -printf '%T@ %p\n' | sort -nr | head -1 | cut -d' ' -f2-)"
+          [[ -f "$MOD_JAR" ]] || { echo "::error::mod jar not found in modules/${{ matrix.loader }}/build/libs"; ls -la "modules/${{ matrix.loader }}/build/libs" || true; exit 1; }
+          cp "$MOD_JAR" "$BUNDLE/mods/"
+          echo "mod jar:    $(basename "$MOD_JAR")"
+
+          CLOTH_DIR="$HOME/.gradle/caches/modules-2/files-2.1/me.shedaniel.cloth/cloth-config-${{ matrix.loader }}/${{ steps.gp.outputs.cloth_version }}"
+          CLOTH_JAR="$(find "$CLOTH_DIR" -name '*.jar' ! -name '*-sources*' 2>/dev/null | head -1 || true)"
+          [[ -f "$CLOTH_JAR" ]] || { echo "::error::cloth-config-${{ matrix.loader }}-${{ steps.gp.outputs.cloth_version }} not in gradle cache"; exit 1; }
+          cp "$CLOTH_JAR" "$BUNDLE/mods/"
+          echo "cloth:      $(basename "$CLOTH_JAR")"
+
+          if [[ "${{ matrix.loader }}" == "fabric" ]]; then
+            FA_VER="$(grep -E '^fabric_api_version\s*=' gradle.properties | awk -F'=' '{print $2}' | tr -d ' ')"
+            FA_JAR="$(find "$HOME/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api/$FA_VER" -name '*.jar' ! -name '*-sources*' 2>/dev/null | head -1 || true)"
+            if [[ -f "$FA_JAR" ]]; then
+              cp "$FA_JAR" "$BUNDLE/mods/"
+              echo "fabric-api: $(basename "$FA_JAR")"
+            fi
+          fi
+
+          # Variables the test stage will need but doesn't get from
+          # `needs.*` (because they're per-loader, not per-job).
+          cat > "$BUNDLE/versions.env" <<EOF
+          LOADER=${{ matrix.loader }}
+          LOADER_VERSION=${{ steps.gp.outputs.loader_version }}
+          CLOTH_VERSION=${{ steps.gp.outputs.cloth_version }}
+          EOF
+
+          ls -la "$BUNDLE/mods/"
+
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-${{ matrix.loader }}
+          path: ${{ runner.temp }}/bundle/
+          # Short retention: bundles are intermediate, only consumed by
+          # the very next stage in the same workflow run.
+          retention-days: 1
+
+  # ─── Stage 2: client-linux ──────────────────────────────────────────────
+  # Per-loader headless smoke on Linux: download the build bundle, drop
+  # the jars into a portablemc profile, launch under xvfb, watch the log
+  # for either "healthy" markers (mod inited + render thread alive) or
+  # any crash class. Hard cap at WAIT_SECONDS.
+  client-linux:
+    needs: [discover, build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        loader: ${{ fromJSON(needs.discover.outputs.loaders) }}
+    env:
+      MC: ${{ needs.discover.outputs.mc }}
+      LOADER: ${{ matrix.loader }}
+      WAIT_SECONDS: ${{ inputs.wait_seconds || '180' }}
+    steps:
+      - name: Download bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: bundle-${{ matrix.loader }}
+          path: ${{ runner.temp }}/bundle
+
+      - name: Source bundle versions
+        id: gp
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC1091
+          source "$RUNNER_TEMP/bundle/versions.env"
+          echo "loader_version=$LOADER_VERSION" >> "$GITHUB_OUTPUT"
+          echo "::notice::resolved $LOADER=$LOADER_VERSION (from bundle)"
 
       - name: Install xvfb + portablemc
         env:
@@ -78,7 +206,6 @@ jobs:
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb
-          # Prebuilt portablemc binary from upstream releases (rust crate, no cargo build needed)
           mkdir -p /tmp/pmc "$HOME/.local/bin"
           curl -fsSL -o /tmp/pmc.tar.gz \
             "https://github.com/mindstorm38/portablemc/releases/download/v${PMC_VERSION}/portablemc-${PMC_VERSION}-linux-x86_64-gnu.tar.gz"
@@ -89,59 +216,16 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           "$HOME/.local/bin/portablemc" --version
 
-      - name: Read versions from gradle.properties
-        id: gp
-        run: |
-          set -euo pipefail
-          read_prop() { grep -E "^${1}\s*=" gradle.properties | head -1 | awk -F'=' '{print $2}' | tr -d ' '; }
-          MOD_VERSION="$(read_prop mod_version)"
-          CLOTH_VERSION="$(read_prop cloth_config_version)"
-          case "$LOADER" in
-            forge)    LOADER_VERSION="$(read_prop forge_version)" ;;
-            neoforge) LOADER_VERSION="$(read_prop neoforge_version)" ;;
-            fabric)   LOADER_VERSION="$(read_prop fabric_loader_version)" ;;
-          esac
-          echo "mod_version=$MOD_VERSION" >> "$GITHUB_OUTPUT"
-          echo "cloth_version=$CLOTH_VERSION" >> "$GITHUB_OUTPUT"
-          echo "loader_version=$LOADER_VERSION" >> "$GITHUB_OUTPUT"
-          echo "::notice::mod=$MOD_VERSION  $LOADER=$LOADER_VERSION  cloth=$CLOTH_VERSION"
-
-      - name: Build mod jar
-        run: ./gradlew ":modules:${LOADER}:build" --quiet
-
-      - name: Stage test profile (mods + deps)
+      - name: Stage profile from bundle
         id: stage
         run: |
           set -euo pipefail
           TEST_DIR="$RUNNER_TEMP/ra-smoke"
-          rm -rf "$TEST_DIR"
-          mkdir -p "$TEST_DIR/mods"
-
-          MOD_JAR="$(find "modules/$LOADER/build/libs" -maxdepth 1 -type f \
-            -name "*${{ steps.gp.outputs.mod_version }}*.jar" \
-            ! -name '*-sources*' ! -name '*-dev*' \
-            -printf '%T@ %p\n' | sort -nr | head -1 | cut -d' ' -f2-)"
-          [[ -f "$MOD_JAR" ]] || { echo "::error::no built jar matched ${{ steps.gp.outputs.mod_version }} in modules/$LOADER/build/libs"; ls -la "modules/$LOADER/build/libs" || true; exit 1; }
-          cp "$MOD_JAR" "$TEST_DIR/mods/"
-          echo "mod jar: $(basename "$MOD_JAR")"
-
-          CLOTH_DIR="$HOME/.gradle/caches/modules-2/files-2.1/me.shedaniel.cloth/cloth-config-${LOADER}/${{ steps.gp.outputs.cloth_version }}"
-          CLOTH_JAR="$(find "$CLOTH_DIR" -name '*.jar' ! -name '*-sources*' 2>/dev/null | head -1 || true)"
-          [[ -f "$CLOTH_JAR" ]] || { echo "::error::cloth-config-${LOADER}-${{ steps.gp.outputs.cloth_version }} not in gradle cache"; exit 1; }
-          cp "$CLOTH_JAR" "$TEST_DIR/mods/"
-          echo "cloth: $(basename "$CLOTH_JAR")"
-
-          if [[ "$LOADER" == "fabric" ]]; then
-            FA_VER="$(grep -E '^fabric_api_version\s*=' gradle.properties | awk -F'=' '{print $2}' | tr -d ' ')"
-            FA_JAR="$(find "$HOME/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api/$FA_VER" -name '*.jar' ! -name '*-sources*' 2>/dev/null | head -1 || true)"
-            if [[ -f "$FA_JAR" ]]; then
-              cp "$FA_JAR" "$TEST_DIR/mods/"
-              echo "fabric-api: $(basename "$FA_JAR")"
-            fi
-          fi
-
-          echo "test_dir=$TEST_DIR" >> "$GITHUB_OUTPUT"
+          rm -rf "$TEST_DIR" && mkdir -p "$TEST_DIR/mods"
+          # Bundle already contains every jar we need under mods/.
+          cp "$RUNNER_TEMP/bundle/mods/"*.jar "$TEST_DIR/mods/"
           ls -la "$TEST_DIR/mods/"
+          echo "test_dir=$TEST_DIR" >> "$GITHUB_OUTPUT"
 
       - name: Compose portablemc target
         id: target
@@ -164,15 +248,14 @@ jobs:
           # the patterns below are concrete enough that any real regression
           # produces at least one match.
           CRASH='Failed to create mod|NoSuchMethodError|NoClassDefFoundError|UnsatisfiedLinkError|ModLoadingException|ReportedException|FATAL.*minecraft|Mod requires.*above|Mixin apply failed'
-          # Known-safe noise — explicitly suppressed so the broad CRASH regex
-          # above keeps catching real classes of the same type elsewhere:
-          #   Realms/JWT/auth        — offline-mode auth chains always fail
-          #   text2speech/Narrator   — accessibility TTS native (libflite.so)
-          #                            absent on hosted runners; unrelated
+          # Known-safe noise — explicitly suppressed so the broad CRASH
+          # regex above keeps catching real classes of the same type
+          # elsewhere:
+          #   Realms/JWT/auth      — offline-mode auth chains always fail
+          #   text2speech/Narrator — accessibility TTS native (libflite.so)
+          #                          absent on hosted runners; unrelated
           NOISE='Realms|SignedJWT|FailedConnection|Authentication|MinecraftClientHttpException|player/attributes|Failed to load realms|FabricMC.*JWT|text2speech|Narrator|libflite|Unable to load library .flite'
 
-          # Background launcher; xvfb-run propagates signals to the JVM child
-          # when we send SIGTERM/SIGKILL on early-exit.
           xvfb-run -a portablemc start \
             --main-dir "${{ steps.stage.outputs.test_dir }}" \
             --username SmokeTester \
@@ -184,38 +267,24 @@ jobs:
           DEADLINE=$((START_TS + WAIT_SECONDS))
           REASON='deadline'
 
-          # Polling loop — terminates as soon as either decisive signal appears
-          # in the log, instead of always waiting the full WAIT_SECONDS window.
           while [[ $(date +%s) -lt $DEADLINE ]]; do
             sleep 3
-
             if [[ -f "$LOG" ]]; then
-              # Hard fail — crash class detected, no point waiting further
               if grep -E "$CRASH" "$LOG" 2>/dev/null | grep -qEv "$NOISE"; then
-                REASON='crash'
-                break
+                REASON='crash'; break
               fi
-
-              # Hard pass — both health markers seen:
-              #   1) [RoadArchitect] log line  → mod's own init code ran
-              #   2) texture atlas line        → render thread alive
               if grep -qF '[RoadArchitect]' "$LOG" 2>/dev/null \
                  && grep -qE 'Created: [0-9]+x[0-9]+.*minecraft:textures/atlas' "$LOG" 2>/dev/null; then
-                REASON='healthy'
-                break
+                REASON='healthy'; break
               fi
             fi
-
-            # Process died on its own (clean quit or unhandled crash)
             if ! kill -0 "$LAUNCHER_PID" 2>/dev/null; then
-              REASON='self_exit'
-              break
+              REASON='self_exit'; break
             fi
           done
 
           ELAPSED=$(($(date +%s) - START_TS))
 
-          # Tear down launcher if still running (TERM, brief grace, KILL)
           if kill -0 "$LAUNCHER_PID" 2>/dev/null; then
             kill -TERM "$LAUNCHER_PID" 2>/dev/null || true
             for _ in 1 2 3 4 5; do
@@ -228,7 +297,6 @@ jobs:
 
           echo "::notice::launcher terminated after ${ELAPSED}s (reason=${REASON})"
 
-          # Final classification — converts loop's REASON into pass/fail
           case "$REASON" in
             healthy)
               RA_INIT="$(grep -F '[RoadArchitect]' "$LOG" | head -1 || true)"
@@ -242,10 +310,6 @@ jobs:
               exit 1
               ;;
             deadline|self_exit)
-              # Final pass on the log: did any crash slip in late, and did
-              # the mod at least mention itself? Stricter than the old
-              # ModLauncher/FabricLoader fallback — those fire even if our
-              # mod silently no-op'd.
               FINAL_HITS="$(grep -E "$CRASH" "$LOG" 2>/dev/null | grep -Ev "$NOISE" | head -10 || true)"
               RA_INIT="$(grep -F '[RoadArchitect]' "$LOG" 2>/dev/null | head -1 || true)"
               if [[ -n "$FINAL_HITS" ]]; then
@@ -264,10 +328,6 @@ jobs:
           esac
 
       - name: Upload launch.log
-        # `always()` so we get the log on green runs too — useful for
-        # confirming what "PASS" actually saw. `if-no-files-found: ignore`
-        # silences the warning when an early step (e.g. gradle build) fails
-        # before the log file is created.
         if: always()
         uses: actions/upload-artifact@v4
         with:

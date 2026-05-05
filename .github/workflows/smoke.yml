@@ -359,6 +359,12 @@ jobs:
       MC: ${{ needs.discover.outputs.mc }}
       LOADER: ${{ matrix.loader }}
       WAIT_SECONDS: ${{ inputs.wait_seconds || '180' }}
+      # Mesa3D llvmpipe needs to advertise modern GL/GLSL for MC to accept
+      # the context, otherwise: "A forward compatible OpenGL context requested
+      # but WGL_ARB_compatibility is unavailable" (pal1000/mesa-dist-win#57).
+      MESA_GL_VERSION_OVERRIDE: '4.6'
+      MESA_GLSL_VERSION_OVERRIDE: '460'
+      GALLIUM_DRIVER: 'llvmpipe'
     steps:
       - name: Download bundle
         uses: actions/download-artifact@v4
@@ -376,14 +382,20 @@ jobs:
           echo "::notice::resolved $LOADER=$LOADER_VERSION (from bundle)"
 
       - name: Install Mesa3D (software OpenGL for headless server SKU)
-        # Windows Server 2025 GHA runners ship without a GPU driver, so the
-        # native opengl32.dll fails WGL probing. Forge's FML early display
-        # crashes before reaching mod construction (Fabric is unaffected
-        # because it doesn't init GLFW that early). Mesa3D's software
-        # opengl32.dll lets LWJGL succeed at GL context creation.
-        shell: pwsh
-        run: |
-          choco install -y --no-progress mesa3d
+        # Windows Server 2025 GHA runners ship without a GPU driver, so
+        # the native opengl32.dll fails WGL probing. Forge's FML early
+        # display crashes before reaching mod construction (Fabric is
+        # unaffected because it doesn't init GLFW that early). Mesa3D's
+        # llvmpipe gives LWJGL a working software GL context.
+        #
+        # Use the canonical community action — it wraps pal1000/mesa-dist-win's
+        # `systemwidedeploy.cmd` (deployment-choice=1 = core desktop GL),
+        # which handles System32 ownership and registry tweaks correctly.
+        # Doing this by hand with takeown/icacls is fragile; the action is
+        # the maintained path.
+        uses: ssciwr/setup-mesa-dist-win@v3
+        with:
+          deployment-choice: '1'
 
       - name: Install portablemc (Windows zip)
         env:

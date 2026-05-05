@@ -1,6 +1,19 @@
 name: smoke
 
 on:
+  # Push trigger only on the iteration branch — auto-runs each fixup commit.
+  # Drop this `push:` block before merging anywhere; production runs should
+  # stay on workflow_dispatch.
+  push:
+    branches:
+      - ci/smoke
+    paths:
+      - '.github/workflows/smoke.yml'
+      - 'modules/**'
+      - 'gradle.properties'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'buildSrc/**'
   workflow_dispatch:
     inputs:
       mc:
@@ -26,9 +39,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      MC: ${{ inputs.mc }}
-      LOADER: ${{ inputs.loader }}
-      WAIT_SECONDS: ${{ inputs.wait_seconds }}
+      # Defaults apply when triggered by push (inputs.* unavailable).
+      MC: ${{ inputs.mc || '1.20.1' }}
+      LOADER: ${{ inputs.loader || 'forge' }}
+      WAIT_SECONDS: ${{ inputs.wait_seconds || '180' }}
 
     steps:
       - name: Checkout
